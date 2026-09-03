@@ -12,6 +12,7 @@ class AgentRole(str, Enum):
     BIOSECURITY_ANALYST = "CBRN & Biosecurity Intelligence Analyst"
     WHOLE_OF_GOV_LIAISON = "Australian Inter-Agency Policy Coordinator"
     CLINICAL_EPIDEMIOLOGIST = "Infectious Disease Epidemiologist"
+    SCIENTIFIC_RESEARCHER = "Scientific Literature & Threat Researcher"
     RADIOLOGICAL_PHYSICIST = "Health Physicist & Radiological Specialist"
     NUCLEAR_FORENSICS_ANALYST = "Nuclear Forensics & Safeguards Analyst"
 

@@ -1,6 +1,6 @@
 """
 Node Executor - executes individual pathway nodes using autonomous agent squads,
-inter-node lead communication protocols, and produce structured biological,
+inter-node lead communication protocols, and produces structured biological,
 chemical, and radiological response artifacts.
 """
 
@@ -20,6 +20,7 @@ from ..agents.teams import AGENT_TEAMS, AGENT_PERSONAS
 from ..agencies.generator import AgencyReportGenerator
 from ..agencies.registry import AUSTRALIAN_AGENCIES
 from .bio_analyzer import BioinformaticsIdentifier
+from .data_hub import ThreatResearcher, BlockerAlert, BlockerSeverity
 
 
 class NodeExecutor:
@@ -31,16 +32,17 @@ class NodeExecutor:
         node: PathwayNode,
         blackboard: Dict[str, Any],
         scenario_data: Dict[str, Any],
-    ) -> Tuple[PathwayNode, List[AgentThoughtLog], Dict[str, Any], List[InterNodeDialogue]]:
+    ) -> Tuple[PathwayNode, List[AgentThoughtLog], Dict[str, Any], List[InterNodeDialogue], Optional[BlockerAlert]]:
         """
         Executes node logic using assigned agent squad and Node Lead coordination.
-        Returns updated node, new thought logs, artifacts, and inter-node dialogues.
+        Returns updated node, new thought logs, artifacts, inter-node dialogues, and optional blocker alert.
         """
         start_time = time.time()
         node.status = NodeStatus.RUNNING
         new_logs: List[AgentThoughtLog] = []
         new_artifacts: Dict[str, Any] = {}
         new_dialogues: List[InterNodeDialogue] = []
+        new_blocker: Optional[BlockerAlert] = None
 
         # Prioritize custom node-level configured agent squad if present
         if node.agent_team_config and node.agent_team_config.members:
@@ -92,6 +94,18 @@ class NodeExecutor:
                 )
                 new_artifacts["sample"] = sample_data
                 node.outputs = {"sample_id": sample_data.get("sample_id"), "radionuclide": "Caesium-137", "photopeak_kev": 661.7, "activity_tbq": 3.7, "status": "verified"}
+
+                # Raise blocker alert for critical radiation activity
+                new_blocker = BlockerAlert(
+                    alert_id=f"blk_{uuid.uuid4().hex[:6]}",
+                    node_id=node.id,
+                    node_label=node.label,
+                    severity=BlockerSeverity.CRITICAL,
+                    title="High-Activity Caesium-137 Dispersal Confirmed (> 10 mSv/hr)",
+                    description="Gamma spectrometry confirms 3.7 TBq Category 1 dangerous source at Port Botany. Exceeds ARPANSA public dose limits.",
+                    required_action="Immediate activation of ARPANSA Emergency Reference Levels (ERL) and 5 km urgent protective planning zone.",
+                    raised_by_agent=lead_persona.name,
+                )
             else:
                 bio_metrics = BioinformaticsIdentifier.analyze_payload(raw_payload, sample_data.get("name", ""))
                 new_logs.append(
@@ -125,9 +139,73 @@ class NodeExecutor:
                 new_artifacts["sample"] = sample_data
                 node.outputs = {"sample_id": sample_data.get("sample_id"), "length": bio_metrics["length"], "gc_content": bio_metrics["gc_content"], "status": "verified"}
 
-        # ---------------- 2. CHARACTERIZATION NODE ----------------
+        # ---------------- 2. RESEARCH & LITERATURE SURVEILLANCE NODE ----------------
+        elif node.category == NodeCategory.RESEARCH:
+            threat_name = scenario_data.get("name", "Emerging Pathogen")
+            query_term = scenario_data.get("identification", {}).get("agent_name", threat_name) or threat_name
+
+            new_logs.append(
+                AgentThoughtLog(
+                    id=f"th_{uuid.uuid4().hex[:8]}",
+                    agent_id=lead_persona.id,
+                    agent_name=lead_persona.name,
+                    agent_role=f"{lead_persona.role.value} ({team_name})",
+                    node_id=node.id,
+                    phase=AgentThoughtPhase.OBSERVATION,
+                    message=f"Initiating scientific literature and peer-reviewed surveillance queries for '{query_term}'.",
+                    confidence=0.98,
+                )
+            )
+
+            # Query real PubMed E-Utilities or curated literature registry
+            papers = ThreatResearcher.query_live_pubmed(query=query_term, max_results=3)
+            paper_dicts = [p.model_dump() for p in papers]
+            new_artifacts["literature_research"] = paper_dicts
+
+            top_paper = papers[0] if papers else None
+            new_logs.append(
+                AgentThoughtLog(
+                    id=f"th_{uuid.uuid4().hex[:8]}",
+                    agent_id=lead_persona.id,
+                    agent_name=lead_persona.name,
+                    agent_role=f"{lead_persona.role.value} ({team_name})",
+                    node_id=node.id,
+                    phase=AgentThoughtPhase.TOOL_EXECUTION,
+                    message=f"Retrieved {len(papers)} indexed publications and peer-reviewed clinical findings.",
+                    tool_name="ncbi_pubmed_literature_retriever",
+                    tool_input={"query": query_term, "count": len(papers)},
+                    tool_output_summary=f"Found {len(papers)} studies. Lead study: '{top_paper.title if top_paper else ''}' ({top_paper.journal if top_paper else ''}).",
+                    confidence=0.99,
+                )
+            )
+
+            new_dialogues.append(
+                InterNodeDialogue(
+                    dialogue_id=f"dial_{uuid.uuid4().hex[:8]}",
+                    source_node_id=node.id,
+                    source_agent_id=lead_persona.id,
+                    source_agent_name=lead_persona.name,
+                    target_node_id="node_genomic_characterization",
+                    target_agent_id="agent_bioinfo_lead",
+                    target_agent_name="AGENT-BIOINFO-LEAD-01",
+                    message_type=DialogueMessageType.REQUEST_INFO,
+                    subject="Literature Evidence on Functional Mutations",
+                    content=f"Research Lead transmitting {len(papers)} peer-reviewed studies on '{query_term}'. Validated mutations and cleavage mechanisms corroborated.",
+                    response_content="Genomics Lead: Cross-referencing literature findings with sequencing reads.",
+                    resolved=True,
+                )
+            )
+
+            node.outputs = {
+                "papers_retrieved": len(papers),
+                "top_study": top_paper.title if top_paper else "N/A",
+                "top_journal": top_paper.journal if top_paper else "N/A",
+                "top_pmid": top_paper.pmid if top_paper else "N/A",
+                "evidence_tier": "Peer-Reviewed Primary Research (NLM Indexed / Nature / Lancet)",
+            }
+
+        # ---------------- 3. CHARACTERIZATION NODE ----------------
         elif node.category == NodeCategory.CHARACTERIZATION:
-            # Generate Inter-Node Dialogue from Characterization Lead to Ingestion Lead
             new_dialogues.append(
                 InterNodeDialogue(
                     dialogue_id=f"dial_{uuid.uuid4().hex[:8]}",
@@ -215,7 +293,20 @@ class NodeExecutor:
                 new_artifacts["identification"] = ident_data
                 node.outputs = ident_data
 
-        # ---------------- 3. STRUCTURAL BIOLOGY NODE ----------------
+                # If high-pathogenicity mutations detected, raise alert
+                if "High-Pathogenicity" in str(real_analysis.get("genomic_mutations_detected")):
+                    new_blocker = BlockerAlert(
+                        alert_id=f"blk_{uuid.uuid4().hex[:6]}",
+                        node_id=node.id,
+                        node_label=node.label,
+                        severity=BlockerSeverity.WARNING,
+                        title="High-Pathogenicity Furin Cleavage Insertion Detected",
+                        description="Genomic alignment confirmed polybasic cleavage site (R-X-R/K-R) indicating systemic tissue tropism.",
+                        required_action="Notify ACDP high-containment diagnostic unit and stand up CDNA case surveillance.",
+                        raised_by_agent=lead_persona.name,
+                    )
+
+        # ---------------- 4. STRUCTURAL BIOLOGY NODE ----------------
         elif node.category == NodeCategory.STRUCTURAL_BIOLOGY:
             new_dialogues.append(
                 InterNodeDialogue(
@@ -254,7 +345,7 @@ class NodeExecutor:
             new_artifacts["protein_targets"] = targets
             node.outputs = {"targets_resolved": len(targets), "primary_target": primary_target.get("name"), "druggability": primary_target.get("druggability_score", 0.9)}
 
-        # ---------------- 4. THERAPEUTICS NODE ----------------
+        # ---------------- 5. THERAPEUTICS NODE ----------------
         elif node.category == NodeCategory.THERAPEUTICS:
             new_dialogues.append(
                 InterNodeDialogue(
@@ -283,7 +374,7 @@ class NodeExecutor:
                     agent_role=f"{lead_persona.role.value} ({team_name})",
                     node_id=node.id,
                     phase=AgentThoughtPhase.TOOL_EXECUTION,
-                    message=f"Running AutoDock Vina in silico screening and cross-checking Australian Register of Therapeutic Goods (ARTG).",
+                    message="Running AutoDock Vina in silico screening and cross-checking Australian Register of Therapeutic Goods (ARTG).",
                     tool_name="autodock_vina_screener",
                     tool_input={"library": "ARTG_Approved_Antivirals_and_Antidotes", "grid_box": "catalytic_site"},
                     tool_output_summary=f"Top candidate: {top_drug.get('name')} (Binding Affinity: {top_drug.get('binding_affinity_kcal_mol', -8.0)} kcal/mol). TGA status: {top_drug.get('tga_artg_status')}.",
@@ -293,7 +384,7 @@ class NodeExecutor:
             new_artifacts["drug_candidates"] = drugs
             node.outputs = {"candidates_screened": len(drugs), "lead_candidate": top_drug.get("name"), "affinity": top_drug.get("binding_affinity_kcal_mol")}
 
-        # ---------------- 5. VACCINOLOGY NODE ----------------
+        # ---------------- 6. VACCINOLOGY NODE ----------------
         elif node.category == NodeCategory.VACCINOLOGY:
             new_dialogues.append(
                 InterNodeDialogue(
@@ -332,7 +423,7 @@ class NodeExecutor:
             new_artifacts["vaccine_candidates"] = vaccines
             node.outputs = {"platform": top_vac.get("platform"), "manufacturing_facility": top_vac.get("local_manufacturing_capability")}
 
-        # ---------------- 6. BIOSECURITY & THREAT ASSESSMENT NODE ----------------
+        # ---------------- 7. BIOSECURITY & THREAT ASSESSMENT NODE ----------------
         elif node.category == NodeCategory.BIOSECURITY:
             new_dialogues.append(
                 InterNodeDialogue(
@@ -370,7 +461,20 @@ class NodeExecutor:
             new_artifacts["threat_assessment"] = threat_assessment
             node.outputs = threat_assessment
 
-        # ---------------- 7. AGENCY REPORTING NODE ----------------
+            # Flag statutory reporting requirement blocker
+            if "Tier 1" in str(threat_assessment.get("ssba_tier")):
+                new_blocker = BlockerAlert(
+                    alert_id=f"blk_{uuid.uuid4().hex[:6]}",
+                    node_id=node.id,
+                    node_label=node.label,
+                    severity=BlockerSeverity.WARNING,
+                    title="Mandatory SSBA Tier 1 Notification Triggered",
+                    description="Pathogen falls under National Health Security Act 2007 Tier 1 SSBA list. Requires formal notification to ACDP within 24 hours.",
+                    required_action="Submit Initial Notification Form SSBA-01 to ACDP Biosecurity Regulatory Desk.",
+                    raised_by_agent=lead_persona.name,
+                )
+
+        # ---------------- 8. AGENCY REPORTING NODE ----------------
         elif node.category == NodeCategory.AGENCY_REPORTING:
             new_dialogues.append(
                 InterNodeDialogue(
@@ -398,6 +502,8 @@ class NodeExecutor:
                 threat_type=threat_type_str,
                 artifacts=merged_artifacts,
             )
+            relevant_agencies = [k.value for k, v in agency_reports.items() if v.is_relevant]
+
             new_logs.append(
                 AgentThoughtLog(
                     id=f"th_{uuid.uuid4().hex[:8]}",
@@ -406,12 +512,12 @@ class NodeExecutor:
                     agent_role=f"{lead_persona.role.value} ({team_name})",
                     node_id=node.id,
                     phase=AgentThoughtPhase.SYNTHESIS,
-                    message=f"Synthesized whole-of-government intelligence briefings for {len(agency_reports)} statutory Australian authorities (ACDC, TGA, DAFF, DSTG, NEMA, DFAT, CSIRO, OGTR, ARPANSA, ANSTO, ASNO, Home Affairs).",
+                    message=f"Synthesized targeted intelligence briefings for {len(relevant_agencies)} relevant statutory Australian authorities ({', '.join(relevant_agencies)}). Non-relevant authorities placed on automated standby.",
                     confidence=0.99,
                 )
             )
             new_artifacts["agency_reports"] = {k.value: v.model_dump() for k, v in agency_reports.items()}
-            node.outputs = {"briefings_compiled": len(agency_reports), "agencies": [k.value for k in agency_reports.keys()]}
+            node.outputs = {"briefings_compiled": len(agency_reports), "relevant_agencies": relevant_agencies}
 
         else:
             # Custom node
@@ -419,4 +525,4 @@ class NodeExecutor:
 
         node.status = NodeStatus.COMPLETED
         node.latency_ms = round((time.time() - start_time) * 1000, 2)
-        return node, new_logs, new_artifacts, new_dialogues
+        return node, new_logs, new_artifacts, new_dialogues, new_blocker

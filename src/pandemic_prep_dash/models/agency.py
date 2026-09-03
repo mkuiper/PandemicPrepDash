@@ -5,7 +5,8 @@ from pydantic import BaseModel, Field
 
 
 class AgencyIdentifier(str, Enum):
-    ACDC = "ACDC"                  # Australian Centre for Disease Control
+    ACDP = "ACDP"                  # Australian Centre for Disease Prevention (formerly AAHL / CSIRO ACDP Geelong)
+    ACDC = "ACDP"                  # Backwards compatibility alias to ACDP
     TGA = "TGA"                    # Therapeutic Goods Administration
     DAFF = "DAFF"                  # Department of Agriculture, Fisheries and Forestry
     DSTG = "DSTG"                  # Defence Science and Technology Group (Department of Defence)
@@ -42,8 +43,11 @@ class AgencyProfile(BaseModel):
     mandate_summary: str
     key_responsibilities: List[str]
     statutory_authority: str
+    official_website: str = "https://www.australia.gov.au"
+    legislation_url: str = "https://www.legislation.gov.au"
     liaison_contact_role: str
     preferred_brief_format: str
+    relevant_threat_types: List[str] = Field(default_factory=list)
 
 
 class AgencyReport(BaseModel):
@@ -55,12 +59,14 @@ class AgencyReport(BaseModel):
     generated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
     incident_name: str
     threat_type: str
+    is_relevant: bool = True
+    relevance_reason: str = "Direct statutory jurisdiction over threat type"
     executive_summary: str
     situation_update: str
     scientific_findings: Dict[str, Any] = Field(default_factory=dict)
     strategic_implications: List[str] = Field(default_factory=list)
     action_items_required: List[str] = Field(default_factory=list)
     cross_agency_dependencies: List[AgencyIdentifier] = Field(default_factory=list)
-    signoff_authority: str = "Automated AI Incident Response Pipeline (Verified by Human-In-The-Loop Lead)"
+    signoff_authority: str = "Incident Response Pipeline (Verified by Human-In-The-Loop Lead)"
     dispatched: bool = False
     dispatch_timestamp: Optional[str] = None

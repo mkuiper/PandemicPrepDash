@@ -8,6 +8,7 @@ from .bio_chem import ThreatType
 
 class NodeCategory(str, Enum):
     INGESTION = "ingestion"
+    RESEARCH = "research"
     CHARACTERIZATION = "characterization"
     STRUCTURAL_BIOLOGY = "structural_biology"
     THERAPEUTICS = "therapeutics"

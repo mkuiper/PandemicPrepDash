@@ -46,16 +46,16 @@ AUS_GOV_SKILLS: Dict[str, AusGovSkill] = {
     "AUS-SKILL-SSBA-REPORTING": AusGovSkill(
         skill_id="AUS-SKILL-SSBA-REPORTING",
         name="Security Sensitive Biological Agent (SSBA) Statutory Reporting",
-        authority="Australian Centre for Disease Control (ACDC) / Department of Health and Aged Care",
+        authority="Australian Centre for Disease Prevention (ACDP) / Department of Health and Aged Care",
         statutory_basis="National Health Security Act 2007 (Part 3) & SSBA Standards v7.1",
         description="Mandatory reporting workflows, initial notification timelines (24-hour rule), Tier 1 transfer logs, and chain-of-custody compliance.",
         operational_playbook=(
             "1. Verify pathogen against Tier 1 / Tier 2 SSBA List.\n"
             "2. Determine whether possession is lawful under Part 3 of the National Health Security Act 2007.\n"
-            "3. If presumptive positive, dispatch Urgent Initial Notification (Form SSBA-01) to ACDC within 24 hours.\n"
+            "3. If presumptive positive, dispatch Urgent Initial Notification (Form SSBA-01) to ACDP within 24 hours.\n"
             "4. Establish biosecurity perimeter, restrict facility access, and trigger electronic transfer manifest."
         ),
-        tags=["SSBA", "Tier 1", "National Health Security Act 2007", "ACDC"],
+        tags=["SSBA", "Tier 1", "National Health Security Act 2007", "ACDP"],
     ),
     "AUS-SKILL-TGA-SECTION19A": AusGovSkill(
         skill_id="AUS-SKILL-TGA-SECTION19A",

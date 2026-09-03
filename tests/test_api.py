@@ -1,5 +1,7 @@
 """
 API integration tests for PandemicPrepDash endpoints.
+Includes tests for ACDP, statutory links, Central Data Hub, Blocker Alerts,
+Docs Center, and targeted agency relevance filtering.
 """
 
 import pytest
@@ -44,6 +46,7 @@ def test_pathway_state_and_step_execution():
     state = res_state.json()
     assert "pathway" in state
     assert len(state["pathway"]["nodes"]) > 0
+    assert "data_hub" in state
     
     # Step forward
     res_step = client.post("/api/execution/step")
@@ -51,31 +54,102 @@ def test_pathway_state_and_step_execution():
     assert res_step.json()["run_status"] in ["running", "paused"]
 
 
-def test_agencies_endpoints():
+def test_acdp_agencies_endpoints_and_links():
     # List agencies
     res = client.get("/api/agencies")
     assert res.status_code == 200
     agencies = res.json()["agencies"]
-    assert any(a["id"] == "ACDC" for a in agencies)
+    
+    # ACDP must be present (not ACDC)
+    assert any(a["id"] == "ACDP" for a in agencies)
+    assert not any(a["id"] == "ACDC" for a in agencies)
     assert any(a["id"] == "TGA" for a in agencies)
     assert any(a["id"] == "DAFF" for a in agencies)
-    assert any(a["id"] == "DSTG" for a in agencies)
-    
-    # Get specific agency report preview
-    res_rep = client.get("/api/agencies/TGA/report")
+    assert any(a["id"] == "ARPANSA" for a in agencies)
+
+    # Check official links exist on every agency
+    for a in agencies:
+        assert "official_website" in a and a["official_website"].startswith("http")
+        assert "legislation_url" in a and a["legislation_url"].startswith("http")
+        assert "relevant_threat_types" in a and len(a["relevant_threat_types"]) > 0
+
+    # Get ACDP report
+    res_rep = client.get("/api/agencies/ACDP/report")
     assert res_rep.status_code == 200
     rep = res_rep.json()
-    assert "Countermeasure" in rep["title"]
+    assert "ACDP" in rep["title"]
+    assert "is_relevant" in rep
     
     # Export Markdown
-    res_md = client.get("/api/agencies/ACDC/export/markdown")
+    res_md = client.get("/api/agencies/ACDP/export/markdown")
     assert res_md.status_code == 200
-    assert "ACDC Epidemiological & Surveillance Sitrep" in res_md.text
+    assert "ACDP High-Containment Diagnostic" in res_md.text
     
     # Dispatch briefing
-    res_disp = client.post("/api/agencies/ACDC/dispatch")
+    res_disp = client.post("/api/agencies/ACDP/dispatch")
     assert res_disp.status_code == 200
     assert res_disp.json()["status"] == "dispatched"
+
+
+def test_agency_relevance_filtering():
+    # Select biological scenario
+    client.post("/api/scenarios/select/scen_h5n1_avian_flu")
+    client.post("/api/execution/reset")
+
+    # Run execution
+    client.post("/api/execution/run", json={"auto_approve": True})
+
+    # In a biological scenario, ACDP and TGA should be relevant; ARPANSA should be standby
+    res_acdp = client.get("/api/agencies/ACDP/report").json()
+    assert res_acdp["is_relevant"] is True
+
+    res_arpansa = client.get("/api/agencies/ARPANSA/report").json()
+    assert res_arpansa["is_relevant"] is False
+    assert "Standby" in res_arpansa["relevance_reason"]
+
+
+def test_central_data_hub_and_blockers():
+    # Select scenario and run
+    client.post("/api/scenarios/select/scen_h5n1_avian_flu")
+    client.post("/api/execution/reset")
+    client.post("/api/execution/run", json={"auto_approve": True})
+
+    # Inspect Data Hub data
+    res_hub = client.get("/api/hub/data")
+    assert res_hub.status_code == 200
+    hub_data = res_hub.json()["data_hub"]
+    assert "specimen_intel" in hub_data
+    assert "literature_research" in hub_data
+    assert "blockers" in hub_data
+
+    # Inspect Blockers
+    res_blockers = client.get("/api/hub/blockers")
+    assert res_blockers.status_code == 200
+    blockers = res_blockers.json()["blockers"]
+    assert len(blockers) > 0
+
+    # Resolve first blocker
+    first_id = blockers[0]["alert_id"]
+    res_res = client.post(f"/api/hub/blockers/{first_id}/resolve", json={
+        "resolution_notes": "Duty Officer confirmed laboratory mitigation protocols."
+    })
+    assert res_res.status_code == 200
+    assert res_res.json()["status"] == "resolved"
+
+
+def test_documentation_center_endpoints():
+    res_docs = client.get("/api/docs")
+    assert res_docs.status_code == 200
+    chapters = res_docs.json()["chapters"]
+    assert len(chapters) >= 5
+    assert any(c["id"] == "conops-overview" for c in chapters)
+    assert any(c["id"] == "central-data-hub" for c in chapters)
+    assert any(c["id"] == "statutory-acts-matrix" for c in chapters)
+
+    # Read specific chapter
+    res_ch = client.get("/api/docs/conops-overview")
+    assert res_ch.status_code == 200
+    assert "Operational Overview" in res_ch.json()["chapter"]["content"]
 
 
 def test_custom_scenario_creation():
@@ -163,5 +237,3 @@ def test_skills_toolbox_and_mcp_api():
     assert len(providers) >= 3
     assert any(p["id"] == "local_open_weights" for p in providers)
     assert any(p["id"] == "sovereign_australian_cloud" for p in providers)
-
-

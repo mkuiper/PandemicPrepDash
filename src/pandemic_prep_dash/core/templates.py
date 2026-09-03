@@ -50,7 +50,7 @@ def create_rapid_antiviral_pathway() -> Pathway:
             id="node_antiviral_regulatory",
             label="TGA Section 19A Exemption Briefing",
             category=NodeCategory.AGENCY_REPORTING,
-            description="Synthesizes expedited regulatory access dossier for TGA and ACDC.",
+            description="Synthesizes expedited regulatory access dossier for TGA and ACDP.",
             agent_team_id="policy_squad",
             position_x=940.0,
             position_y=220.0,

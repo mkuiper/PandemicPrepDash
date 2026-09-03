@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PandemicPrepDash - Australian AISI & Home Affairs CBRN Response Platform</title>
+  <title>PandemicPrepDash - Australian CBRN &amp; Pandemic Response Platform</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="h-full flex flex-col overflow-hidden font-sans antialiased selection:bg-cyan-500 selection:text-white transition-colors duration-200">
 
-  <!-- Top WoAG Command Header with AISI & Home Affairs Co-Branding -->
+  <!-- Top Command Header -->
   <header class="bg-slate-900 border-b border-slate-800 px-6 py-3 flex items-center justify-between shrink-0 shadow-md transition-colors duration-200">
     <div class="flex items-center space-x-4">
       <div class="h-10 w-10 rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-500 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20">
@@ -26,11 +26,10 @@
             <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse mr-1.5"></span>
             Tier 1 SSBA
           </span>
-          <!-- Subtle AISI & Home Affairs Co-Development Badge -->
-          <div class="hidden xl:flex items-center space-x-1.5 px-2.5 py-0.5 rounded bg-slate-800/90 border border-cyan-500/30 text-[10px] text-slate-300 font-medium shadow-sm">
-            <i class="fa-solid fa-building-shield text-cyan-400"></i>
-            <span>Co-developed by <strong>Australian AISI</strong> &amp; <strong>Department of Home Affairs</strong></span>
-          </div>
+          <span id="blockerCountHeaderBadge" class="hidden text-xs font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center">
+            <i class="fa-solid fa-triangle-exclamation mr-1 text-[10px]"></i>
+            <span id="blockerCountHeaderText">0 Blockers</span>
+          </span>
         </div>
         <p class="text-xs text-slate-400 flex items-center mt-0.5">
           <span>Australian Whole-of-Government CBRN &amp; Pandemic Response Engine</span>
@@ -76,10 +75,10 @@
       <!-- Divider -->
       <div class="h-6 w-px bg-slate-800"></div>
 
-      <!-- Help & User Guide Button -->
-      <button id="btnHelpModal" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-cyan-400 text-xs font-medium rounded-lg border border-slate-700 transition flex items-center space-x-1" title="Help & Documentation">
-        <i class="fa-solid fa-circle-question text-cyan-400"></i>
-        <span>Help</span>
+      <!-- Quick Docs Jump Button -->
+      <button id="btnNavDocsQuick" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-cyan-400 text-xs font-medium rounded-lg border border-slate-700 transition flex items-center space-x-1" title="Browse Documentation Manuals">
+        <i class="fa-solid fa-book-bookmark text-cyan-400"></i>
+        <span>Docs</span>
       </button>
 
       <!-- Light / Dark Mode Toggle Button -->
@@ -90,32 +89,41 @@
   </header>
 
   <!-- Navigation Bar / Tabs -->
-  <nav class="bg-slate-900/80 border-b border-slate-800/80 px-6 flex items-center space-x-1 text-xs shrink-0 backdrop-blur transition-colors duration-200">
-    <button data-tab="tab-pathway" class="tab-btn active px-4 py-2.5 font-medium border-b-2 border-cyan-500 text-cyan-400 flex items-center space-x-2 transition">
+  <nav class="bg-slate-900/80 border-b border-slate-800/80 px-6 flex items-center space-x-1 text-xs shrink-0 backdrop-blur transition-colors duration-200 overflow-x-auto">
+    <button data-tab="tab-pathway" class="tab-btn active px-3.5 py-2.5 font-medium border-b-2 border-cyan-500 text-cyan-400 flex items-center space-x-2 transition shrink-0">
       <i class="fa-solid fa-diagram-project"></i>
       <span>Response Pathway (DAG)</span>
     </button>
-    <button data-tab="tab-agencies" class="tab-btn px-4 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
+    <button data-tab="tab-datahub" class="tab-btn px-3.5 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition shrink-0">
+      <i class="fa-solid fa-server"></i>
+      <span>Central Data Hub</span>
+      <span id="hubBlockersBadge" class="hidden ml-1 px-1.5 py-0.2 bg-amber-500/20 text-amber-300 rounded-full text-[10px] font-bold">0</span>
+    </button>
+    <button data-tab="tab-agencies" class="tab-btn px-3.5 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition shrink-0">
       <i class="fa-solid fa-landmark"></i>
       <span>Whole-of-Gov Briefings</span>
       <span id="agencyReportCountBadge" class="ml-1.5 px-1.5 py-0.2 bg-slate-800 text-cyan-400 rounded-full text-[10px]">0</span>
     </button>
-    <button data-tab="tab-countermeasures" class="tab-btn px-4 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
+    <button data-tab="tab-countermeasures" class="tab-btn px-3.5 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition shrink-0">
       <i class="fa-solid fa-capsules"></i>
       <span>Targets &amp; Countermeasures</span>
     </button>
-    <button data-tab="tab-agentcomms" class="tab-btn px-4 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
+    <button data-tab="tab-agentcomms" class="tab-btn px-3.5 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition shrink-0">
       <i class="fa-solid fa-comments"></i>
-      <span>Node Lead Comms &amp; Reasoning</span>
+      <span>Lead Comms &amp; Protocols</span>
       <span id="dialogueCountBadge" class="ml-1.5 px-1.5 py-0.2 bg-slate-800 text-cyan-400 rounded-full text-[10px]">0</span>
     </button>
-    <button data-tab="tab-toolbox-skills" class="tab-btn px-4 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
+    <button data-tab="tab-toolbox-skills" class="tab-btn px-3.5 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition shrink-0">
       <i class="fa-solid fa-toolbox"></i>
       <span>Toolbox, Skills &amp; MCPs</span>
     </button>
-    <button data-tab="tab-architecture" class="tab-btn px-4 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
+    <button data-tab="tab-architecture" class="tab-btn px-3.5 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition shrink-0">
       <i class="fa-solid fa-sitemap"></i>
       <span>Agency Map &amp; Statutory Roles</span>
+    </button>
+    <button data-tab="tab-docs" class="tab-btn px-3.5 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition shrink-0">
+      <i class="fa-solid fa-book"></i>
+      <span>Documentation</span>
     </button>
   </nav>
 
@@ -200,7 +208,86 @@
       </div>
     </section>
 
-    <!-- TAB 2: Whole-of-Government Agency Briefings -->
+    <!-- TAB 2: Central Information Hub (Blackboard) & Blocker Alerts -->
+    <section id="tab-datahub" class="tab-panel hidden w-full h-full overflow-y-auto p-6 space-y-6 transition-colors duration-200">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center">
+            <i class="fa-solid fa-server text-cyan-400 mr-2.5"></i>
+            Central Information Hub (Blackboard)
+          </h2>
+          <p class="text-xs text-slate-400">Aggregated scientific intelligence, peer-reviewed literature corroboration, and active operational blockers.</p>
+        </div>
+        <div class="flex items-center space-x-3">
+          <span id="hubActiveThreatLabel" class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 font-mono text-xs border border-slate-700">
+            Incident: Under Analysis
+          </span>
+        </div>
+      </div>
+
+      <!-- Blocker Alerts Banner -->
+      <div id="dataHubBlockersSection" class="space-y-2">
+        <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center">
+          <i class="fa-solid fa-triangle-exclamation mr-1.5"></i>
+          Active Operational Blockers &amp; Threshold Alerts
+        </h3>
+        <div id="dataHubBlockersList" class="space-y-2">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Collated Multi-Stream Intelligence Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Card 1: Specimen & Molecular Intel -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-md">
+          <h4 class="font-bold text-slate-100 text-xs flex items-center">
+            <i class="fa-solid fa-dna text-cyan-400 mr-2"></i>
+            Specimen Intel &amp; Variant Determinants
+          </h4>
+          <div id="hubSpecimenIntelContent" class="space-y-2 text-xs text-slate-300">
+            <div class="text-slate-500 italic py-4 text-center">Execute Ingestion &amp; Characterization to populate specimen metrics.</div>
+          </div>
+        </div>
+
+        <!-- Card 2: Peer-Reviewed Literature Research (Real PubMed Citations) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-md">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-slate-100 text-xs flex items-center">
+              <i class="fa-solid fa-book-open-reader text-purple-400 mr-2"></i>
+              Peer-Reviewed Literature Surveillance
+            </h4>
+            <span class="text-[10px] font-mono text-slate-500">NLM PubMed / BioRxiv</span>
+          </div>
+          <div id="hubLiteratureContent" class="space-y-3 text-xs text-slate-300 max-h-72 overflow-y-auto">
+            <div class="text-slate-500 italic py-4 text-center">Execute Threat Research node to retrieve indexed studies and evidence.</div>
+          </div>
+        </div>
+
+        <!-- Card 3: Macromolecular Targets & Pockets -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-md">
+          <h4 class="font-bold text-slate-100 text-xs flex items-center">
+            <i class="fa-solid fa-atom text-emerald-400 mr-2"></i>
+            Macromolecular Targets &amp; Binding Pockets
+          </h4>
+          <div id="hubTargetsContent" class="space-y-2 text-xs text-slate-300">
+            <div class="text-slate-500 italic py-4 text-center">Execute Structural Biology node to resolve 3D models and pockets.</div>
+          </div>
+        </div>
+
+        <!-- Card 4: Countermeasure Therapeutics & Plume -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-md">
+          <h4 class="font-bold text-slate-100 text-xs flex items-center">
+            <i class="fa-solid fa-shield-virus text-amber-400 mr-2"></i>
+            Countermeasures &amp; Environmental Protection
+          </h4>
+          <div id="hubCountermeasuresContent" class="space-y-2 text-xs text-slate-300">
+            <div class="text-slate-500 italic py-4 text-center">Execute Therapeutics &amp; Plume nodes to screen medical countermeasures.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: Whole-of-Government Agency Briefings -->
     <section id="tab-agencies" class="tab-panel hidden w-full h-full flex flex-col overflow-hidden">
       <div class="bg-slate-900/50 border-b border-slate-800 px-6 py-3 flex items-center justify-between shrink-0 transition-colors duration-200">
         <div>
@@ -208,12 +295,12 @@
             <i class="fa-solid fa-building-columns text-cyan-400 mr-2"></i>
             Whole-of-Australian-Government Inter-Agency Briefings
           </h2>
-          <p class="text-xs text-slate-400">Tailored automated situation reports generated for statutory Australian emergency agencies under Commonwealth emergency acts.</p>
+          <p class="text-xs text-slate-400">Targeted situation reports for statutory emergency authorities under Commonwealth emergency legislation.</p>
         </div>
         <div class="flex items-center space-x-2">
           <button id="btnDispatchAllReports" class="px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-medium rounded-lg text-xs transition flex items-center space-x-1.5 shadow">
             <i class="fa-solid fa-paper-plane"></i>
-            <span>Dispatch All Briefings</span>
+            <span>Dispatch Relevant Briefings</span>
           </button>
         </div>
       </div>
@@ -230,7 +317,7 @@
       </div>
     </section>
 
-    <!-- TAB 3: Countermeasures & Molecular Intelligence -->
+    <!-- TAB 4: Countermeasures & Molecular Intelligence -->
     <section id="tab-countermeasures" class="tab-panel hidden w-full h-full overflow-y-auto p-6 space-y-6 transition-colors duration-200">
       <div>
         <div class="flex items-center justify-between mb-3">
@@ -238,7 +325,7 @@
             <i class="fa-solid fa-dna text-purple-400 mr-2"></i>
             Predicted Macromolecular Targets &amp; Cellular Pockets
           </h3>
-          <span class="text-xs text-slate-400">AlphaFold / ESMFold / Radionuclide Transporter Models</span>
+          <span class="text-xs text-slate-400">AlphaFold / ESMFold / Transporter Models</span>
         </div>
         <div id="proteinTargetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <!-- Populated by JS -->
@@ -286,7 +373,7 @@
       </div>
     </section>
 
-    <!-- TAB 4: Inter-Node Lead Comms & Deliberation Log -->
+    <!-- TAB 5: Node Lead Comms & Protocols Log -->
     <section id="tab-agentcomms" class="tab-panel hidden w-full h-full flex flex-col overflow-hidden">
       <div class="bg-slate-900/50 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between text-xs shrink-0 transition-colors duration-200">
         <div class="flex items-center space-x-3">
@@ -298,7 +385,7 @@
           <span class="text-slate-400" id="dialoguesCountText">0 dialogues logged</span>
         </div>
         <div class="flex items-center space-x-2">
-          <span class="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">AISI AI Governance Audit Log</span>
+          <span class="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">Statutory Inquiry Audit Log</span>
         </div>
       </div>
 
@@ -327,7 +414,7 @@
       </div>
     </section>
 
-    <!-- TAB 5: Software Toolbox, Australian Gov Skills & MCP Registry -->
+    <!-- TAB 6: Software Toolbox, Australian Gov Skills & MCP Registry -->
     <section id="tab-toolbox-skills" class="tab-panel hidden w-full h-full overflow-y-auto p-8 max-w-6xl mx-auto space-y-8 text-slate-300 text-xs leading-relaxed transition-colors duration-200">
       <div class="border-b border-slate-800 pb-4 flex items-center justify-between">
         <div>
@@ -378,54 +465,70 @@
       </div>
     </section>
 
-    <!-- TAB 6: System Architecture & Australian Agency Map -->
-    <section id="tab-architecture" class="tab-panel hidden w-full h-full overflow-y-auto p-8 max-w-5xl mx-auto space-y-8 text-slate-300 text-xs leading-relaxed transition-colors duration-200">
+    <!-- TAB 7: System Architecture & Australian Agency Map with Official Links -->
+    <section id="tab-architecture" class="tab-panel hidden w-full h-full overflow-y-auto p-8 max-w-6xl mx-auto space-y-8 text-slate-300 text-xs leading-relaxed transition-colors duration-200">
       <div class="border-b border-slate-800 pb-4">
         <h2 class="text-xl font-bold text-white flex items-center mb-1">
-          <i class="fa-solid fa-network-wired text-cyan-400 mr-2.5"></i>
-          Whole-of-Australian-Government CBRN Response Architecture
+          <i class="fa-solid fa-sitemap text-cyan-400 mr-2.5"></i>
+          Australian Statutory Agency Map &amp; Legislative Powers
         </h2>
-        <p class="text-sm text-slate-400">Institutional, statutory, and computational design overview developed under Australian AISI and Home Affairs guidance.</p>
+        <p class="text-sm text-slate-400">Direct links to official Australian government agency portals, Federal Register of Legislation, and statutory triggers.</p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3">
-          <h3 class="text-sm font-semibold text-cyan-400 flex items-center">
-            <i class="fa-solid fa-scale-balanced mr-2"></i>
-            Statutory Emergency Frameworks
-          </h3>
-          <ul class="space-y-2">
-            <li><strong class="text-white">National Health Security Act 2007:</strong> Regulates Security Sensitive Biological Agents (SSBA Tier 1 and 2), mandatory notification to ACDC within 24h.</li>
-            <li><strong class="text-white">Biosecurity Act 2015:</strong> Empowers DAFF and ACVO for border quarantine and emergency animal disease response.</li>
-            <li><strong class="text-white">Therapeutic Goods Act 1989:</strong> Section 19A emergency exemptions and rapid provisional authorization by the TGA.</li>
-            <li><strong class="text-white">Australian Radiation Protection and Nuclear Safety Act 1998:</strong> ARPANSA statutory Emergency Reference Levels and public dose thresholds.</li>
-            <li><strong class="text-white">Gene Technology Act 2000:</strong> OGTR oversight of viral vectors, modified organisms, and synthetic biology constructs.</li>
-          </ul>
-        </div>
-
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3">
-          <h3 class="text-sm font-semibold text-purple-400 flex items-center">
-            <i class="fa-solid fa-robot mr-2"></i>
-            Agentic Team Topology &amp; Safety
-          </h3>
-          <p class="text-slate-400">
-            Agents use strict non-anthropomorphic identifiers (`AGENT-BIOINFO-LEAD-01`, etc.) to adhere to Australian AISI AI safety guidelines. Each node has a Node Lead who coordinates with other node leads via auditable message buses.
-          </p>
-          <div class="space-y-1.5 font-mono text-[11px] text-slate-300">
-            <div>• <strong class="text-white">Genomics Lead Agent:</strong> BLAST, clade typing, mutation calling</div>
-            <div>• <strong class="text-white">Structural Biology Lead:</strong> AlphaFold/ESMFold inference, binding pocket volume</div>
-            <div>• <strong class="text-white">Medicinal Chemistry Lead:</strong> In silico docking, ARTG register cross-check</div>
-            <div>• <strong class="text-white">Vaccinology Lead:</strong> Neutralizing epitope prediction, mRNA formulations</div>
-            <div>• <strong class="text-white">Health Physics Lead:</strong> Gamma spectrometry, HYSPLIT plume dispersion</div>
-            <div>• <strong class="text-white">Biosecurity Intelligence Lead:</strong> SSBA classifications &amp; dual-use compliance</div>
-            <div>• <strong class="text-white">Policy Liaison Lead:</strong> Whole-of-Government situational report synthesis</div>
-          </div>
-        </div>
+      <div id="agencyMapGrid" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- Populated dynamically with official links -->
       </div>
     </section>
+
+    <!-- TAB 8: Comprehensive Documentation Center -->
+    <section id="tab-docs" class="tab-panel hidden w-full h-full flex overflow-hidden">
+      <!-- Docs Chapter Navigation Sidebar -->
+      <aside class="w-80 bg-slate-900 border-r border-slate-800 p-4 overflow-y-auto space-y-1.5 shrink-0 transition-colors duration-200" id="docsChaptersSidebar">
+        <div class="px-2 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+          Manuals &amp; Documentation
+        </div>
+        <!-- Populated by JS -->
+      </aside>
+
+      <!-- Docs Reading Pane -->
+      <div class="flex-1 p-8 overflow-y-auto bg-slate-950 flex justify-center transition-colors duration-200">
+        <article id="docsReadingPane" class="w-full max-w-4xl space-y-6 text-slate-300 text-xs leading-relaxed">
+          <div class="text-slate-500 italic py-12 text-center">Select a chapter from the documentation sidebar to read.</div>
+        </article>
+      </div>
+    </section>
+
   </main>
 
   <!-- Modals -->
+
+  <!-- Resolve Blocker Modal -->
+  <div id="resolveBlockerModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 w-full max-w-md shadow-2xl space-y-4 text-xs">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center">
+          <i class="fa-solid fa-check-to-slot text-amber-400 mr-2"></i>
+          Resolve Operational Blocker
+        </h3>
+        <button class="modal-close text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-sm"></i></button>
+      </div>
+      <form id="resolveBlockerForm" class="space-y-3">
+        <input type="hidden" id="resolveBlockerAlertId">
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Blocker Alert</label>
+          <div id="resolveBlockerTitleDisplay" class="font-bold text-slate-200 bg-slate-950 p-2 rounded border border-slate-800"></div>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Authorization &amp; Resolution Notes</label>
+          <textarea id="resolveBlockerNotesInput" rows="3" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500" placeholder="e.g. Authorized by Chief Health Officer / Protective zone established..."></textarea>
+        </div>
+        <div class="flex justify-end space-x-2 pt-3 border-t border-slate-800">
+          <button type="button" class="modal-close px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-medium">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded">Resolve &amp; Unblock</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Templates Manager Modal (Load / Save / Export / Import) -->
   <div id="templatesManagerModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -544,6 +647,7 @@
           <div>
             <label class="block text-slate-400 mb-1 font-medium">Preset Squad Blueprint</label>
             <select id="configPresetSquadSelect" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+              <option value="research_squad">Threat Research &amp; Scientific Intelligence Squad</option>
               <option value="bioinformatics_squad">Bioinformatics &amp; Genomics Squad</option>
               <option value="structural_biology_squad">Structural Biology Squad</option>
               <option value="medicinal_chemistry_squad">Medicinal Chemistry &amp; Repurposing</option>
@@ -577,12 +681,12 @@
           </div>
           <div>
             <label class="block text-slate-400 text-[10px] mb-0.5">Mandated Human Oversight Authority</label>
-            <input id="configNodeHitlRole" type="text" placeholder="e.g. ARPANSA Chief Radiation Health Scientist" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 text-xs focus:outline-none focus:border-amber-500">
+            <input id="configNodeHitlRole" type="text" placeholder="e.g. ACDP Diagnostic Controller / ARPANSA Scientist" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-200 text-xs focus:outline-none focus:border-amber-500">
           </div>
         </div>
 
         <div>
-          <label class="block text-slate-400 mb-1.5 font-medium">Squad Member Agents (AISI Non-Anthropomorphic)</label>
+          <label class="block text-slate-400 mb-1.5 font-medium">Specialist Agents in Squad</label>
           <div class="grid grid-cols-2 gap-2 bg-slate-950 p-3 rounded border border-slate-800 text-[11px]" id="squadMembersChecklist">
             <!-- Filled dynamically -->
           </div>
@@ -646,13 +750,14 @@
         <div>
           <label class="block text-slate-400 mb-1 font-medium">Category</label>
           <select id="newNodeCategory" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+            <option value="research">Threat Research &amp; Literature Surveillance</option>
             <option value="characterization">Genomic / Spectral Characterization</option>
             <option value="structural_biology">Structural Biology &amp; Molecular Modeling</option>
             <option value="therapeutics">Therapeutics &amp; Decorporation</option>
             <option value="vaccinology">Vaccine Design &amp; Radioprotectants</option>
             <option value="biosecurity">Biosecurity &amp; Nuclear Safeguards</option>
             <option value="agency_reporting">Whole-of-Gov Agency Reporting</option>
-            <option value="custom">Custom Agentic Step</option>
+            <option value="custom">Custom Analytical Step</option>
           </select>
         </div>
         <div>
@@ -662,6 +767,7 @@
         <div>
           <label class="block text-slate-400 mb-1 font-medium">Assigned Agent Team</label>
           <select id="newNodeTeam" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+            <option value="research_squad">Threat Research &amp; Scientific Intelligence Squad</option>
             <option value="bioinformatics_squad">Genomics &amp; Pathogen Identification Squad</option>
             <option value="structural_biology_squad">Structural Biology &amp; Proteomics Squad</option>
             <option value="medicinal_chemistry_squad">Medicinal Chemistry &amp; Repurposing Squad</option>
@@ -737,70 +843,6 @@
           <button type="submit" class="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded font-medium">Ingest &amp; Run Pipeline</button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <!-- Help & User Guide Modal -->
-  <div id="helpGuideModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-3xl shadow-2xl flex flex-col max-h-[88vh] overflow-hidden text-xs">
-      <div class="p-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-950/40">
-        <div class="flex items-center space-x-3">
-          <div class="h-9 w-9 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-lg">
-            <i class="fa-solid fa-book-open"></i>
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-white">PandemicPrepDash User &amp; Operator Guide</h3>
-            <p class="text-slate-400 text-[11px]">Co-developed by Australian AISI &amp; Department of Home Affairs.</p>
-          </div>
-        </div>
-        <button class="modal-close text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-base"></i></button>
-      </div>
-
-      <div class="p-6 overflow-y-auto space-y-6 text-slate-300 leading-relaxed">
-        <div class="bg-cyan-950/30 border border-cyan-500/30 rounded-xl p-4 space-y-2.5">
-          <h4 class="font-bold text-cyan-300 text-xs flex items-center">
-            <i class="fa-solid fa-robot mr-2 text-cyan-400"></i>
-            AISI AI Safety &amp; Non-Anthropomorphic Agent Design
-          </h4>
-          <p class="text-[11px] text-slate-300">
-            In strict compliance with Australian AI Safety Institute (AISI) governance principles, all agents in this platform use transparent, functional designations (e.g. <code>AGENT-BIOINFO-LEAD-01</code>) rather than human names, ensuring operators never mistake synthetic agent reasoning for human authority.
-          </p>
-        </div>
-
-        <div class="space-y-2">
-          <h4 class="font-bold text-slate-100 text-xs flex items-center">
-            <i class="fa-solid fa-comments mr-2 text-cyan-400"></i>
-            Inter-Node Lead Orchestration &amp; Auditable Message Bus
-          </h4>
-          <p class="text-[11px]">
-            Every node in the DAG is led by an autonomous Node Lead agent. When executing, node leads coordinate with upstream and peer node leads to request specific coordinates, biological conformations, or dose models. All inter-node dialogues are logged with timestamps and content for retrospective auditing.
-          </p>
-        </div>
-
-        <div class="space-y-2">
-          <h4 class="font-bold text-slate-100 text-xs flex items-center">
-            <i class="fa-solid fa-radiation mr-2 text-amber-400"></i>
-            Radiological CBRN Emergency Responses
-          </h4>
-          <p class="text-[11px]">
-            The platform supports full radiological emergency scenarios (such as an orphaned Caesium-137 source or RDD dirty bomb). The workflow models HPGe gamma photopeaks (661.7 keV), HYSPLIT atmospheric plume deposition, Prussian Blue decorporation antidotes, and ARPANSA/ANSTO statutory briefings.
-          </p>
-        </div>
-
-        <div class="space-y-2">
-          <h4 class="font-bold text-slate-100 text-xs flex items-center">
-            <i class="fa-solid fa-server mr-2 text-emerald-400"></i>
-            Local Open-Weight Models &amp; Sovereign Cloud Support
-          </h4>
-          <p class="text-[11px]">
-            Each node can be configured to execute using local open-weight models (via vLLM or Ollama, running Llama-3.3-70B, DeepSeek-R1, or Qwen-2.5), sovereign IRAP-protected government enclaves, or Google Vertex AI in Sydney.
-          </p>
-        </div>
-      </div>
-
-      <div class="p-4 border-t border-slate-800 flex justify-end shrink-0 bg-slate-950/40">
-        <button class="modal-close px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded font-medium text-xs">Got it, close guide</button>
-      </div>
     </div>
   </div>
 

@@ -141,6 +141,22 @@ AGENT_PERSONAS: Dict[str, AgentPersona] = {
         enabled_mcp_servers=["mcp-server-ansto-forensics", "mcp-server-asno-safeguards"],
         enabled_aus_gov_skills=["AUS-SKILL-ANSTO-SOURCE-ATTRIBUTION"],
     ),
+    "agent_research_lead": AgentPersona(
+        id="agent_research_lead",
+        name="AGENT-RESEARCH-LEAD-01",
+        role=AgentRole.SCIENTIFIC_RESEARCHER,
+        avatar_icon="book-open",
+        is_node_lead=True,
+        specialization="Threat Literature Surveillance, PubMed Synthesis & Variant Tracking",
+        system_prompt=(
+            "You are AGENT-RESEARCH-LEAD-01, an autonomous threat literature surveillance agent. You execute "
+            "automated PubMed queries, cross-reference published epidemiological and structural papers, and extract "
+            "corroborating molecular findings into the Central Information Hub."
+        ),
+        tools=["pubmed_literature_search", "ncbi_gene_lookup", "clinical_trials_scanner"],
+        enabled_mcp_servers=["mcp-server-ncbi-blast", "mcp-server-pubmed"],
+        enabled_aus_gov_skills=["AUS-SKILL-GENOMIC-SURVEILLANCE"],
+    ),
 }
 
 AGENT_TEAMS: Dict[str, AgentTeamConfig] = {
@@ -220,5 +236,16 @@ AGENT_TEAMS: Dict[str, AgentTeamConfig] = {
         collaboration_strategy="sequential_refinement",
         enabled_mcp_servers=["mcp-server-arpansa-rad", "mcp-server-asno-safeguards"],
         enabled_aus_gov_skills=["AUS-SKILL-ARPANSA-DOSE-ASSESSMENT", "AUS-SKILL-ANSTO-SOURCE-ATTRIBUTION"],
+    ),
+    "research_squad": AgentTeamConfig(
+        team_id="research_squad",
+        name="Threat Research & Scientific Intelligence Squad",
+        description="Autonomous research squad querying live scientific literature (PubMed/NCBI) and analyzing published variant adaptations.",
+        lead_role=AgentRole.SCIENTIFIC_RESEARCHER,
+        node_lead=AGENT_PERSONAS["agent_research_lead"],
+        members=[AGENT_PERSONAS["agent_research_lead"], AGENT_PERSONAS["agent_bioinfo_lead"]],
+        collaboration_strategy="sequential_refinement",
+        enabled_mcp_servers=["mcp-server-ncbi-blast", "mcp-server-pubmed"],
+        enabled_aus_gov_skills=["AUS-SKILL-GENOMIC-SURVEILLANCE"],
     ),
 }

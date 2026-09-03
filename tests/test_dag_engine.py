@@ -23,8 +23,8 @@ from pandemic_prep_dash.scenarios import list_scenarios, get_scenario
 
 def test_pathway_dag_initialization():
     pathway = create_default_biological_pathway()
-    assert len(pathway.nodes) == 7
-    assert len(pathway.edges) == 8
+    assert len(pathway.nodes) == 8
+    assert len(pathway.edges) == 10
     
     engine = PathwayExecutionEngine(pathway, "scen_h5n1_avian_flu")
     assert engine.run.status == RunStatus.IDLE
@@ -58,10 +58,15 @@ def test_human_in_the_loop_gatekeeper():
     assert res1["status"] == "step_completed"
     assert res1["node_id"] == "node_sample_ingestion"
     
-    # Step 2: Genomic characterization
+    # Step 2: Literature Research
     res2 = engine.execute_next_step()
     assert res2["status"] == "step_completed"
-    assert res2["node_id"] == "node_genomic_characterization"
+    assert res2["node_id"] == "node_literature_research"
+
+    # Step 3: Genomic Characterization
+    res3 = engine.execute_next_step()
+    assert res3["status"] == "step_completed"
+    assert res3["node_id"] == "node_genomic_characterization"
     
     # Step 3: Next ready node might be biosecurity or structural modeling
     # Let's run until biosecurity node is reached
@@ -137,7 +142,7 @@ def test_australian_agency_report_synthesis():
     
     # Verify coverage of all critical Australian agencies
     for agency_id in [
-        AgencyIdentifier.ACDC,
+        AgencyIdentifier.ACDP,
         AgencyIdentifier.TGA,
         AgencyIdentifier.DAFF,
         AgencyIdentifier.DSTG,
@@ -211,6 +216,7 @@ def test_custom_agent_squad_configuration_on_node():
     
     # Execute through to characterization
     engine.execute_next_step()  # Ingestion
+    engine.execute_next_step()  # Literature Research
     res = engine.execute_next_step()  # Characterization with custom squad
     
     assert res["status"] == "step_completed"
@@ -294,7 +300,7 @@ def test_inter_node_dialogue_generation_and_audit():
     assert d.source_agent_name.startswith("AGENT-")
     assert d.target_agent_name.startswith("AGENT-")
     assert d.resolved is True
-    assert "Ingestion Lead" in d.response_content or "Transmitting" in d.response_content
+    assert "Lead" in d.response_content or "Transmitting" in d.response_content or "Cross-referencing" in d.response_content
 
 
 def test_radiological_cesium137_pathway_and_agencies():

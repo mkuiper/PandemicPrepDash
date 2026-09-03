@@ -27,6 +27,9 @@ def list_agencies():
                 "key_responsibilities": a.key_responsibilities,
                 "statutory_authority": a.statutory_authority,
                 "preferred_brief_format": a.preferred_brief_format,
+                "official_website": a.official_website,
+                "legislation_url": a.legislation_url,
+                "relevant_threat_types": a.relevant_threat_types,
             }
             for a in AUSTRALIAN_AGENCIES.values()
         ]

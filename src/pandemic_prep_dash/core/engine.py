@@ -1,8 +1,9 @@
 """
-Pathway Execution Engine - DAG orchestrator for CBRN & Pandemic preparedness workflows.
+Execution Engine - orchestrates DAG traversal, manages execution blackboard,
+evaluates dependencies, and synchronizes the Central Information Hub.
 """
 
-from typing import Dict, Any, List, Optional, Set
+from typing import Dict, Any, List, Optional
 from datetime import datetime
 import uuid
 import networkx as nx
@@ -11,17 +12,17 @@ from ..models.pathway import (
     Pathway,
     PathwayNode,
     PathwayEdge,
-    NodeStatus,
-    RunStatus,
     ExecutionRun,
+    RunStatus,
+    NodeStatus,
 )
-from ..models.agent import AgentThoughtLog
-from .node_executor import NodeExecutor
 from ..scenarios import get_scenario, list_scenarios
+from .node_executor import NodeExecutor
+from .data_hub import CentralDataHub, BlockerAlert, BlockerSeverity, ResearchPaper
 
 
 class PathwayExecutionEngine:
-    """Orchestrates DAG execution, handles dependencies, branching, human-in-the-loop gates."""
+    """Orchestrates DAG execution, handles dependencies, branching, and human-in-the-loop gates."""
 
     def __init__(self, pathway: Pathway, scenario_id: Optional[str] = None):
         self.pathway = pathway
@@ -32,6 +33,10 @@ class PathwayExecutionEngine:
             pathway_id=pathway.id,
             scenario_id=self.scenario_id,
             status=RunStatus.IDLE,
+        )
+        self.data_hub = CentralDataHub(
+            incident_name=self.scenario_data.get("name", "CBRN Threat"),
+            threat_type=str(self.scenario_data.get("threat_type", "biological_virus")),
         )
         self._build_graph()
 
@@ -68,10 +73,15 @@ class PathwayExecutionEngine:
             from .registry import create_default_biological_pathway
             self.pathway = create_default_biological_pathway()
 
+        self.data_hub = CentralDataHub(
+            incident_name=self.scenario_data.get("name", "CBRN Threat"),
+            threat_type=str(threat_type),
+        )
         self.reset()
         # Pre-seed initial sample artifact so users can inspect it right away
         if "sample" in self.scenario_data:
             self.run.node_artifacts["sample"] = self.scenario_data["sample"]
+            self.data_hub.specimen_intel = self.scenario_data["sample"]
 
     def reset(self):
         """Resets all nodes and execution state to initial condition."""
@@ -82,6 +92,8 @@ class PathwayExecutionEngine:
             node.error_message = None
             if node.requires_human_approval:
                 node.approval_granted = False
+            else:
+                node.approval_granted = True
 
         self.run = ExecutionRun(
             run_id=f"run_{uuid.uuid4().hex[:8]}",
@@ -89,35 +101,39 @@ class PathwayExecutionEngine:
             scenario_id=self.scenario_id,
             status=RunStatus.IDLE,
         )
+        self.data_hub = CentralDataHub(
+            incident_name=self.scenario_data.get("name", "CBRN Threat"),
+            threat_type=str(self.scenario_data.get("threat_type", "biological_virus")),
+        )
         self._build_graph()
 
     def get_node(self, node_id: str) -> Optional[PathwayNode]:
-        for n in self.pathway.nodes:
-            if n.id == node_id:
-                return n
+        for node in self.pathway.nodes:
+            if node.id == node_id:
+                return node
         return None
 
     def get_ready_nodes(self) -> List[PathwayNode]:
-        """Finds all nodes whose upstream parents are COMPLETED and who are ready to run."""
-        ready: List[PathwayNode] = []
+        """Identifies nodes whose dependencies are all in COMPLETED state."""
+        ready = []
         for node in self.pathway.nodes:
-            if node.status not in (NodeStatus.PENDING, NodeStatus.READY):
+            if node.status not in [NodeStatus.PENDING, NodeStatus.READY]:
                 continue
+
             predecessors = list(self.graph.predecessors(node.id))
-            all_preds_done = True
+            all_preds_completed = True
             for pred_id in predecessors:
                 pred_node = self.get_node(pred_id)
                 if not pred_node or pred_node.status != NodeStatus.COMPLETED:
-                    all_preds_done = False
+                    all_preds_completed = False
                     break
 
-            if all_preds_done:
-                node.status = NodeStatus.READY
+            if all_preds_completed:
                 ready.append(node)
         return ready
 
     def approve_node(self, node_id: str) -> bool:
-        """Grants human-in-the-loop approval for a paused or gatekeeper node."""
+        """Grants human approval to proceed through a gatekeeper node."""
         node = self.get_node(node_id)
         if not node:
             return False
@@ -129,7 +145,7 @@ class PathwayExecutionEngine:
         return True
 
     def execute_next_step(self) -> Dict[str, Any]:
-        """Executes one step in the DAG (either single or parallel batch)."""
+        """Executes the next available node in DAG order."""
         if self.run.status == RunStatus.IDLE:
             self.run.status = RunStatus.RUNNING
             self.run.start_time = datetime.utcnow().isoformat() + "Z"
@@ -166,7 +182,7 @@ class PathwayExecutionEngine:
             }
 
         self.run.current_node_id = target_node.id
-        updated_node, thought_logs, new_artifacts, new_dialogues = NodeExecutor.execute_node(
+        updated_node, thought_logs, new_artifacts, new_dialogues, new_blocker = NodeExecutor.execute_node(
             node=target_node,
             blackboard=self.run.node_artifacts,
             scenario_data=self.scenario_data,
@@ -176,6 +192,24 @@ class PathwayExecutionEngine:
         self.run.node_artifacts.update(new_artifacts)
         self.run.thought_logs.extend(thought_logs)
         self.run.inter_node_dialogues.extend(new_dialogues)
+
+        # Synchronize Central Data Hub
+        if new_blocker:
+            self.data_hub.add_blocker(new_blocker)
+
+        if "sample" in new_artifacts or "identification" in new_artifacts:
+            self.data_hub.specimen_intel.update(new_artifacts.get("identification", new_artifacts.get("sample", {})))
+        if "literature_research" in new_artifacts:
+            self.data_hub.literature_research = [ResearchPaper(**p) for p in new_artifacts["literature_research"]]
+        if "protein_targets" in new_artifacts:
+            self.data_hub.structural_targets = new_artifacts["protein_targets"]
+        if "drug_candidates" in new_artifacts or "vaccine_candidates" in new_artifacts:
+            self.data_hub.countermeasures = new_artifacts.get("drug_candidates", []) + new_artifacts.get("vaccine_candidates", [])
+        if "plume_model" in new_artifacts:
+            self.data_hub.plume_and_environmental = new_artifacts["plume_model"]
+        if "threat_assessment" in new_artifacts:
+            self.data_hub.statutory_compliance = new_artifacts["threat_assessment"]
+
         self.run.completed_node_ids.append(target_node.id)
         if target_node.id not in self.run.execution_order:
             self.run.execution_order.append(target_node.id)
@@ -224,12 +258,9 @@ class PathwayExecutionEngine:
 
                 self.execute_next_step()
 
-        if all(n.status == NodeStatus.COMPLETED for n in self.pathway.nodes):
-            self.run.status = RunStatus.COMPLETED
-            self.run.end_time = datetime.utcnow().isoformat() + "Z"
-
+        all_done = all(n.status == NodeStatus.COMPLETED for n in self.pathway.nodes)
         return {
-            "status": self.run.status.value,
+            "status": "completed" if all_done else "paused",
             "completed_nodes": len(self.run.completed_node_ids),
             "total_nodes": len(self.pathway.nodes),
         }
@@ -282,10 +313,11 @@ class PathwayExecutionEngine:
         return True
 
     def get_full_state(self) -> Dict[str, Any]:
-        """Returns entire snapshot of pathway, execution run, logs, and artifacts."""
+        """Returns entire snapshot of pathway, execution run, logs, artifacts, and Central Data Hub."""
         return {
             "pathway": self.pathway.model_dump(),
             "run": self.run.model_dump(),
+            "data_hub": self.data_hub.model_dump(),
             "scenario": {
                 "scenario_id": self.scenario_data.get("scenario_id"),
                 "name": self.scenario_data.get("name"),
@@ -298,5 +330,6 @@ class PathwayExecutionEngine:
                 "completed_nodes": len(self.run.completed_node_ids),
                 "total_thought_logs": len(self.run.thought_logs),
                 "artifacts_count": len(self.run.node_artifacts),
+                "active_blockers": len([b for b in self.data_hub.blockers if b.status == "OPEN"]),
             },
         }

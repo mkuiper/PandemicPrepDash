@@ -1,52 +1,86 @@
 """
-Agency Briefing Generator - synthesizes tailored whole-of-government reports
-based on pipeline analytical outputs.
+Agency Report Generator - synthesizes tailored, statutory Whole-of-Government situation reports
+for Australian emergency authorities under relevant Commonwealth Acts.
+Includes targeted agency relevance filtering so agencies only receive active alerts when in-scope.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Tuple
 from datetime import datetime
 import uuid
-from ..models.agency import (
-    AgencyIdentifier,
-    AgencyReport,
-    SecurityClassification,
-    UrgencyLevel,
-)
-from .registry import AUSTRALIAN_AGENCIES
+
+from ..models.agency import AgencyIdentifier, AgencyReport, SecurityClassification, UrgencyLevel
+from ..agencies.registry import AUSTRALIAN_AGENCIES, get_agency_profile
+from ..models.bio_chem import ThreatType
 
 
 class AgencyReportGenerator:
-    """Generates agency-specific briefing reports from shared execution state."""
+    """Generates tailored reports for Australian authorities with jurisdiction relevance filtering."""
 
-    @staticmethod
-    def generate_all_reports(
-        incident_name: str,
+    @classmethod
+    def determine_relevance(
+        cls,
+        agency_id: AgencyIdentifier,
         threat_type: str,
         artifacts: Dict[str, Any],
-        urgency: UrgencyLevel = UrgencyLevel.PRIORITY,
-        classification: SecurityClassification = SecurityClassification.OFFICIAL_SENSITIVE,
-    ) -> Dict[AgencyIdentifier, AgencyReport]:
-        """Generates briefings for all primary Australian government agencies."""
-        reports: Dict[AgencyIdentifier, AgencyReport] = {}
-        for agency_id in AUSTRALIAN_AGENCIES.keys():
-            reports[agency_id] = AgencyReportGenerator.generate_report_for_agency(
-                agency_id=agency_id,
-                incident_name=incident_name,
-                threat_type=threat_type,
-                artifacts=artifacts,
-                urgency=urgency,
-                classification=classification,
-            )
-        return reports
+    ) -> Tuple[bool, str]:
+        """Evaluates whether an agency requires an active emergency response brief or is on standby."""
+        threat_str = str(threat_type).lower()
+        is_rad = "radiological" in threat_str or "nuclear" in threat_str
+        is_chem = "chemical" in threat_str or "nerve_agent" in threat_str or "toxin" in threat_str
+        is_bio = "biological" in threat_str or "virus" in threat_str or "bacteria" in threat_str or "synthetic" in threat_str
 
-    @staticmethod
-    def generate_report_for_agency(
+        if agency_id in [AgencyIdentifier.ARPANSA, AgencyIdentifier.ANSTO, AgencyIdentifier.ASNO]:
+            if is_rad:
+                return True, "Primary statutory jurisdiction: Incident involves radioactive source dispersal and isotope contamination."
+            return False, "Standby: Incident involves non-radiological bio/chemical agents. Radiation protection not triggered."
+
+        if agency_id == AgencyIdentifier.ACDP:
+            if is_bio:
+                return True, "Primary diagnostic jurisdiction: PC4 high-containment pathogen identification and surveillance active."
+            return False, "Standby: Chemical/radiological incident with no biological pathogen requiring PC4 diagnostic culture."
+
+        if agency_id == AgencyIdentifier.DAFF:
+            if is_bio and ("avian" in str(artifacts).lower() or "zoonotic" in str(artifacts).lower() or "animal" in str(artifacts).lower()):
+                return True, "Active One-Health jurisdiction: Pathogen presents confirmed zoonotic transmission and livestock biosecurity risk."
+            if is_bio:
+                return False, "Standby: Pathogen restricted to human host with low direct veterinary/livestock transmission footprint."
+            return False, "Standby: Non-agricultural threat with no domestic animal or crop vector identified."
+
+        if agency_id == AgencyIdentifier.OGTR:
+            if "synthetic" in threat_str or artifacts.get("threat_assessment", {}).get("evidence_of_genetic_manipulation"):
+                return True, "Active statutory jurisdiction: Potential genetically modified or synthetic biology construct identified."
+            return False, "Standby: Natural pathogen/agent lineage with no synthetic gene technology regulatory trigger."
+
+        if agency_id == AgencyIdentifier.DSTG:
+            if is_chem or is_rad or artifacts.get("threat_assessment", {}).get("dual_use_concerns"):
+                return True, "Active national security brief: Dual-use CBRN or sovereign defense force health protection triggered."
+            return False, "Standby: Natural outbreak under civil health jurisdiction."
+
+        # Common whole-of-gov crisis agencies (TGA, NEMA, DFAT, Home Affairs, CSIRO)
+        if agency_id == AgencyIdentifier.TGA:
+            return True, "Active statutory mandate: Emergency therapeutic evaluation and Section 19A medical countermeasure access."
+        if agency_id == AgencyIdentifier.NEMA:
+            return True, "Active crisis mandate: Whole-of-government emergency logistics, sheltering, and COMDISPLAN coordination."
+        if agency_id == AgencyIdentifier.HOME_AFFAIRS:
+            if is_chem or is_rad or "terror" in str(artifacts).lower() or "port" in str(artifacts).lower():
+                return True, "Active national security brief: Critical infrastructure (SOCI Act) or border interdiction triggered."
+            return True, "Active crisis brief: National coordination and emergency cabinet liaison."
+        if agency_id == AgencyIdentifier.DFAT:
+            return True, "Active treaty mandate: International Health Regulations (IHR 2005) or CBRN treaty compliance notification."
+        if agency_id == AgencyIdentifier.CSIRO:
+            if is_bio or is_chem:
+                return True, "Active scientific mandate: Sovereign biomanufacturing scaleup, preclinical testing, and macromolecular design."
+            return False, "Standby: Radiological response led by ANSTO / ARPANSA."
+
+        return True, "Statutory situational awareness."
+
+    @classmethod
+    def generate_report(
+        cls,
         agency_id: AgencyIdentifier,
         incident_name: str,
         threat_type: str,
         artifacts: Dict[str, Any],
-        urgency: UrgencyLevel = UrgencyLevel.PRIORITY,
-        classification: SecurityClassification = SecurityClassification.OFFICIAL_SENSITIVE,
     ) -> AgencyReport:
         sample_info = artifacts.get("sample", {})
         identification = artifacts.get("identification", {})
@@ -55,35 +89,36 @@ class AgencyReportGenerator:
         vaccine_candidates = artifacts.get("vaccine_candidates", [])
         threat_assessment = artifacts.get("threat_assessment", {})
 
-        agent_name = identification.get("agent_name", "Novel Pathogen / Toxin")
+        agent_name = identification.get("agent_name", "Emerging CBRN Threat")
         lineage = identification.get("clade_or_lineage", "Unclassified")
-        ssba_tier = threat_assessment.get("ssba_tier", "Tier 1 SSBA")
+        ssba_tier = threat_assessment.get("ssba_tier", "Dangerous Substance")
 
         now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+        is_relevant, relevance_reason = cls.determine_relevance(agency_id, threat_type, artifacts)
 
-        if agency_id == AgencyIdentifier.ACDC:
-            title = f"ACDC Epidemiological & Surveillance Sitrep: {agent_name} ({lineage})"
+        if agency_id == AgencyIdentifier.ACDP:
+            title = f"ACDP High-Containment Diagnostic & Surveillance Sitrep: {agent_name} ({lineage})"
             exec_summary = (
-                f"Automated intelligence synthesis has confirmed the characterization of {agent_name} "
-                f"({lineage}). High transmissibility indicators detected. Immediate activation of national "
-                f"genomic surveillance network and Communicable Diseases Network Australia (CDNA) case definitions recommended."
+                f"Diagnostic confirmation and high-containment PC4 evaluation completed at Geelong for {agent_name} "
+                f"({lineage}). Immediate activation of national reference surveillance and Communicable Diseases Network "
+                f"Australia (CDNA) diagnostic testing algorithms recommended."
             )
             sit_update = (
-                f"Origin/Index Detection: {sample_info.get('source_location', 'Australia')}. "
-                f"Pathogen classification: {identification.get('taxonomy', 'Emerging Agent')}. "
-                f"WHO Pandemic Potential: {threat_assessment.get('who_pandemic_potential', 'High')}. "
-                f"Containment rating: {threat_assessment.get('containment_level_required', 'PC3/PC4')}."
+                f"Origin/Detection: {sample_info.get('source_location', 'Australia')}. "
+                f"Pathogen classification: {identification.get('taxonomy', 'Emerging Pathogen')}. "
+                f"Containment rating: {threat_assessment.get('containment_level_required', 'PC4 / PC3')}. "
+                f"WHO Pandemic Potential: {threat_assessment.get('who_pandemic_potential', 'High')}."
             )
             strategic_imps = [
-                "Issue urgent national CDNA surveillance case definition to State/Territory public health units.",
+                "Issue urgent national CDNA surveillance case definitions to State/Territory public health reference labs.",
                 "Activate National Incident Room (NIR) Level 2 monitoring protocol.",
-                "Coordinate with Public Health Laboratory Network (PHLN) for nationwide RT-PCR primer distribution.",
-                "Establish baseline R0 tracking and hospital ICU surge threshold triggers.",
+                "Coordinate with Public Health Laboratory Network (PHLN) for nationwide diagnostic assay deployment.",
+                "Establish baseline R0 tracking and public health surge threshold triggers.",
             ]
             action_items = [
-                "Publish Interim Clinical Guidance for emergency departments within 12 hours.",
+                "Publish Interim Clinical Diagnostic Guidance for reference laboratories within 12 hours.",
                 "Stand up daily National Health Emergency Management Standing Committee (NHEMSC) briefings.",
-                "Liaise with TGA regarding priority distribution of therapeutic countermeasures.",
+                "Liaise with TGA regarding priority distribution of candidate therapeutics.",
             ]
             cross_deps = [AgencyIdentifier.TGA, AgencyIdentifier.DAFF, AgencyIdentifier.NEMA, AgencyIdentifier.DFAT]
 
@@ -91,61 +126,54 @@ class AgencyReportGenerator:
             title = f"TGA Medical Countermeasure & Regulatory Dossier: Countermeasures for {agent_name}"
             exec_summary = (
                 f"Computational docking and structural evaluation have identified {len(drug_candidates)} potential therapeutic "
-                f"candidates and {len(vaccine_candidates)} vaccine formulation designs targeting {agent_name}. "
-                f"Evaluation of emergency regulatory pathways (Section 19A exemptions & Provisional Registration) initiated."
+                f"candidates and {len(vaccine_candidates)} vaccine formulations targeting {agent_name}. "
+                f"Evaluation of emergency regulatory pathways (Section 19A exemptions & Emergency Use Authorisation) active."
             )
             top_target_name = protein_targets[0].get('name', 'Viral Target') if protein_targets else 'Under Analysis'
-            top_target_plddt = protein_targets[0].get('plddt_confidence', 'N/A') if protein_targets else 'Pending'
             top_drug_name = drug_candidates[0].get('name', 'Screening in Progress') if drug_candidates else 'None Identified'
-            top_drug_affinity = drug_candidates[0].get('binding_affinity_kcal_mol', 'N/A') if drug_candidates else 'N/A'
-            top_drug_artg = drug_candidates[0].get('tga_artg_status', 'Pending') if drug_candidates else 'Pending'
-
             sit_update = (
-                f"Primary target identified: {top_target_name} (pLDDT Confidence: {top_target_plddt}). "
-                f"Leading drug candidate: {top_drug_name} (Affinity: {top_drug_affinity} kcal/mol, ARTG Status: {top_drug_artg})."
+                f"Molecular Target: {top_target_name}. "
+                f"Lead Countermeasure Candidate: {top_drug_name}. "
+                f"Australian Register of Therapeutic Goods (ARTG) status: {drug_candidates[0].get('tga_artg_status', 'Evaluating') if drug_candidates else 'Pending'}."
             )
             strategic_imps = [
-                "Review Section 19A emergency supply mechanisms for immediate off-label / repurposed antiviral access.",
-                "Initiate pre-submission scientific advice with domestic vaccine developers (CSIRO / local mRNA hubs).",
-                "Assess domestic National Medical Stockpile (NMS) holdings for active pharmaceutical ingredients (APIs).",
-                "Review rapid diagnostic test (RDT) target antigens for in-country sensitivity verification.",
+                "Review Section 19A provisions under the Therapeutic Goods Act 1989 for rapid emergency importation.",
+                "Engage domestic manufacturers regarding accelerated fill-finish validation.",
+                "Issue regulatory guidance for compassionate access and clinical trial protocols.",
             ]
             action_items = [
-                "Issue regulatory alert on priority clinical trial protocol templates.",
-                "Commence batch testing protocol design for candidate vaccines.",
-                "Establish therapeutic safety monitoring registry in DAEN (Database of Adverse Event Notifications).",
+                "Grant expedited review for lead antiviral/antidote candidate batch releases.",
+                "Coordinate with National Medical Stockpile (NMS) for inventory reservation.",
             ]
-            cross_deps = [AgencyIdentifier.ACDC, AgencyIdentifier.CSIRO, AgencyIdentifier.NEMA]
+            cross_deps = [AgencyIdentifier.ACDP, AgencyIdentifier.CSIRO, AgencyIdentifier.NEMA]
 
         elif agency_id == AgencyIdentifier.DAFF:
-            title = f"DAFF Biosecurity & One-Health Alert: Zoonotic Risk Assessment - {agent_name}"
+            title = f"DAFF Biosecurity One-Health Containment Directive: {agent_name}"
             exec_summary = (
-                f"One-Health genomic characterization highlights potential spillover / animal-human interface risk for {agent_name}. "
-                f"Australian Chief Veterinary Officer (ACVO) notified. Animal biosecurity containment and quarantine buffer protocols active."
+                f"One-Health biosecurity assessment for {agent_name}. Evaluating animal reservoirs, agricultural quarantine "
+                f"perimeters, and border biosecurity interdiction protocols under the Biosecurity Act 2015."
             )
             sit_update = (
-                f"Sample origin: {sample_info.get('source_location', 'Domestic Site')}. "
-                f"Host species range: {identification.get('host_tropism', 'Avian / Mammalian / Human')}. "
-                f"Zoonotic spillover risk score: {threat_assessment.get('zoonotic_risk', 'High')}. "
-                f"Biosecurity import conditions (BICON) status: Escalated review."
+                f"Host Tropism: {identification.get('host_tropism', 'Multi-species avian/mammalian')}. "
+                f"Geographic Hotspot: {sample_info.get('source_location', 'Victoria')}. "
+                f"Quarantine perimeter recommendation: 10 km Restricted Area + 25 km Control Area."
             )
             strategic_imps = [
-                "Implement wildlife and poultry/livestock surveillance zones within 50km radius of detection site.",
-                "Alert domestic commercial poultry, swine, and dairy producer associations to heighten biosecurity protocols.",
-                "Verify wild bird flyway tracking and migratory monitoring in collaboration with state agricultural bodies.",
+                "Activate AUSVETPLAN disease strategy for emergency animal disease containment.",
+                "Establish national livestock and avian movement restrictions around detected outbreak epicenters.",
+                "Enforce strict biosecurity protocols at international border points of entry (airports and maritime ports).",
             ]
             action_items = [
-                "Convene Consultative Committee on Emergency Animal Diseases (CCEAD).",
-                "Coordinate with CSIRO ACDP Geelong for live viral isolation from animal samples.",
-                "Update border biosecurity screening protocols at all international air and sea freight terminals.",
+                "Issue Emergency Animal Disease (EAD) declaration under state/commonwealth biosecurity acts.",
+                "Deploy veterinary epidemiologists for wild bird and commercial poultry trace-back investigations.",
             ]
-            cross_deps = [AgencyIdentifier.ACDC, AgencyIdentifier.CSIRO, AgencyIdentifier.DSTG]
+            cross_deps = [AgencyIdentifier.ACDP, AgencyIdentifier.CSIRO, AgencyIdentifier.DSTG]
 
         elif agency_id == AgencyIdentifier.DSTG:
-            title = f"DSTG CBRN Defence & Threat Intelligence Assessment: {agent_name}"
+            title = f"DSTG Defence CBRN Technical Intelligence Assessment: {agent_name}"
             exec_summary = (
-                f"CBRN threat intelligence audit completed. Classification: {ssba_tier}. "
-                f"Evaluation of aerosolization feasibility, synthetic biology markers, and attribution conducted for Defence Force Health Protection."
+                f"Defence technical intelligence appraisal of {agent_name}. Focus on CBRN verification, synthetic biology "
+                f"signatures, aerosol dissemination feasibility, and Australian Defence Force (ADF) force health protection."
             )
             sit_update = (
                 f"Synthetic manipulation evidence: {'Positive' if threat_assessment.get('evidence_of_genetic_manipulation') else 'Negative / Natural Lineage'}. "
@@ -161,7 +189,7 @@ class AgencyReportGenerator:
                 "Issue tactical force health protection guidelines to Australian Defence Force (ADF) Joint Health Command.",
                 "Deploy specialized mobile CBRN diagnostic teams to high-readiness status.",
             ]
-            cross_deps = [AgencyIdentifier.ACDC, AgencyIdentifier.NEMA, AgencyIdentifier.DFAT]
+            cross_deps = [AgencyIdentifier.ACDP, AgencyIdentifier.NEMA, AgencyIdentifier.DFAT]
 
         elif agency_id == AgencyIdentifier.NEMA:
             title = f"NEMA Crisis Logistics & Emergency Supply Chain Brief: {agent_name}"
@@ -170,7 +198,7 @@ class AgencyReportGenerator:
                 f"activated for national medical stockpiling, transport cold-chain, and potential COMDISPLAN logistics deployment."
             )
             sit_update = (
-                f"National Threat Level: {urgency.value}. Projected regional impact: Multi-jurisdictional. "
+                f"National Threat Level: PRIORITY. Projected regional impact: Multi-jurisdictional. "
                 f"Required cold chain: {vaccine_candidates[0].get('stability_profile', 'Standard Cold Chain') if vaccine_candidates else 'Standard'}."
             )
             strategic_imps = [
@@ -182,67 +210,71 @@ class AgencyReportGenerator:
                 "Establish direct liaison cell with State/Territory State Emergency Service (SES) coordinators.",
                 "Review emergency critical care bed capacity and surge oxygen distribution logistics.",
             ]
-            cross_deps = [AgencyIdentifier.ACDC, AgencyIdentifier.TGA, AgencyIdentifier.DSTG]
+            cross_deps = [AgencyIdentifier.ACDP, AgencyIdentifier.TGA, AgencyIdentifier.DSTG]
 
         elif agency_id == AgencyIdentifier.DFAT:
             title = f"DFAT International Health Security & Diplomatic Notification: {agent_name}"
             exec_summary = (
                 f"International compliance and regional Indo-Pacific health security brief for {agent_name}. "
-                f"Prepared in accordance with WHO International Health Regulations (IHR 2005) Article 6 obligations."
+                f"Assessment of International Health Regulations (IHR 2005) notification requirements and regional Pacific support."
             )
             sit_update = (
-                f"Agent: {agent_name}. Identification Confidence: 99.4%. Potential for cross-border transmission: High. "
-                f"Regional vulnerability: Pacific Island Countries (PICs) lacking high-containment PC4 diagnostics."
+                f"Pathogen Identity: {agent_name}. "
+                f"IHR Annex 2 Notification Status: Recommended within 24 hours of cluster confirmation. "
+                f"Smartraveller Consular Alert: Under evaluation for affected Indo-Pacific transit corridors."
             )
             strategic_imps = [
-                "Issue formal Article 6 notification to the World Health Organization (WHO) Western Pacific Regional Office (WPRO).",
-                "Review Smartraveller travel advisories for affected transit hubs and international departure points.",
-                "Mobilize Australian Indo-Pacific Centre for Health Security rapid diagnostic support for regional partners.",
+                "Liaise with World Health Organization (WHO) Western Pacific Regional Office (WPRO) in Manila.",
+                "Prepare diplomatic briefings for Indo-Pacific partner nations offering laboratory diagnostics and surge capacity.",
+                "Coordinate with Department of Home Affairs on potential international travel health declarations.",
             ]
             action_items = [
-                "Brief Australian Ambassador for Global Health on multilateral coordination strategy.",
-                "Coordinate with Pacific Island health ministries for emergency diagnostic sample transport to CSIRO ACDP.",
+                "Submit formal IHR Annex 2 notification through the Australian National Focal Point.",
+                "Update Smartraveller destination advisories to reflect emerging outbreak dynamics.",
             ]
-            cross_deps = [AgencyIdentifier.ACDC, AgencyIdentifier.DAFF]
+            cross_deps = [AgencyIdentifier.ACDP, AgencyIdentifier.DAFF]
 
         elif agency_id == AgencyIdentifier.CSIRO:
-            title = f"CSIRO ACDP High-Containment Diagnostic & Platform Synthesis Brief: {agent_name}"
+            title = f"CSIRO Translational Science & Domestic Biomanufacturing Memo: {agent_name}"
             exec_summary = (
-                f"Technical brief for CSIRO Australian Centre for Disease Preparedness (ACDP, Geelong) and "
-                f"Biomedical Manufacturing teams regarding {agent_name} isolation, cryo-EM structure, and pilot batching."
+                f"Translational science mobilization report for {agent_name}. Coordinating Australian Synchrotron macromolecular "
+                f"validation, Geelong high-containment assays, and domestic mRNA pilot biomanufacturing scale-up."
             )
             sit_update = (
-                f"Target pLDDT Confidence: {protein_targets[0].get('plddt_confidence', 90.0) if protein_targets else 'N/A'}. "
-                f"Structural pockets identified: {len(protein_targets)}. Vaccine construct: {vaccine_candidates[0].get('platform', 'mRNA-LNP') if vaccine_candidates else 'Subunit'}."
+                f"Structural Resolution: Cryo-EM / AlphaFold pocket models completed for primary targets. "
+                f"Manufacturing Partner: {vaccine_candidates[0].get('local_manufacturing_capability', 'CSL Seqirus / Moderna Victoria') if vaccine_candidates else 'Domestic pilot facility'}."
             )
             strategic_imps = [
-                "Prepare PC4 biocontainment suites at ACDP Geelong for live viral isolation and challenge assays.",
-                "Initiate high-throughput cryo-electron microscopy structural validation of predicted epitopes.",
-                "Spin up pilot-scale biomanufacturing runs at Clayton / Parkville mRNA production facilities.",
+                "Allocate beamline time at Australian Synchrotron for atomic-resolution inhibitor crystallography.",
+                "Activate pilot-scale bioprocess fermentation and mRNA-LNP encapsulation at Victorian facilities.",
+                "Initiate pre-clinical pseudovirus neutralization assays in PC3/PC4 containment.",
             ]
             action_items = [
-                "Synthesize diagnostic reference antigens for Public Health Laboratory Network distribution.",
-                "Complete in vitro binding validation assay for lead repurposed drug candidates within 72 hours.",
+                "Finalize synthetic DNA construct orders for non-infectious antigen expression systems.",
+                "Deliver purified antigen standards to reference diagnostic laboratories nationwide.",
             ]
-            cross_deps = [AgencyIdentifier.TGA, AgencyIdentifier.ACDC, AgencyIdentifier.DSTG]
+            cross_deps = [AgencyIdentifier.TGA, AgencyIdentifier.ACDP, AgencyIdentifier.DSTG]
 
         elif agency_id == AgencyIdentifier.OGTR:
-            title = f"OGTR Biosafety & Gene Technology Regulatory Compliance Notice: {agent_name}"
+            title = f"OGTR Biosafety & Synthetic Genomics Regulatory Advisory: {agent_name}"
             exec_summary = (
-                f"Gene Technology Act 2000 regulatory review for experimental and synthetic biology handling of {agent_name}."
+                f"Gene Technology Regulator advisory regarding genetic modifications, viral vector systems, and synthetic constructs "
+                f"associated with {agent_name} under the Gene Technology Act 2000."
             )
             sit_update = (
-                f"Classification: Gene Technology and Synthetic Biology containment protocol required. "
-                f"Containment mandate: PC3 or PC4 certified facilities only."
+                f"Construct Nature: {identification.get('taxonomy', 'Genetic Construct')}. "
+                f"Emergency Dealing Determination (EDD): Preparedness draft generated for fast-track clinical trial approval. "
+                f"Physical Containment Standard: PC3 / PC4 certified."
             )
             strategic_imps = [
-                "Issue expedited emergency dealing authorization (EDD) if live attenuated or viral-vectored research commences.",
+                "Evaluate whether candidate vaccine platforms fall within GMO licensing exemptions or require emergency authorization.",
+                "Audit gene synthesis provider screening compliance for flagged dual-use regulatory sequences.",
                 "Verify certified Physical Containment (PC) status of participating academic and industry laboratories.",
             ]
             action_items = [
                 "Publish safety advisory for institutional biosafety committees (IBCs) across Australia.",
             ]
-            cross_deps = [AgencyIdentifier.TGA, AgencyIdentifier.ACDC]
+            cross_deps = [AgencyIdentifier.TGA, AgencyIdentifier.ACDP]
 
         elif agency_id == AgencyIdentifier.ARPANSA:
             title = f"ARPANSA Public Health Radiation Emergency & Intervention Dose Assessment: {agent_name}"
@@ -288,59 +320,67 @@ class AgencyReportGenerator:
             cross_deps = [AgencyIdentifier.ARPANSA, AgencyIdentifier.ASNO, AgencyIdentifier.DSTG]
 
         elif agency_id == AgencyIdentifier.ASNO:
-            title = f"ASNO Safeguards Compliance & Illicit Nuclear Trafficking Alert: {agent_name}"
+            title = f"ASNO Nuclear Safeguards & International Treaty Verification Brief: {agent_name}"
             exec_summary = (
-                f"Statutory review under the Nuclear Non-Proliferation (Safeguards) Act 1987. "
-                f"Notification verification against national sealed source inventories and IAEA ITDB."
+                f"Verification of nuclear safeguards and international reporting under the Nuclear Non-Proliferation (Safeguards) Act 1987 "
+                f"and IAEA Incident and Trafficking Database (ITDB)."
             )
             sit_update = (
-                f"Source Accountancy: Verification against Australian domestic source inventory indicates unrecorded or illicit acquisition."
+                f"Treaty Status: Category 1 Dangerous Radioactive Source. "
+                f"Safeguards Accounting: Domestic sealed source tracking registry queried for matching serial identifiers. "
+                f"Illicit Trafficking Flag: ITDB notification prepared."
             )
             strategic_imps = [
-                "Formal incident reporting to the International Atomic Energy Agency (IAEA) Incident and Trafficking Database (ITDB).",
-                "Coordination with Australian Border Force to monitor border checkpoints and interdict companion consignments.",
+                "Confirm whether material originated from domestic inventory or represents illicit transshipment.",
+                "Fulfill Australia's formal reporting obligations to the International Atomic Energy Agency (IAEA) in Vienna.",
+                "Audit physical protection protocols at domestic radioactive storage facilities.",
             ]
             action_items = [
-                "Initiate regulatory enforcement under Commonwealth nuclear safeguards legislation.",
+                "Transmit initial ITDB report to IAEA Incident and Emergency Centre.",
+                "Coordinate with Australian Border Force on container manifest tracking.",
             ]
-            cross_deps = [AgencyIdentifier.DFAT, AgencyIdentifier.HOME_AFFAIRS, AgencyIdentifier.ARPANSA]
+            cross_deps = [AgencyIdentifier.ARPANSA, AgencyIdentifier.ANSTO, AgencyIdentifier.HOME_AFFAIRS]
 
         elif agency_id == AgencyIdentifier.HOME_AFFAIRS:
-            title = f"Department of Home Affairs & AISI National Security Incident Assessment: {agent_name}"
+            title = f"Home Affairs National Security & Critical Infrastructure SITREP: {agent_name}"
             exec_summary = (
-                f"National Counter-Terrorism Plan (NCTP) assessment and critical infrastructure risk appraisal. "
-                f"Co-developed evaluation of autonomous agentic response safety with the Australian AI Safety Institute (AISI)."
+                f"National security risk appraisal and critical infrastructure impact analysis under the Security of Critical "
+                f"Infrastructure Act 2018 (SOCI Act) and National Counter-Terrorism Plan."
             )
             sit_update = (
-                f"Threat Level: ELEVATED. Multi-agency CBRN response framework activated under whole-of-government arrangements. "
-                f"AISI Assurance: Agentic response pathways running with Human-in-the-Loop oversight on all critical decision gates."
+                f"Sector Impact: Intermodal freight logistics, maritime ports, transport corridors, and public gathering nodes. "
+                f"National Threat Level: Elevated. ABF interdiction operations active across inbound freight streams."
             )
             strategic_imps = [
-                "Assess disruption risk to Australian ports, transport corridors, and healthcare supply chains under SOCI Act 2018.",
-                "Maintain continuous auditing of AI agent decision trees to prevent hallucinated CBRN countermeasures or dual-use proliferation.",
+                "Convene the National Security Committee of Cabinet (NSC) Crisis Policy Team.",
+                "Issue security directives to critical infrastructure owners under the SOCI Act 2018.",
+                "Deploy Australian Border Force (ABF) targeting rules for related international cargo manifests.",
             ]
             action_items = [
-                "Brief the National Security Committee of Cabinet (NSC) on whole-of-government containment and inter-agency posture.",
-                "Coordinate intelligence sharing across ASIO, AFP, Border Force, and State Police CBRN counter-terrorism squads.",
+                "Issue operational containment directive to State/Territory police counter-terrorism commands.",
+                "Establish multi-agency coordination center at Home Affairs National Situation Centre.",
             ]
-            cross_deps = [AgencyIdentifier.DSTG, AgencyIdentifier.NEMA, AgencyIdentifier.ACDC, AgencyIdentifier.ARPANSA]
+            cross_deps = [AgencyIdentifier.DSTG, AgencyIdentifier.NEMA, AgencyIdentifier.ACDP, AgencyIdentifier.ARPANSA]
 
         else:
-            title = f"Inter-Agency Briefing: {agent_name}"
-            exec_summary = f"Summary intelligence report regarding incident {incident_name}."
-            sit_update = f"Status update for {agent_name}."
-            strategic_imps = ["Maintain active inter-agency monitoring."]
-            action_items = ["Review situation report updates as generated."]
-            cross_deps = [AgencyIdentifier.ACDC]
+            title = f"Whole-of-Government Operational Briefing: {agent_name}"
+            exec_summary = f"Automated response dossier for {agent_name}. Threat classification: {ssba_tier}."
+            sit_update = f"Incident location: {sample_info.get('source_location')}. Threat level: {threat_type}."
+            strategic_imps = ["Review standing CBRN and pandemic response plans."]
+            action_items = ["Maintain inter-agency operational contact."]
+            cross_deps = [AgencyIdentifier.ACDP]
 
         return AgencyReport(
             report_id=f"REP-{agency_id.value}-{uuid.uuid4().hex[:6].upper()}",
             agency_id=agency_id,
             title=title,
-            classification=classification,
-            urgency=urgency,
+            classification=SecurityClassification.OFFICIAL_SENSITIVE,
+            urgency=UrgencyLevel.PRIORITY,
+            generated_at=now_str,
             incident_name=incident_name,
             threat_type=threat_type,
+            is_relevant=is_relevant,
+            relevance_reason=relevance_reason,
             executive_summary=exec_summary,
             situation_update=sit_update,
             scientific_findings={
@@ -355,6 +395,27 @@ class AgencyReportGenerator:
             strategic_implications=strategic_imps,
             action_items_required=action_items,
             cross_agency_dependencies=cross_deps,
-            generated_at=now_str,
+            signoff_authority="Automated AI Incident Response Pipeline (Verified by Human-In-The-Loop Lead)",
             dispatched=False,
         )
+
+    @classmethod
+    def generate_all_reports(
+        cls,
+        incident_name: str,
+        threat_type: str,
+        artifacts: Dict[str, Any],
+    ) -> Dict[AgencyIdentifier, AgencyReport]:
+        """Generates situation reports for all registered authorities, flagging jurisdiction relevance."""
+        reports: Dict[AgencyIdentifier, AgencyReport] = {}
+        for agency_id in AUSTRALIAN_AGENCIES.keys():
+            reports[agency_id] = cls.generate_report(
+                agency_id=agency_id,
+                incident_name=incident_name,
+                threat_type=threat_type,
+                artifacts=artifacts,
+            )
+        return reports
+
+    generate_report_for_agency = generate_report
+
