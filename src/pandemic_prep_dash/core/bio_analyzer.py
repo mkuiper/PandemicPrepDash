@@ -134,6 +134,15 @@ DUMMY_SEQUENCES: List[Dict[str, Any]] = [
         "description": "Volatile G-series organophosphorus nerve agent causing acute cholinergic crisis.",
         "payload": "CC(C)OP(=O)(C)F",
     },
+    {
+        "id": "seq_rad_cesium137",
+        "name": "Caesium-137 (Cs-137) Gamma Spectrometry Profile",
+        "organism": "Radiological Threat (IAEA Category 1 Source)",
+        "type": "RADIOLOGICAL_SPECTRUM",
+        "hazard_level": "ARPANSA Dangerous Radiation Source",
+        "description": "Industrial Caesium-137 source readout with characteristic 661.7 keV gamma photopeak and 3.7 TBq activity.",
+        "payload": "RADIOISOTOPE_SPECTRUM: Photopeak 661.7 keV (137mBa). Activity: 3.7 TBq (100 Ci). Form: Caesium Chloride (CsCl) particulate. T1/2: 30.17 y.",
+    },
 ]
 
 
@@ -144,6 +153,24 @@ class BioinformaticsIdentifier:
     def analyze_payload(cls, raw_payload: str, sample_name: str = "") -> Dict[str, Any]:
         cleaned = raw_payload.strip()
         header = None
+
+        if "RADIOISOTOPE" in cleaned or "keV" in cleaned or "TBq" in cleaned:
+            return {
+                "agent_name": "Caesium-137 (Cs-137 / 137mBa)",
+                "clade_or_lineage": "IAEA Category 1 Dangerous Radioactive Source",
+                "taxonomy": "Radionuclide / Beta-Gamma Emitter",
+                "sequence_type": "RADIOLOGICAL_SPECTRUM",
+                "length": len(cleaned),
+                "gc_content": 0.0,
+                "header": "ARPANSA_HPGe_SPECTRUM",
+                "genomic_mutations_detected": [
+                    "Dominant gamma photopeak confirmed at 661.66 keV",
+                    "Specific activity: 3.2 TBq/g consistent with industrial CsCl",
+                    "Half-life: 30.17 years (Requires long-term territorial decontamination)",
+                ],
+                "alignment_confidence": 99.9,
+                "host_tropism": "Systemic Cellular Uptake (Potassium Congener)",
+            }
 
         # Check for FASTA header
         if cleaned.startswith(">"):

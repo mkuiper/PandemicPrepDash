@@ -10,7 +10,7 @@ import uuid
 from ..core.state_manager import StateManager
 from ..core.templates import TemplateManager
 from ..models.pathway import Pathway, PathwayNode, PathwayEdge, NodeCategory, NodeStatus
-from ..models.agent import AgentTeamConfig
+from ..models.agent import AgentTeamConfig, ModelProviderConfig
 
 router = APIRouter(prefix="/api/pathways", tags=["Pathways"])
 
@@ -22,6 +22,11 @@ class AddNodeRequest(BaseModel):
     agent_team_id: str = "bioinformatics_squad"
     agent_team_config: Optional[AgentTeamConfig] = None
     requires_human_approval: bool = False
+    human_oversight_role: Optional[str] = "Statutory Oversight Officer"
+    provider_config: Optional[ModelProviderConfig] = None
+    enabled_tools: Optional[List[str]] = None
+    enabled_mcp_servers: Optional[List[str]] = None
+    enabled_aus_gov_skills: Optional[List[str]] = None
     position_x: float = 400.0
     position_y: float = 300.0
 
@@ -32,6 +37,12 @@ class UpdateNodeRequest(BaseModel):
     agent_team_id: Optional[str] = None
     agent_team_config: Optional[AgentTeamConfig] = None
     requires_human_approval: Optional[bool] = None
+    human_oversight_role: Optional[str] = None
+    human_signoff_notes: Optional[str] = None
+    provider_config: Optional[ModelProviderConfig] = None
+    enabled_tools: Optional[List[str]] = None
+    enabled_mcp_servers: Optional[List[str]] = None
+    enabled_aus_gov_skills: Optional[List[str]] = None
     position_x: Optional[float] = None
     position_y: Optional[float] = None
 
@@ -144,6 +155,11 @@ def add_pathway_node(req: AddNodeRequest):
         agent_team_id=req.agent_team_id,
         agent_team_config=req.agent_team_config,
         requires_human_approval=req.requires_human_approval,
+        human_oversight_role=req.human_oversight_role or "Statutory Oversight Officer",
+        provider_config=req.provider_config,
+        enabled_tools=req.enabled_tools or [],
+        enabled_mcp_servers=req.enabled_mcp_servers or [],
+        enabled_aus_gov_skills=req.enabled_aus_gov_skills or [],
         position_x=req.position_x,
         position_y=req.position_y,
     )
@@ -170,6 +186,22 @@ def update_pathway_node(node_id: str, req: UpdateNodeRequest):
         node.agent_team_config = req.agent_team_config
     if req.requires_human_approval is not None:
         node.requires_human_approval = req.requires_human_approval
+        if req.requires_human_approval and not node.outputs:
+            node.approval_granted = False
+        elif not req.requires_human_approval:
+            node.approval_granted = True
+    if req.human_oversight_role is not None:
+        node.human_oversight_role = req.human_oversight_role
+    if req.human_signoff_notes is not None:
+        node.human_signoff_notes = req.human_signoff_notes
+    if req.provider_config is not None:
+        node.provider_config = req.provider_config
+    if req.enabled_tools is not None:
+        node.enabled_tools = req.enabled_tools
+    if req.enabled_mcp_servers is not None:
+        node.enabled_mcp_servers = req.enabled_mcp_servers
+    if req.enabled_aus_gov_skills is not None:
+        node.enabled_aus_gov_skills = req.enabled_aus_gov_skills
     if req.position_x is not None:
         node.position_x = req.position_x
     if req.position_y is not None:

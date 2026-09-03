@@ -56,12 +56,15 @@ class PathwayExecutionEngine:
         self.scenario_data = get_scenario(scenario_id)
         threat_type = self.scenario_data.get("threat_type")
 
-        # Auto-align pathway threat type if switching between chemical and biological
+        # Auto-align pathway threat type if switching between chemical, radiological, and biological
         from ..models.bio_chem import ThreatType
-        if threat_type == ThreatType.CHEMICAL_NERVE_AGENT and self.pathway.threat_type != ThreatType.CHEMICAL_NERVE_AGENT:
+        if threat_type == ThreatType.RADIOLOGICAL_DISPERSAL and self.pathway.threat_type != ThreatType.RADIOLOGICAL_DISPERSAL:
+            from .templates import TemplateManager
+            self.pathway = TemplateManager.get_template("pathway_default_radiological").model_copy(deep=True)
+        elif threat_type == ThreatType.CHEMICAL_NERVE_AGENT and self.pathway.threat_type != ThreatType.CHEMICAL_NERVE_AGENT:
             from .registry import create_default_chemical_pathway
             self.pathway = create_default_chemical_pathway()
-        elif threat_type != ThreatType.CHEMICAL_NERVE_AGENT and self.pathway.threat_type == ThreatType.CHEMICAL_NERVE_AGENT:
+        elif threat_type not in [ThreatType.CHEMICAL_NERVE_AGENT, ThreatType.RADIOLOGICAL_DISPERSAL] and self.pathway.threat_type in [ThreatType.CHEMICAL_NERVE_AGENT, ThreatType.RADIOLOGICAL_DISPERSAL]:
             from .registry import create_default_biological_pathway
             self.pathway = create_default_biological_pathway()
 
@@ -163,15 +166,16 @@ class PathwayExecutionEngine:
             }
 
         self.run.current_node_id = target_node.id
-        updated_node, thought_logs, new_artifacts = NodeExecutor.execute_node(
+        updated_node, thought_logs, new_artifacts, new_dialogues = NodeExecutor.execute_node(
             node=target_node,
             blackboard=self.run.node_artifacts,
             scenario_data=self.scenario_data,
         )
 
-        # Merge artifacts and logs
+        # Merge artifacts, thought logs, and auditable inter-node dialogues
         self.run.node_artifacts.update(new_artifacts)
         self.run.thought_logs.extend(thought_logs)
+        self.run.inter_node_dialogues.extend(new_dialogues)
         self.run.completed_node_ids.append(target_node.id)
         if target_node.id not in self.run.execution_order:
             self.run.execution_order.append(target_node.id)

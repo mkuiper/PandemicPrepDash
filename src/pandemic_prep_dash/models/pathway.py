@@ -2,7 +2,7 @@ from enum import Enum
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from pydantic import BaseModel, Field, model_validator
-from .agent import AgentThoughtLog, AgentTeamConfig
+from .agent import AgentThoughtLog, AgentTeamConfig, ModelProviderConfig, InterNodeDialogue
 from .bio_chem import ThreatType
 
 
@@ -37,6 +37,12 @@ class PathwayNode(BaseModel):
     agent_team_config: Optional[AgentTeamConfig] = None
     requires_human_approval: bool = False
     approval_granted: bool = True
+    human_oversight_role: Optional[str] = "Statutory Oversight Officer"
+    human_signoff_notes: Optional[str] = None
+    provider_config: Optional[ModelProviderConfig] = None
+    enabled_tools: List[str] = Field(default_factory=list)
+    enabled_mcp_servers: List[str] = Field(default_factory=list)
+    enabled_aus_gov_skills: List[str] = Field(default_factory=list)
     inputs: Dict[str, Any] = Field(default_factory=dict)
     outputs: Dict[str, Any] = Field(default_factory=dict)
     execution_params: Dict[str, Any] = Field(default_factory=dict)
@@ -89,5 +95,8 @@ class ExecutionRun(BaseModel):
     execution_order: List[str] = Field(default_factory=list)
     node_artifacts: Dict[str, Any] = Field(default_factory=dict)
     thought_logs: List[AgentThoughtLog] = Field(default_factory=list)
+    inter_node_dialogues: List[InterNodeDialogue] = Field(default_factory=list)
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
     start_time: Optional[str] = None
     end_time: Optional[str] = None

@@ -244,6 +244,87 @@ class AgencyReportGenerator:
             ]
             cross_deps = [AgencyIdentifier.TGA, AgencyIdentifier.ACDC]
 
+        elif agency_id == AgencyIdentifier.ARPANSA:
+            title = f"ARPANSA Public Health Radiation Emergency & Intervention Dose Assessment: {agent_name}"
+            exec_summary = (
+                f"Statutory radiological emergency assessment under the ARPANS Act 1998 and Radiation Protection Series C-1. "
+                f"Atmospheric dispersion and whole-body committed effective dose modeling for {agent_name}."
+            )
+            sit_update = (
+                f"Source Characterization: {agent_name}. "
+                f"Dose Projection: Near-source boundary dose rates exceed 10 mSv/hr. "
+                f"Atmospheric Plume: HYSPLIT dispersion models indicate downwind particulate deposition."
+            )
+            strategic_imps = [
+                "Establish 5 km Urgent Protective Action Planning Zone (UPZ) based on prevailing wind vectors.",
+                "Activate National Radiation Monitoring Network (ARMN) fixed and mobile gamma spectroscopy stations.",
+                "Recommend urgent release of decorporation agents (Prussian Blue / Ca-DTPA) from the National Medical Stockpile.",
+            ]
+            action_items = [
+                "Issue public sheltering and radioprotective action orders in coordination with NEMA and state emergency services.",
+                "Deploy aerial radiological survey teams to map ground deposition contours (Bq/m²).",
+                "Execute thyroid and whole-body bioassays on first responders and exposed civilians.",
+            ]
+            cross_deps = [AgencyIdentifier.ANSTO, AgencyIdentifier.NEMA, AgencyIdentifier.TGA, AgencyIdentifier.HOME_AFFAIRS]
+
+        elif agency_id == AgencyIdentifier.ANSTO:
+            title = f"ANSTO Nuclear Forensics & Radioisotope Origin Attribution Dossier: {agent_name}"
+            exec_summary = (
+                f"High-resolution nuclear forensics, gamma spectrometry, and thermal ionization mass spectrometry (TIMS) "
+                f"conducted at Lucas Heights to identify isotope provenance and encapsulation history."
+            )
+            sit_update = (
+                f"Nuclear Forensics: High-Purity Germanium (HPGe) spectrometry confirms dominant radioisotopic signature. "
+                f"Physical Form: Dispersed powder/particulate with specialized industrial carrier matrix."
+            )
+            strategic_imps = [
+                "Isotopic ratio cross-referencing indicates material consistent with orphaned industrial or teletherapy source.",
+                "Provide technical decontamination protocols for critical infrastructure, maritime assets, and vehicles.",
+            ]
+            action_items = [
+                "Deliver sovereign radioisotope forensics attribution report to Home Affairs and Defence.",
+                "Support emergency HAZMAT teams with Lucas Heights mobile radiation detection suites.",
+            ]
+            cross_deps = [AgencyIdentifier.ARPANSA, AgencyIdentifier.ASNO, AgencyIdentifier.DSTG]
+
+        elif agency_id == AgencyIdentifier.ASNO:
+            title = f"ASNO Safeguards Compliance & Illicit Nuclear Trafficking Alert: {agent_name}"
+            exec_summary = (
+                f"Statutory review under the Nuclear Non-Proliferation (Safeguards) Act 1987. "
+                f"Notification verification against national sealed source inventories and IAEA ITDB."
+            )
+            sit_update = (
+                f"Source Accountancy: Verification against Australian domestic source inventory indicates unrecorded or illicit acquisition."
+            )
+            strategic_imps = [
+                "Formal incident reporting to the International Atomic Energy Agency (IAEA) Incident and Trafficking Database (ITDB).",
+                "Coordination with Australian Border Force to monitor border checkpoints and interdict companion consignments.",
+            ]
+            action_items = [
+                "Initiate regulatory enforcement under Commonwealth nuclear safeguards legislation.",
+            ]
+            cross_deps = [AgencyIdentifier.DFAT, AgencyIdentifier.HOME_AFFAIRS, AgencyIdentifier.ARPANSA]
+
+        elif agency_id == AgencyIdentifier.HOME_AFFAIRS:
+            title = f"Department of Home Affairs & AISI National Security Incident Assessment: {agent_name}"
+            exec_summary = (
+                f"National Counter-Terrorism Plan (NCTP) assessment and critical infrastructure risk appraisal. "
+                f"Co-developed evaluation of autonomous agentic response safety with the Australian AI Safety Institute (AISI)."
+            )
+            sit_update = (
+                f"Threat Level: ELEVATED. Multi-agency CBRN response framework activated under whole-of-government arrangements. "
+                f"AISI Assurance: Agentic response pathways running with Human-in-the-Loop oversight on all critical decision gates."
+            )
+            strategic_imps = [
+                "Assess disruption risk to Australian ports, transport corridors, and healthcare supply chains under SOCI Act 2018.",
+                "Maintain continuous auditing of AI agent decision trees to prevent hallucinated CBRN countermeasures or dual-use proliferation.",
+            ]
+            action_items = [
+                "Brief the National Security Committee of Cabinet (NSC) on whole-of-government containment and inter-agency posture.",
+                "Coordinate intelligence sharing across ASIO, AFP, Border Force, and State Police CBRN counter-terrorism squads.",
+            ]
+            cross_deps = [AgencyIdentifier.DSTG, AgencyIdentifier.NEMA, AgencyIdentifier.ACDC, AgencyIdentifier.ARPANSA]
+
         else:
             title = f"Inter-Agency Briefing: {agent_name}"
             exec_summary = f"Summary intelligence report regarding incident {incident_name}."

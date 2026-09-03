@@ -1,5 +1,6 @@
 /**
  * PandemicPrepDash - Frontend Application Logic
+ * Co-developed under Australian AI Safety Institute (AISI) & Department of Home Affairs frameworks.
  */
 
 const AppState = {
@@ -8,6 +9,10 @@ const AppState = {
   dummySequences: [],
   personas: [],
   templates: [],
+  skills: [],
+  toolbox: [],
+  mcps: [],
+  providers: [],
   selectedNodeId: null,
   selectedAgencyId: "ACDC",
   agencies: [],
@@ -106,8 +111,10 @@ function setupTabs() {
         renderAgencyView();
       } else if (targetTab === "tab-countermeasures") {
         renderCountermeasures();
-      } else if (targetTab === "tab-agentfeed") {
-        renderAgentFeed();
+      } else if (targetTab === "tab-agentcomms") {
+        renderAgentCommsView();
+      } else if (targetTab === "tab-toolbox-skills") {
+        renderToolboxAndSkillsView();
       }
     });
   });
@@ -194,12 +201,16 @@ function setupEventListeners() {
 
 async function loadInitialData() {
   try {
-    const [scenRes, stateRes, agencyRes, dummyRes, personasRes] = await Promise.all([
+    const [scenRes, stateRes, agencyRes, dummyRes, personasRes, skillsRes, toolRes, mcpRes, provRes] = await Promise.all([
       fetch("/api/scenarios").then((r) => r.json()),
       fetch("/api/pathways/state").then((r) => r.json()),
       fetch("/api/agencies").then((r) => r.json()),
       fetch("/api/scenarios/dummy-sequences").then((r) => r.json()).catch(() => ({ dummy_sequences: [] })),
       fetch("/api/agents/personas").then((r) => r.json()).catch(() => ({ personas: [] })),
+      fetch("/api/agents/skills").then((r) => r.json()).catch(() => ({ skills: [] })),
+      fetch("/api/agents/toolbox").then((r) => r.json()).catch(() => ({ toolbox: [] })),
+      fetch("/api/agents/mcps").then((r) => r.json()).catch(() => ({ mcps: [] })),
+      fetch("/api/agents/providers").then((r) => r.json()).catch(() => ({ providers: [] })),
     ]);
 
     AppState.scenarios = scenRes.scenarios || [];
@@ -207,6 +218,10 @@ async function loadInitialData() {
     AppState.agencies = agencyRes.agencies || [];
     AppState.dummySequences = dummyRes.dummy_sequences || [];
     AppState.personas = personasRes.personas || [];
+    AppState.skills = skillsRes.skills || [];
+    AppState.toolbox = toolRes.toolbox || [];
+    AppState.mcps = mcpRes.mcps || [];
+    AppState.providers = provRes.providers || [];
 
     populateScenarioDropdown();
     populatePresetSequencesDropdown();
@@ -251,7 +266,7 @@ function handlePresetSequenceChange(e) {
 
   document.getElementById("customSampleName").value = seq.name;
   document.getElementById("customSampleType").value = seq.type;
-  document.getElementById("customSampleLocation").value = "Australian Diagnostic Reference Laboratory";
+  document.getElementById("customSampleLocation").value = "Australian Diagnostic & Nuclear Reference Laboratory";
   document.getElementById("customSamplePayload").value = seq.payload;
 }
 
@@ -288,7 +303,12 @@ function updateUIState() {
 
   // Header badges
   const ssbaBadge = document.getElementById("threatClassificationBadge");
-  const threatTier = run.node_artifacts?.threat_assessment?.ssba_tier || (pathway.threat_type === "chemical_nerve_agent" ? "CWC Schedule 1" : "Tier 1 SSBA");
+  let threatTier = run.node_artifacts?.threat_assessment?.ssba_tier;
+  if (!threatTier) {
+    if (pathway.threat_type === "radiological_dispersal") threatTier = "IAEA Category 1 Source";
+    else if (pathway.threat_type === "chemical_nerve_agent") threatTier = "CWC Schedule 1";
+    else threatTier = "Tier 1 SSBA";
+  }
   ssbaBadge.textContent = threatTier;
 
   // Pathway summary
@@ -298,7 +318,9 @@ function updateUIState() {
   // Badges
   const reportCount = Object.keys(run.node_artifacts?.agency_reports || {}).length;
   document.getElementById("agencyReportCountBadge").textContent = reportCount;
-  document.getElementById("thoughtLogCountBadge").textContent = stats.total_thought_logs;
+  const dialogues = run.inter_node_dialogues || [];
+  const dialBadge = document.getElementById("dialogueCountBadge");
+  if (dialBadge) dialBadge.textContent = dialogues.length;
 
   // Render current tab
   if (AppState.activeTab === "tab-pathway") {
@@ -308,8 +330,10 @@ function updateUIState() {
     renderAgencyView();
   } else if (AppState.activeTab === "tab-countermeasures") {
     renderCountermeasures();
-  } else if (AppState.activeTab === "tab-agentfeed") {
-    renderAgentFeed();
+  } else if (AppState.activeTab === "tab-agentcomms") {
+    renderAgentCommsView();
+  } else if (AppState.activeTab === "tab-toolbox-skills") {
+    renderToolboxAndSkillsView();
   }
 }
 
@@ -323,7 +347,6 @@ async function selectScenario(scenarioId) {
       return;
     }
     await refreshState();
-    // Re-render
     if (AppState.activeTab === "tab-pathway") {
       AppState.selectedNodeId = null;
       renderDag();
@@ -332,6 +355,8 @@ async function selectScenario(scenarioId) {
       renderAgencyView();
     } else if (AppState.activeTab === "tab-countermeasures") {
       renderCountermeasures();
+    } else if (AppState.activeTab === "tab-agentcomms") {
+      renderAgentCommsView();
     }
   } catch (err) {
     console.error("Scenario switch error:", err);
@@ -515,7 +540,7 @@ async function handleImportPathwayFile(e) {
   reader.readAsText(file);
 }
 
-// ---------------- Configurable Node Agent Squad ----------------
+// ---------------- Configurable Node Agent Squad & Provider ----------------
 
 function openConfigureSquadModal(nodeId) {
   const node = AppState.state?.pathway?.nodes?.find((n) => n.id === nodeId);
@@ -525,7 +550,16 @@ function openConfigureSquadModal(nodeId) {
   document.getElementById("configSquadNodeId").value = node.id;
   document.getElementById("configSquadName").value = node.agent_team_config?.name || node.agent_team_id.replace("_", " ");
   document.getElementById("configSquadStrategy").value = node.agent_team_config?.collaboration_strategy || "sequential_refinement";
-  document.getElementById("configSquadInstructions").value = node.agent_team_config?.description || "";
+
+  // Provider config
+  const prov = node.provider_config || node.agent_team_config?.provider_config;
+  document.getElementById("configProviderSelect").value = prov?.provider_type || "local_open_weights";
+  document.getElementById("configModelName").value = prov?.model_name || "llama-3.3-70b-instruct-q4";
+  document.getElementById("configEndpointUrl").value = prov?.endpoint_url || "http://localhost:11434/v1";
+
+  // HITL Settings
+  document.getElementById("configNodeHitlRequired").checked = node.requires_human_approval;
+  document.getElementById("configNodeHitlRole").value = node.human_oversight_role || "Statutory Oversight Officer";
 
   // Render members checklist
   const membersContainer = document.getElementById("squadMembersChecklist");
@@ -533,13 +567,13 @@ function openConfigureSquadModal(nodeId) {
     .map((p) => {
       const isMember = node.agent_team_config
         ? node.agent_team_config.members?.some((m) => m.id === p.id)
-        : node.agent_team_id.includes(p.id.replace("dr_", "").replace("cdr_", ""));
+        : node.agent_team_id.includes(p.id.replace("agent_", "").replace("_lead", ""));
 
       return `
       <label class="flex items-center space-x-2 p-1.5 rounded hover:bg-slate-900 cursor-pointer">
         <input type="checkbox" value="${p.id}" class="persona-checkbox rounded bg-slate-900 border-slate-700 text-cyan-600 focus:ring-0" ${isMember ? "checked" : ""}>
         <div class="truncate">
-          <div class="font-bold text-slate-200 text-xs">${p.name}</div>
+          <div class="font-bold text-slate-200 text-xs font-mono">${p.name}</div>
           <div class="text-[10px] text-slate-500 truncate">${p.role}</div>
         </div>
       </label>
@@ -555,7 +589,11 @@ async function handleSaveSquadConfig(e) {
   const nodeId = document.getElementById("configSquadNodeId").value;
   const name = document.getElementById("configSquadName").value;
   const strategy = document.getElementById("configSquadStrategy").value;
-  const description = document.getElementById("configSquadInstructions").value;
+  const providerType = document.getElementById("configProviderSelect").value;
+  const modelName = document.getElementById("configModelName").value;
+  const endpointUrl = document.getElementById("configEndpointUrl").value;
+  const hitlRequired = document.getElementById("configNodeHitlRequired").checked;
+  const hitlRole = document.getElementById("configNodeHitlRole").value;
 
   const selectedPersonaIds = Array.from(document.querySelectorAll(".persona-checkbox:checked")).map((cb) => cb.value);
   const selectedPersonas = AppState.personas.filter((p) => selectedPersonaIds.includes(p.id));
@@ -565,20 +603,36 @@ async function handleSaveSquadConfig(e) {
     return;
   }
 
+  const provider_config = {
+    provider_type: providerType,
+    model_name: modelName,
+    endpoint_url: endpointUrl,
+    temperature: 0.2,
+    max_tokens: 4096,
+    is_sovereign_hosted: providerType.includes("local") || providerType.includes("sovereign"),
+  };
+
   const agent_team_config = {
     team_id: `squad_${nodeId}`,
     name: name,
-    description: description || "Node-customized agent squad",
+    description: "Node-customized AISI-compliant agent squad",
     lead_role: selectedPersonas[0].role,
+    node_lead: selectedPersonas[0],
     members: selectedPersonas,
     collaboration_strategy: strategy,
+    provider_config: provider_config,
   };
 
   try {
     const res = await fetch(`/api/pathways/nodes/${nodeId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ agent_team_config }),
+      body: JSON.stringify({
+        agent_team_config,
+        provider_config,
+        requires_human_approval: hitlRequired,
+        human_oversight_role: hitlRole,
+      }),
     });
 
     if (res.ok) {
@@ -586,7 +640,7 @@ async function handleSaveSquadConfig(e) {
       await refreshState();
       renderNodeInspector(nodeId);
     } else {
-      alert("Failed to update squad config.");
+      alert("Failed to update node configuration.");
     }
   } catch (err) {
     console.error("Save squad config error:", err);
@@ -819,7 +873,6 @@ function renderDag() {
     path.setAttribute("marker-end", isEdgeActive ? "url(#arrowhead-active)" : "url(#arrowhead)");
     path.setAttribute("title", `Click to delete connection: ${src.label} -> ${tgt.label}`);
 
-    // Click edge to delete
     path.addEventListener("click", async (e) => {
       e.stopPropagation();
       if (confirm(`Remove connection between '${src.label}' and '${tgt.label}'?`)) {
@@ -830,7 +883,6 @@ function renderDag() {
 
     svg.appendChild(path);
 
-    // Edge label if present
     if (edge.label) {
       const midX = (x1 + x2) / 2;
       const midY = (y1 + y2) / 2 - 8;
@@ -921,14 +973,15 @@ function renderDag() {
     labelText.textContent = truncateString(node.label, 20);
     g.appendChild(labelText);
 
-    // Subtitle / Agent Squad name
-    const squadDisplayName = node.agent_team_config?.name || node.agent_team_id.replace("_", " ");
+    // Subtitle / Node Lead Designation (AISI Compliant)
+    const leadName = node.agent_team_config?.node_lead?.name || "AGENT-LEAD-01";
     const teamText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     teamText.setAttribute("x", "16");
     teamText.setAttribute("y", "62");
     teamText.setAttribute("fill", isLight ? "#475569" : "#94a3b8");
-    teamText.setAttribute("font-size", "10px");
-    teamText.textContent = truncateString(squadDisplayName, 22);
+    teamText.setAttribute("font-size", "9px");
+    teamText.setAttribute("font-family", "monospace");
+    teamText.textContent = truncateString(leadName, 22);
     g.appendChild(teamText);
 
     // Latency or Gatekeeper status bottom
@@ -940,7 +993,7 @@ function renderDag() {
     if (node.status === "completed" && node.latency_ms) {
       bottomText.textContent = `⚡ ${node.latency_ms} ms`;
     } else if (node.requires_human_approval) {
-      bottomText.textContent = `🛡️ Human Gatekeeper`;
+      bottomText.textContent = `🛡️ HITL Oversight`;
       bottomText.setAttribute("fill", "#d97706");
     } else {
       bottomText.textContent = `ID: ${node.id}`;
@@ -964,7 +1017,6 @@ function renderDag() {
     });
     g.appendChild(portHandle);
 
-    // Plus sign on port handle
     const portPlus = document.createElementNS("http://www.w3.org/2000/svg", "text");
     portPlus.setAttribute("x", "190");
     portPlus.setAttribute("y", "48");
@@ -976,7 +1028,6 @@ function renderDag() {
     portPlus.textContent = "+";
     g.appendChild(portPlus);
 
-    // Main Node Click Handler
     g.addEventListener("click", () => {
       if (AppState.connecting.active) {
         completeConnection(node.id);
@@ -987,9 +1038,7 @@ function renderDag() {
       }
     });
 
-    // Drag to Reposition
     makeDraggable(g, node);
-
     svg.appendChild(g);
   });
 }
@@ -1039,14 +1088,14 @@ function makeDraggable(element, node) {
   });
 }
 
-// ---------------- Node Inspector ----------------
+// ---------------- Node Inspector with HITL & Open-Weights ----------------
 
 function renderNodeInspector(nodeId) {
   const container = document.getElementById("nodeInspectorContent");
   const badge = document.getElementById("inspectorStatusBadge");
 
   if (!nodeId || !AppState.state) {
-    container.innerHTML = `<div class="text-slate-500 italic text-center py-12">Click on any node in the pathway to inspect agent configurations, execution outputs, connections, and approval status.</div>`;
+    container.innerHTML = `<div class="text-slate-500 italic text-center py-12">Click on any node in the pathway to inspect agent configurations, HITL oversight, connections, and output artifacts.</div>`;
     badge.textContent = "SELECT NODE";
     badge.className = "text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400";
     return;
@@ -1064,18 +1113,37 @@ function renderNodeInspector(nodeId) {
   if (node.status === "failed") badgeColor = "bg-rose-500/20 text-rose-400 border border-rose-500/30";
   badge.className = `text-[10px] font-mono uppercase px-2 py-0.5 rounded ${badgeColor}`;
 
+  // HITL Oversight Box
   let approvalActionHtml = "";
-  if (node.status === "paused" && node.requires_human_approval) {
+  if (node.requires_human_approval) {
+    const isPaused = node.status === "paused";
     approvalActionHtml = `
       <div class="bg-amber-950/40 border border-amber-600/40 rounded-lg p-3 space-y-2">
-        <div class="text-amber-400 font-semibold flex items-center">
-          <i class="fa-solid fa-triangle-exclamation mr-1.5"></i>
-          Human-in-the-Loop Signoff Required
+        <div class="flex items-center justify-between">
+          <div class="text-amber-400 font-semibold flex items-center text-[11px]">
+            <i class="fa-solid fa-user-shield mr-1.5"></i>
+            Human-in-the-Loop Oversight
+          </div>
+          <span class="text-[9px] font-mono px-1.5 py-0.2 rounded ${node.approval_granted ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-300"}">
+            ${node.approval_granted ? "AUTHORIZED" : "APPROVAL REQUIRED"}
+          </span>
         </div>
-        <p class="text-slate-300 text-[11px]">This node represents a critical statutory or security checkpoint. Operator authorization is required before continuing.</p>
-        <button id="btnApproveNode" class="w-full py-1.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded transition">
-          Authorize & Proceed
-        </button>
+        <div class="text-slate-300 text-[10px] space-y-1">
+          <div><strong>Oversight Authority:</strong> ${node.human_oversight_role || "Statutory Duty Officer"}</div>
+          ${node.human_signoff_notes ? `<div class="text-slate-400 italic">Notes: ${node.human_signoff_notes}</div>` : ""}
+        </div>
+        ${
+          !node.approval_granted
+            ? `
+          <div class="space-y-1.5 pt-1">
+            <input id="inspectorSignoffNotes" type="text" placeholder="Signoff authorization notes..." class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-[10px] focus:outline-none focus:border-amber-500">
+            <button id="btnApproveNode" class="w-full py-1.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded transition text-xs shadow">
+              Authorize Node Execution
+            </button>
+          </div>
+        `
+            : ""
+        }
       </div>
     `;
   }
@@ -1084,8 +1152,8 @@ function renderNodeInspector(nodeId) {
   const outboundEdges = edges.filter((e) => e.source === node.id);
 
   const squadName = node.agent_team_config?.name || node.agent_team_id.replace("_", " ");
-  const squadMembers = node.agent_team_config?.members?.map((m) => m.name).join(", ") || "Lead Specialist & Domain Agents";
-  const squadStrategy = node.agent_team_config?.collaboration_strategy || "Sequential Refinement";
+  const leadAgentName = node.agent_team_config?.node_lead?.name || "AGENT-NODE-LEAD-01";
+  const modelDisplay = node.provider_config?.model_name || "llama-3.3-70b-instruct-q4 (Local)";
 
   container.innerHTML = `
     <div class="space-y-4">
@@ -1104,24 +1172,27 @@ function renderNodeInspector(nodeId) {
         <div class="text-slate-300 leading-relaxed">${node.description}</div>
       </div>
 
-      <!-- Configurable Agent Squad Section -->
+      <!-- Configurable Agent Squad & Open-Weights Section -->
       <div class="space-y-2 pt-2 border-t border-slate-800">
         <div class="flex items-center justify-between">
-          <span class="text-slate-500 uppercase font-semibold text-[10px]">Configured Agent Squad</span>
+          <span class="text-slate-500 uppercase font-semibold text-[10px]">Autonomous Agentic Squad</span>
           <button id="btnConfigureNodeSquad" class="text-[11px] text-purple-400 hover:text-purple-300 flex items-center space-x-1 font-medium">
             <i class="fa-solid fa-pen-to-square"></i>
-            <span>Edit Squad</span>
+            <span>Edit Squad &amp; LLM</span>
           </button>
         </div>
-        <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1 text-[11px]">
+        <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1.5 text-[11px]">
           <div class="flex items-center justify-between">
             <span class="font-bold text-slate-200 flex items-center">
               <i class="fa-solid fa-users-gear text-cyan-400 mr-1.5"></i>
               ${squadName}
             </span>
-            <span class="text-[9px] font-mono text-slate-400">${squadStrategy}</span>
+            <span class="text-[9px] font-mono text-emerald-400">LEAD: ${leadAgentName}</span>
           </div>
-          <div class="text-slate-400 text-[10px] truncate">Members: ${squadMembers}</div>
+          <div class="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+            <span>Model: ${modelDisplay}</span>
+            <span class="text-cyan-400">Open-Weights</span>
+          </div>
         </div>
       </div>
 
@@ -1175,7 +1246,7 @@ function renderNodeInspector(nodeId) {
       </div>
 
       <div>
-        <span class="text-slate-500 uppercase font-semibold text-[10px]">Outputs & Generated Artifacts</span>
+        <span class="text-slate-500 uppercase font-semibold text-[10px]">Outputs &amp; Generated Artifacts</span>
         <pre class="mt-1 bg-slate-950 p-2.5 rounded border border-slate-800 font-mono text-[10px] text-cyan-300 overflow-x-auto max-h-40">${
           JSON.stringify(node.outputs, null, 2) || "{}"
         }</pre>
@@ -1205,6 +1276,12 @@ function renderNodeInspector(nodeId) {
   const btnApprove = document.getElementById("btnApproveNode");
   if (btnApprove) {
     btnApprove.addEventListener("click", async () => {
+      const notes = document.getElementById("inspectorSignoffNotes")?.value || "Authorized by Operator";
+      await fetch(`/api/pathways/nodes/${node.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ human_signoff_notes: notes }),
+      });
       await fetch(`/api/execution/approve/${node.id}`, { method: "POST" });
       await refreshState();
     });
@@ -1242,6 +1319,157 @@ function renderNodeInspector(nodeId) {
       await refreshState();
     });
   });
+}
+
+// ---------------- Inter-Node Lead Comms & Deliberation ----------------
+
+function renderAgentCommsView() {
+  const dialoguesList = document.getElementById("interNodeDialoguesList");
+  const thoughtList = document.getElementById("agentThoughtFeedList");
+  const dialogues = AppState.state?.run?.inter_node_dialogues || [];
+  const thoughts = AppState.state?.run?.thought_logs || [];
+
+  const textCount = document.getElementById("dialoguesCountText");
+  if (textCount) textCount.textContent = `${dialogues.length} dialogues • ${thoughts.length} deliberations`;
+
+  // Render Inter-Node Dialogues
+  if (!dialogues.length) {
+    dialoguesList.innerHTML = `<div class="text-center text-slate-500 italic py-12">No cross-node lead communications logged yet. Step or execute pathway to trigger node lead inquiries.</div>`;
+  } else {
+    dialoguesList.innerHTML = dialogues
+      .slice()
+      .reverse()
+      .map(
+        (d) => `
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-sm">
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 font-mono text-[9px] border border-cyan-500/20 uppercase font-bold">
+            ${d.message_type.replace("_", " ")}
+          </span>
+          <span class="text-slate-500 font-mono text-[10px]">${d.timestamp.split("T")[1]?.slice(0, 8) || ""}</span>
+        </div>
+        <div class="text-xs font-bold text-slate-100 flex items-center space-x-1.5">
+          <span class="text-cyan-400 font-mono">${d.source_agent_name}</span>
+          <i class="fa-solid fa-arrow-right text-[10px] text-slate-500"></i>
+          <span class="text-purple-400 font-mono">${d.target_agent_name}</span>
+        </div>
+        <div class="text-[11px] font-semibold text-slate-200">${d.subject}</div>
+        <div class="bg-slate-950 p-2.5 rounded border border-slate-800 text-[11px] text-slate-300 space-y-1">
+          <div><strong class="text-cyan-300 font-mono">Query:</strong> ${d.content}</div>
+          ${d.response_content ? `<div class="pt-1 border-t border-slate-800/80 text-emerald-300"><strong class="font-mono">Response:</strong> ${d.response_content}</div>` : ""}
+        </div>
+      </div>
+    `
+      )
+      .join("");
+  }
+
+  // Render Squad Thought Logs
+  if (!thoughts.length) {
+    thoughtList.innerHTML = `<div class="text-center text-slate-500 italic py-12">No internal squad reasoning entries logged yet.</div>`;
+  } else {
+    thoughtList.innerHTML = thoughts
+      .slice()
+      .reverse()
+      .map((log) => {
+        let phaseColor = "bg-slate-800 text-slate-400 border-slate-700";
+        if (log.phase === "observation") phaseColor = "bg-blue-500/10 text-blue-400 border-blue-500/30";
+        if (log.phase === "hypothesis") phaseColor = "bg-purple-500/10 text-purple-400 border-purple-500/30";
+        if (log.phase === "tool_execution") phaseColor = "bg-cyan-500/10 text-cyan-400 border-cyan-500/30";
+        if (log.phase === "synthesis") phaseColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
+
+        return `
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-2 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-mono font-bold text-slate-200 text-[11px]">${log.agent_name}</span>
+            <span class="px-2 py-0.5 rounded text-[9px] font-mono uppercase font-bold border ${phaseColor}">${log.phase}</span>
+          </div>
+          <div class="text-slate-300 text-[11px] leading-relaxed">${log.message}</div>
+          ${
+            log.tool_name
+              ? `
+            <div class="bg-slate-950 p-2 rounded border border-slate-800 font-mono text-[10px] space-y-0.5">
+              <div class="text-cyan-400">🔧 ${log.tool_name}</div>
+              <div class="text-slate-400">${log.tool_output_summary || ""}</div>
+            </div>
+          `
+              : ""
+          }
+        </div>
+      `;
+      })
+      .join("");
+  }
+}
+
+// ---------------- Toolbox, Skills & MCP View ----------------
+
+function renderToolboxAndSkillsView() {
+  const toolGrid = document.getElementById("softwareToolboxGrid");
+  const skillsGrid = document.getElementById("ausGovSkillsGrid");
+  const mcpGrid = document.getElementById("mcpServersGrid");
+
+  if (toolGrid && AppState.toolbox.length) {
+    toolGrid.innerHTML = AppState.toolbox
+      .map(
+        (t) => `
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2.5 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${t.category}</span>
+          <span class="text-[10px] font-mono text-slate-500">v${t.version}</span>
+        </div>
+        <h4 class="font-bold text-slate-100 text-xs">${t.name}</h4>
+        <p class="text-slate-400 text-[11px]">${t.description}</p>
+        <div class="pt-2 border-t border-slate-800 text-[10px] text-slate-500 flex items-center justify-between font-mono">
+          <span>In: ${t.input_format}</span>
+          <span class="text-cyan-400">${t.sovereign_australian_hosted ? "Sovereign Hosted" : "Open Source"}</span>
+        </div>
+      </div>
+    `
+      )
+      .join("");
+  }
+
+  if (skillsGrid && AppState.skills.length) {
+    skillsGrid.innerHTML = AppState.skills
+      .map(
+        (s) => `
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-md">
+        <div class="flex items-center justify-between">
+          <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20">${s.skill_id}</span>
+          <span class="text-[10px] text-slate-400">${s.authority}</span>
+        </div>
+        <h4 class="font-bold text-slate-100 text-xs">${s.name}</h4>
+        <div class="text-[10px] font-mono text-cyan-300">${s.statutory_basis}</div>
+        <p class="text-slate-400 text-[11px]">${s.description}</p>
+        <div class="bg-slate-950 p-2.5 rounded border border-slate-800 text-[10px] font-mono text-slate-300 whitespace-pre-line leading-relaxed">
+${s.operational_playbook}
+        </div>
+      </div>
+    `
+      )
+      .join("");
+  }
+
+  if (mcpGrid && AppState.mcps.length) {
+    mcpGrid.innerHTML = AppState.mcps
+      .map(
+        (m) => `
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-sm">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">MCP Server</span>
+          <span class="text-[10px] text-emerald-400 flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1"></i>CONNECTED</span>
+        </div>
+        <h4 class="font-bold text-slate-100 text-xs font-mono">${m.server_id}</h4>
+        <p class="text-slate-400 text-[11px]">${m.description}</p>
+        <div class="bg-slate-950 p-2 rounded border border-slate-800 text-[10px] font-mono text-cyan-300 truncate">
+          $ ${m.command} ${m.args.join(" ")}
+        </div>
+      </div>
+    `
+      )
+      .join("");
+  }
 }
 
 // ---------------- Agency Briefings View ----------------
@@ -1417,10 +1645,9 @@ function renderCountermeasures() {
   const drugs = artifacts.drug_candidates || [];
   const vaccines = artifacts.vaccine_candidates || [];
 
-  // 1. Protein Targets Grid
   const targetGrid = document.getElementById("proteinTargetsGrid");
   if (!targets.length) {
-    targetGrid.innerHTML = `<div class="col-span-3 text-slate-500 italic p-4 bg-slate-900/50 rounded-lg border border-slate-800 text-center">Execute the Response Pathway to resolve macromolecular protein targets.</div>`;
+    targetGrid.innerHTML = `<div class="col-span-3 text-slate-500 italic p-4 bg-slate-900/50 rounded-lg border border-slate-800 text-center">Execute the Response Pathway to resolve macromolecular targets or cellular receptors.</div>`;
   } else {
     targetGrid.innerHTML = targets
       .map(
@@ -1444,10 +1671,9 @@ function renderCountermeasures() {
       .join("");
   }
 
-  // 2. Therapeutics Table
   const tbody = document.getElementById("therapeuticsTableBody");
   if (!drugs.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500 italic">No therapeutic docking candidates resolved yet. Run the Therapeutics node to generate candidates.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500 italic">No therapeutic or decorporation candidates resolved yet. Run the Therapeutics node to screen candidates.</td></tr>`;
   } else {
     tbody.innerHTML = drugs
       .map(
@@ -1471,10 +1697,9 @@ function renderCountermeasures() {
       .join("");
   }
 
-  // 3. Vaccine Candidates Grid
   const vacGrid = document.getElementById("vaccineCandidatesGrid");
   if (!vaccines.length) {
-    vacGrid.innerHTML = `<div class="col-span-2 text-slate-500 italic p-4 bg-slate-900/50 rounded-lg border border-slate-800 text-center">Execute the Vaccinology node to generate candidate antigen designs.</div>`;
+    vacGrid.innerHTML = `<div class="col-span-2 text-slate-500 italic p-4 bg-slate-900/50 rounded-lg border border-slate-800 text-center">Execute the Vaccinology node to generate candidate formulations.</div>`;
   } else {
     vacGrid.innerHTML = vaccines
       .map(
@@ -1499,72 +1724,4 @@ function renderCountermeasures() {
       )
       .join("");
   }
-}
-
-// ---------------- Agent Thought Feed View ----------------
-
-function renderAgentFeed() {
-  const container = document.getElementById("agentThoughtFeedList");
-  const countBadge = document.getElementById("feedLogsCount");
-  if (!container || !AppState.state) return;
-
-  const logs = AppState.state.run?.thought_logs || [];
-  countBadge.textContent = `${logs.length} deliberation steps`;
-
-  if (!logs.length) {
-    container.innerHTML = `<div class="text-center text-slate-500 italic py-16">No agent deliberation logs yet. Click 'Step' or 'Execute Pathway' to trigger agent reasoning squads.</div>`;
-    return;
-  }
-
-  container.innerHTML = logs
-    .slice()
-    .reverse()
-    .map((log) => {
-      let phaseColor = "bg-slate-800 text-slate-400 border-slate-700";
-      if (log.phase === "observation") phaseColor = "bg-blue-500/10 text-blue-400 border-blue-500/30";
-      if (log.phase === "hypothesis") phaseColor = "bg-purple-500/10 text-purple-400 border-purple-500/30";
-      if (log.phase === "tool_execution") phaseColor = "bg-cyan-500/10 text-cyan-400 border-cyan-500/30";
-      if (log.phase === "synthesis") phaseColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
-
-      return `
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2.5 shadow-sm">
-        <div class="flex items-center justify-between text-xs">
-          <div class="flex items-center space-x-2.5">
-            <div class="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-cyan-400 font-bold text-xs">
-              ${log.agent_name.charAt(0)}
-            </div>
-            <div>
-              <span class="font-bold text-slate-100">${log.agent_name}</span>
-              <span class="text-slate-500 text-[11px] ml-1.5">• ${log.agent_role}</span>
-            </div>
-          </div>
-          <div class="flex items-center space-x-2">
-            <span class="px-2 py-0.5 rounded text-[9px] font-mono uppercase font-bold border ${phaseColor}">
-              ${log.phase}
-            </span>
-            <span class="text-[10px] text-slate-500 font-mono">${log.timestamp.split("T")[1]?.slice(0, 8) || ""}</span>
-          </div>
-        </div>
-
-        <div class="text-xs text-slate-300 leading-relaxed font-sans pl-9">
-          ${log.message}
-        </div>
-
-        ${
-          log.tool_name
-            ? `
-          <div class="ml-9 bg-slate-950 p-2.5 rounded-lg border border-slate-800/80 text-[11px] font-mono space-y-1">
-            <div class="text-cyan-400 font-semibold flex items-center">
-              <i class="fa-solid fa-wrench mr-1.5 text-[10px]"></i>
-              Tool Call: ${log.tool_name}
-            </div>
-            ${log.tool_output_summary ? `<div class="text-slate-400 text-[10px]">Result: ${log.tool_output_summary}</div>` : ""}
-          </div>
-        `
-            : ""
-        }
-      </div>
-    `;
-    })
-    .join("");
 }

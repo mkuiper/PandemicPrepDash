@@ -130,3 +130,38 @@ def test_dummy_sequences_and_templates_api():
     res_del = client.delete(f"/api/pathways/templates/{tmpl_id}")
     assert res_del.status_code == 200
 
+
+def test_skills_toolbox_and_mcp_api():
+    # Australian Gov skills endpoint
+    res_skills = client.get("/api/agents/skills")
+    assert res_skills.status_code == 200
+    skills = res_skills.json()["skills"]
+    assert len(skills) >= 4
+    assert any(s["skill_id"] == "AUS-SKILL-SSBA-REPORTING" for s in skills)
+    assert any("ARPANSA" in s["skill_id"] for s in skills)
+
+    # Computational software toolbox endpoint
+    res_tools = client.get("/api/agents/toolbox")
+    assert res_tools.status_code == 200
+    tools = res_tools.json()["toolbox"]
+    assert len(tools) >= 5
+    assert any("BLAST+" in t["name"] for t in tools)
+    assert any("AlphaFold" in t["name"] for t in tools)
+
+    # MCP servers registry endpoint
+    res_mcps = client.get("/api/agents/mcps")
+    assert res_mcps.status_code == 200
+    mcps = res_mcps.json()["mcps"]
+    assert len(mcps) >= 5
+    assert any("ncbi-blast" in m["server_id"] for m in mcps)
+    assert any("arpansa-rad" in m["server_id"] for m in mcps)
+
+    # Model providers endpoint
+    res_prov = client.get("/api/agents/providers")
+    assert res_prov.status_code == 200
+    providers = res_prov.json()["providers"]
+    assert len(providers) >= 3
+    assert any(p["id"] == "local_open_weights" for p in providers)
+    assert any(p["id"] == "sovereign_australian_cloud" for p in providers)
+
+

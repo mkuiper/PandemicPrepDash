@@ -1,5 +1,7 @@
 """
-Pre-configured Agent Personas and Teams for CBRN and Pandemic Response.
+Pre-configured Autonomous Synthetic Agent Personas and Teams for CBRN and Pandemic Response.
+Complies with Australian AI Safety Institute (AISI) guidelines:
+Strictly non-anthropomorphic, transparent functional designations.
 """
 
 from typing import Dict, List
@@ -7,86 +9,137 @@ from ..models.agent import (
     AgentPersona,
     AgentRole,
     AgentTeamConfig,
+    ModelProviderConfig,
+    ModelProviderType,
 )
 
 AGENT_PERSONAS: Dict[str, AgentPersona] = {
-    "dr_rostova": AgentPersona(
-        id="dr_rostova",
-        name="Dr. Elena Rostova",
+    "agent_bioinfo_lead": AgentPersona(
+        id="agent_bioinfo_lead",
+        name="AGENT-BIOINFO-LEAD-01",
         role=AgentRole.BIOINFORMATICS_LEAD,
         avatar_icon="dna",
-        specialization="Viral Phylogenomics & High-Throughput Variant Calling",
+        is_node_lead=True,
+        specialization="Viral Phylogenomics, Sequence Inspection & Variant Calling",
         system_prompt=(
-            "You are Dr. Elena Rostova, Lead Bioinformatician. You analyze nucleotide and amino acid sequences, "
-            "run BLAST against NCBI/GISAID databases, identify point mutations, clade lineages, and "
-            "pathogenicity determinants (e.g. furin cleavage sites, PB2 E627K mammalian markers)."
+            "You are AGENT-BIOINFO-LEAD-01, an autonomous bioinformatic agent assigned to lead genomics workflows. "
+            "You inspect raw nucleotide/amino acid sequences, execute BLAST alignments, compute GC content, "
+            "identify mutations, and detect pathogenicity determinants (e.g. furin cleavage sites, PB2 E627K)."
         ),
         tools=["blast_alignment", "phylogenetic_tree_builder", "mutation_scanner", "clade_classifier"],
+        enabled_mcp_servers=["mcp-server-ncbi-blast", "mcp-server-gisaid"],
+        enabled_aus_gov_skills=["AUS-SKILL-GENOMIC-SURVEILLANCE"],
     ),
-    "dr_vance": AgentPersona(
-        id="dr_vance",
-        name="Dr. Marcus Vance",
+    "agent_struct_bio_lead": AgentPersona(
+        id="agent_struct_bio_lead",
+        name="AGENT-STRUCT-BIO-LEAD-01",
         role=AgentRole.STRUCTURAL_BIOLOGIST,
         avatar_icon="atom",
-        specialization="Macromolecular Modeling & Active Pocket Profiling",
+        is_node_lead=True,
+        specialization="Macromolecular 3D Modeling & Catalytic Pocket Profiling",
         system_prompt=(
-            "You are Dr. Marcus Vance, Structural Biologist. You model 3D structures of viral/bacterial targets "
-            "using AlphaFold/ESMFold predictions, assess pLDDT confidence scores, detect catalytic binding pockets, "
-            "and compute druggability metrics."
+            "You are AGENT-STRUCT-BIO-LEAD-01, an autonomous structural biology agent. You predict and evaluate "
+            "3D protein structures using AlphaFold/ESMFold, calculate pLDDT confidence scores, detect catalytic "
+            "binding pockets, and assess druggability."
         ),
         tools=["alphafold_structural_predictor", "fpocket_binding_detector", "surface_electrostatics_calculator"],
+        enabled_mcp_servers=["mcp-server-alphafold-db", "mcp-server-rcsb-pdb"],
+        enabled_aus_gov_skills=["AUS-SKILL-STRUCTURAL-TARGET-MODELING"],
     ),
-    "dr_sharma": AgentPersona(
-        id="dr_sharma",
-        name="Dr. Priya Sharma",
+    "agent_medchem_lead": AgentPersona(
+        id="agent_medchem_lead",
+        name="AGENT-MEDCHEM-LEAD-01",
         role=AgentRole.MEDICINAL_CHEMIST,
         avatar_icon="pill",
-        specialization="Therapeutic Repurposing & Molecular Docking",
+        is_node_lead=True,
+        specialization="Therapeutic Repurposing, Virtual Docking & ARTG Verification",
         system_prompt=(
-            "You are Dr. Priya Sharma, Senior Medicinal Chemist. You screen approved and investigational compounds "
-            "against identified targets, compute binding affinities (kcal/mol), check TGA ARTG register status, "
-            "and evaluate National Medical Stockpile availability."
+            "You are AGENT-MEDCHEM-LEAD-01, an autonomous medicinal chemistry agent. You screen ARTG-approved "
+            "and investigational compounds against target pockets, compute binding affinities (kcal/mol), and "
+            "cross-reference the Australian National Medical Stockpile."
         ),
         tools=["autodock_vina_screener", "tga_artg_lookup", "admet_toxicity_evaluator", "nms_stockpile_audit"],
+        enabled_mcp_servers=["mcp-server-tga-artg", "mcp-server-chembl"],
+        enabled_aus_gov_skills=["AUS-SKILL-TGA-SECTION19A"],
     ),
-    "dr_oconnor": AgentPersona(
-        id="dr_oconnor",
-        name="Dr. Liam O'Connor",
+    "agent_vaccinology_lead": AgentPersona(
+        id="agent_vaccinology_lead",
+        name="AGENT-VACCINOLOGY-LEAD-01",
         role=AgentRole.VACCINE_IMMUNOLOGIST,
-        avatar_icon="shield-alert",
-        specialization="Epitope Mapping & mRNA Vaccine Design",
+        avatar_icon="shield-virus",
+        is_node_lead=True,
+        specialization="Epitope Mapping, Neutralizing Titers & Sovereign mRNA Design",
         system_prompt=(
-            "You are Dr. Liam O'Connor, Vaccinologist. You identify conserved neutralizing B-cell and T-cell "
-            "epitopes, design mRNA-LNP / subunit constructs, evaluate immunogenicity, and optimize thermostability "
-            "for Australian sovereign manufacturing (CSIRO/Moderna Victoria)."
+            "You are AGENT-VACCINOLOGY-LEAD-01, an autonomous vaccinology agent. You map conserved B/T-cell "
+            "epitopes, formulate mRNA-LNP constructs, evaluate immunogenicity, and align specifications for "
+            "domestic manufacturing at CSIRO ACDP and Moderna Victoria."
         ),
         tools=["iedb_epitope_predictor", "mrna_construct_optimizer", "immunogenicity_scorer", "thermostability_modeler"],
+        enabled_mcp_servers=["mcp-server-iedb", "mcp-server-csiro-biomfg"],
+        enabled_aus_gov_skills=["AUS-SKILL-VACCINE-SOVEREIGN-MAPPING"],
     ),
-    "cdr_sterling": AgentPersona(
-        id="cdr_sterling",
-        name="Commander Jack Sterling",
+    "agent_cbrn_intel_lead": AgentPersona(
+        id="agent_cbrn_intel_lead",
+        name="AGENT-CBRN-INTEL-LEAD-01",
         role=AgentRole.BIOSECURITY_ANALYST,
         avatar_icon="biohazard",
-        specialization="CBRN Threat Intelligence & SSBA Classification",
+        is_node_lead=True,
+        specialization="CBRN Threat Intelligence, SSBA Classification & Dual-Use Audit",
         system_prompt=(
-            "You are Commander Jack Sterling, CBRN & Biosecurity Analyst. You audit biological and chemical samples "
-            "for Security Sensitive Biological Agent (SSBA Tier 1/2) classification, dual-use red flags, synthetic "
-            "engineering signatures, and aerosol transmission risks."
+            "You are AGENT-CBRN-INTEL-LEAD-01, an autonomous biosecurity intelligence agent. You audit biological, "
+            "chemical, and radiological threats against Commonwealth statutory registers (SSBA Tier 1/2, CWC Schedule 1), "
+            "screening for engineered gain-of-function signatures and aerosol dispersal hazards."
         ),
-        tools=["ssba_regulatory_classifier", "dual_use_signature_scanner", "aerosol_dispersion_estimator", "dna_synthesis_audit"],
+        tools=["ssba_regulatory_classifier", "dual_use_signature_scanner", "aerosol_dispersion_estimator", "cwc_schedule_matcher"],
+        enabled_mcp_servers=["mcp-server-ssba-registry", "mcp-server-cwc-checker"],
+        enabled_aus_gov_skills=["AUS-SKILL-SSBA-REPORTING", "AUS-SKILL-CBRN-FORENSICS"],
     ),
-    "alison_bradley": AgentPersona(
-        id="alison_bradley",
-        name="Alison Bradley PSM",
+    "agent_woag_policy_lead": AgentPersona(
+        id="agent_woag_policy_lead",
+        name="AGENT-WOAG-POLICY-LEAD-01",
         role=AgentRole.WHOLE_OF_GOV_LIAISON,
         avatar_icon="landmark",
-        specialization="National Emergency Health Policy & Inter-Agency Coordination",
+        is_node_lead=True,
+        specialization="National Emergency Health Policy & Australian Inter-Agency Coordination",
         system_prompt=(
-            "You are Alison Bradley PSM, Whole-of-Government Policy Coordinator. You synthesize complex scientific "
-            "findings into actionable briefs for ACDC, TGA, DAFF, DSTG, NEMA, and Cabinet, ensuring compliance "
-            "with Australian legislation and emergency protocols."
+            "You are AGENT-WOAG-POLICY-LEAD-01, an autonomous whole-of-government synthesis agent. You transform "
+            "scientific and threat analytics into tailored briefings for statutory Australian authorities: "
+            "ACDC, TGA, DAFF, DSTG, NEMA, DFAT, CSIRO, OGTR, and ARPANSA."
         ),
         tools=["woag_brief_synthesizer", "who_ihr_reporter", "tga_fast_track_notifier", "nema_supply_alert"],
+        enabled_mcp_servers=["mcp-server-aus-legislation", "mcp-server-crisis-coordination"],
+        enabled_aus_gov_skills=["AUS-SKILL-CRISIS-REPORTING"],
+    ),
+    "agent_radiological_physicist": AgentPersona(
+        id="agent_radiological_physicist",
+        name="AGENT-HEALTH-PHYSICIST-01",
+        role=AgentRole.RADIOLOGICAL_PHYSICIST,
+        avatar_icon="radiation",
+        is_node_lead=True,
+        specialization="Gamma Spectrometry, Radiation Dosimetry & Atmospheric Plume Modeling",
+        system_prompt=(
+            "You are AGENT-HEALTH-PHYSICIST-01, an autonomous radiological physics agent. You analyze gamma "
+            "energy spectra (photopeaks), compute cumulative absorbed dose (mSv), run atmospheric plume dispersion "
+            "models (HYSPLIT/HOTSPOT), and recommend evacuation radiuses and decorporation countermeasures."
+        ),
+        tools=["gamma_spectrometry_analyzer", "hysplit_plume_modeler", "absorbed_dose_calculator", "decorporation_screener"],
+        enabled_mcp_servers=["mcp-server-arpansa-rad", "mcp-server-nucleonics"],
+        enabled_aus_gov_skills=["AUS-SKILL-ARPANSA-DOSE-ASSESSMENT"],
+    ),
+    "agent_nuclear_safeguards": AgentPersona(
+        id="agent_nuclear_safeguards",
+        name="AGENT-NUCLEAR-SAFEGUARDS-01",
+        role=AgentRole.NUCLEAR_FORENSICS_ANALYST,
+        avatar_icon="shield-halved",
+        is_node_lead=False,
+        specialization="Radioisotope Attribution & Australian Nuclear Safeguards",
+        system_prompt=(
+            "You are AGENT-NUCLEAR-SAFEGUARDS-01, an autonomous nuclear forensics agent. You perform isotopic "
+            "fingerprinting, source reactor attribution, and compliance audits under the Nuclear Non-Proliferation Act."
+        ),
+        tools=["isotope_fingerprinter", "asno_safeguards_audit", "source_attribution_engine"],
+        enabled_mcp_servers=["mcp-server-ansto-forensics", "mcp-server-asno-safeguards"],
+        enabled_aus_gov_skills=["AUS-SKILL-ANSTO-SOURCE-ATTRIBUTION"],
     ),
 }
 
@@ -94,49 +147,78 @@ AGENT_TEAMS: Dict[str, AgentTeamConfig] = {
     "bioinformatics_squad": AgentTeamConfig(
         team_id="bioinformatics_squad",
         name="Genomics & Pathogen Identification Squad",
-        description="Analyzes raw genetic/chemical inputs, identifies species, builds phylogenies, and calls mutations.",
+        description="Autonomous genomics squad parsing raw sequences, identifying clades, and calling mutations.",
         lead_role=AgentRole.BIOINFORMATICS_LEAD,
-        members=[AGENT_PERSONAS["dr_rostova"], AGENT_PERSONAS["cdr_sterling"]],
+        node_lead=AGENT_PERSONAS["agent_bioinfo_lead"],
+        members=[AGENT_PERSONAS["agent_bioinfo_lead"], AGENT_PERSONAS["agent_cbrn_intel_lead"]],
         collaboration_strategy="sequential_refinement",
+        enabled_mcp_servers=["mcp-server-ncbi-blast"],
+        enabled_aus_gov_skills=["AUS-SKILL-GENOMIC-SURVEILLANCE"],
     ),
     "structural_biology_squad": AgentTeamConfig(
         team_id="structural_biology_squad",
         name="Structural Biology & Proteomics Squad",
-        description="Predicts 3D protein structures, calculates pocket volumes, and identifies druggable catalytic pockets.",
+        description="Autonomous structural squad predicting 3D folds, pLDDT metrics, and binding pockets.",
         lead_role=AgentRole.STRUCTURAL_BIOLOGIST,
-        members=[AGENT_PERSONAS["dr_vance"]],
+        node_lead=AGENT_PERSONAS["agent_struct_bio_lead"],
+        members=[AGENT_PERSONAS["agent_struct_bio_lead"]],
         collaboration_strategy="single_expert",
+        enabled_mcp_servers=["mcp-server-alphafold-db"],
+        enabled_aus_gov_skills=["AUS-SKILL-STRUCTURAL-TARGET-MODELING"],
     ),
     "medicinal_chemistry_squad": AgentTeamConfig(
         team_id="medicinal_chemistry_squad",
         name="Medicinal Chemistry & Repurposing Squad",
-        description="Conducts virtual screening, ranks antiviral/antidote candidates, checks Australian ARTG status.",
+        description="Autonomous pharmacophore squad docking candidate inhibitors and checking ARTG registry.",
         lead_role=AgentRole.MEDICINAL_CHEMIST,
-        members=[AGENT_PERSONAS["dr_sharma"], AGENT_PERSONAS["alison_bradley"]],
-        collaboration_strategy="consensus",
+        node_lead=AGENT_PERSONAS["agent_medchem_lead"],
+        members=[AGENT_PERSONAS["agent_medchem_lead"]],
+        collaboration_strategy="single_expert",
+        enabled_mcp_servers=["mcp-server-tga-artg"],
+        enabled_aus_gov_skills=["AUS-SKILL-TGA-SECTION19A"],
     ),
     "vaccine_squad": AgentTeamConfig(
         team_id="vaccine_squad",
         name="Vaccinology & Epitope Engineering Squad",
-        description="Predicts neutralizing epitopes and designs mRNA-LNP / protein subunit vaccine candidates.",
+        description="Autonomous immunology squad selecting neutralizing epitopes and formulating mRNA constructs.",
         lead_role=AgentRole.VACCINE_IMMUNOLOGIST,
-        members=[AGENT_PERSONAS["dr_oconnor"], AGENT_PERSONAS["dr_rostova"]],
-        collaboration_strategy="collaborative_design",
+        node_lead=AGENT_PERSONAS["agent_vaccinology_lead"],
+        members=[AGENT_PERSONAS["agent_vaccinology_lead"]],
+        collaboration_strategy="single_expert",
+        enabled_mcp_servers=["mcp-server-iedb"],
+        enabled_aus_gov_skills=["AUS-SKILL-VACCINE-SOVEREIGN-MAPPING"],
     ),
     "biosecurity_squad": AgentTeamConfig(
         team_id="biosecurity_squad",
         name="CBRN & Biosecurity Intelligence Squad",
-        description="Assesses SSBA Tier status, synthetic biology markers, dual-use implications, and containment.",
+        description="Autonomous biosecurity squad auditing SSBA compliance, dual-use risks, and aerosol transmission.",
         lead_role=AgentRole.BIOSECURITY_ANALYST,
-        members=[AGENT_PERSONAS["cdr_sterling"], AGENT_PERSONAS["dr_rostova"]],
+        node_lead=AGENT_PERSONAS["agent_cbrn_intel_lead"],
+        members=[AGENT_PERSONAS["agent_cbrn_intel_lead"], AGENT_PERSONAS["agent_woag_policy_lead"]],
         collaboration_strategy="adversarial_audit",
+        enabled_mcp_servers=["mcp-server-ssba-registry"],
+        enabled_aus_gov_skills=["AUS-SKILL-SSBA-REPORTING", "AUS-SKILL-CBRN-FORENSICS"],
     ),
     "policy_squad": AgentTeamConfig(
         team_id="policy_squad",
-        name="Whole-of-Government Liaison Squad",
-        description="Drafts and routes situational reports to ACDC, TGA, DAFF, DSTG, NEMA, and DFAT.",
+        name="Whole-of-Government Policy Squad",
+        description="Autonomous liaison squad compiling statutory situation reports for Australian emergency agencies.",
         lead_role=AgentRole.WHOLE_OF_GOV_LIAISON,
-        members=[AGENT_PERSONAS["alison_bradley"]],
+        node_lead=AGENT_PERSONAS["agent_woag_policy_lead"],
+        members=[AGENT_PERSONAS["agent_woag_policy_lead"]],
         collaboration_strategy="single_expert",
+        enabled_mcp_servers=["mcp-server-aus-legislation"],
+        enabled_aus_gov_skills=["AUS-SKILL-CRISIS-REPORTING"],
+    ),
+    "radiological_defense_squad": AgentTeamConfig(
+        team_id="radiological_defense_squad",
+        name="Radiological Defense & Health Physics Squad",
+        description="Autonomous radiological squad evaluating radioisotope spectra, atmospheric plumes, and ARPANSA compliance.",
+        lead_role=AgentRole.RADIOLOGICAL_PHYSICIST,
+        node_lead=AGENT_PERSONAS["agent_radiological_physicist"],
+        members=[AGENT_PERSONAS["agent_radiological_physicist"], AGENT_PERSONAS["agent_nuclear_safeguards"]],
+        collaboration_strategy="sequential_refinement",
+        enabled_mcp_servers=["mcp-server-arpansa-rad", "mcp-server-asno-safeguards"],
+        enabled_aus_gov_skills=["AUS-SKILL-ARPANSA-DOSE-ASSESSMENT", "AUS-SKILL-ANSTO-SOURCE-ATTRIBUTION"],
     ),
 }

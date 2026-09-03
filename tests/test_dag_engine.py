@@ -258,3 +258,72 @@ def test_scenario_switching_auto_aligns_pathway():
     engine.set_scenario("scen_novel_coronavirus")
     assert engine.pathway.threat_type == ThreatType.BIOLOGICAL_VIRUS
 
+
+def test_aisi_non_anthropomorphic_agent_names():
+    """Verify that all agent personas strictly adhere to AISI non-anthropomorphic naming guidelines."""
+    from pandemic_prep_dash.agents.teams import AGENT_PERSONAS, AGENT_TEAMS
+
+    forbidden_names = ["Dr.", "Elena", "Marcus", "Sarah", "Priya", "James", "Kwan", "Rostova", "Chen", "Sterling", "Sharma", "Callahan"]
+
+    for persona in AGENT_PERSONAS.values():
+        assert persona.name.startswith("AGENT-"), f"Agent name '{persona.name}' must follow AISI functional designation"
+        for fn in forbidden_names:
+            assert fn.lower() not in persona.name.lower(), f"Agent '{persona.name}' contains anthropomorphic name element '{fn}'"
+
+    for team in AGENT_TEAMS.values():
+        if team.node_lead:
+            assert team.node_lead.name.startswith("AGENT-")
+
+
+def test_inter_node_dialogue_generation_and_audit():
+    """Verify that downstream nodes initiate auditable inter-node lead communications."""
+    pathway = create_default_biological_pathway()
+    engine = PathwayExecutionEngine(pathway, "scen_h5n1_avian_flu")
+
+    # Step 1: Ingestion
+    res1 = engine.execute_next_step()
+    assert res1["status"] == "step_completed"
+
+    # Step 2: Characterization (triggers lead dialogue to Ingestion lead)
+    res2 = engine.execute_next_step()
+    assert res2["status"] == "step_completed"
+
+    dialogues = engine.run.inter_node_dialogues
+    assert len(dialogues) >= 1
+    d = dialogues[0]
+    assert d.source_agent_name.startswith("AGENT-")
+    assert d.target_agent_name.startswith("AGENT-")
+    assert d.resolved is True
+    assert "Ingestion Lead" in d.response_content or "Transmitting" in d.response_content
+
+
+def test_radiological_cesium137_pathway_and_agencies():
+    """Verify radiological Cesium-137 dirty bomb scenario and statutory agency reports (ARPANSA, ANSTO)."""
+    from pandemic_prep_dash.models.bio_chem import ThreatType
+    from pandemic_prep_dash.core.templates import TemplateManager
+    from pandemic_prep_dash.models.agency import AgencyIdentifier
+
+    pathway = TemplateManager.get_template("pathway_default_radiological").model_copy(deep=True)
+    engine = PathwayExecutionEngine(pathway, "scen_radiological_cesium137")
+    assert engine.pathway.threat_type == ThreatType.RADIOLOGICAL_DISPERSAL
+
+    # Execute all nodes with auto-approval
+    run_res = engine.execute_all(auto_approve=True)
+    assert run_res["status"] == "completed"
+
+    artifacts = engine.run.node_artifacts
+    assert "agency_reports" in artifacts
+    reports = artifacts["agency_reports"]
+
+    # Verify ARPANSA, ANSTO, ASNO, and Home Affairs reports exist
+    assert AgencyIdentifier.ARPANSA.value in reports
+    assert AgencyIdentifier.ANSTO.value in reports
+    assert AgencyIdentifier.ASNO.value in reports
+    assert AgencyIdentifier.HOME_AFFAIRS.value in reports
+
+    arpansa_rep = reports[AgencyIdentifier.ARPANSA.value]
+    assert "Caesium-137" in arpansa_rep["title"] or "662 keV" in arpansa_rep["executive_summary"] or "ARPANS Act" in arpansa_rep["executive_summary"]
+    assert any("Prussian Blue" in s for s in arpansa_rep["strategic_implications"])
+    assert any("sheltering" in act.lower() or "radioprotective" in act.lower() for act in arpansa_rep["action_items_required"])
+
+

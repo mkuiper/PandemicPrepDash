@@ -126,4 +126,63 @@ AUSTRALIAN_AGENCIES: Dict[AgencyIdentifier, AgencyProfile] = {
         liaison_contact_role="Gene Technology Regulator & Chief Biosafety Assessor",
         preferred_brief_format="Biosafety & Gene Technology Compliance Notice (GMO classification, containment requirements, licensing schedule)."
     ),
+    AgencyIdentifier.ARPANSA: AgencyProfile(
+        id=AgencyIdentifier.ARPANSA,
+        full_name="Australian Radiation Protection and Nuclear Safety Agency",
+        portfolio="Department of Health and Aged Care",
+        mandate_summary="Primary Australian authority on radiation protection, emergency reference dose levels, public health physics, and environmental radiological monitoring.",
+        key_responsibilities=[
+            "Australian radiation monitoring network and radiological emergency intervention dose limits",
+            "Atmospheric dispersion modeling and public health protective action guidance (RPS C-1)",
+            "Radiological countermeasure evaluation (potassium iodide, Prussian Blue, DTPA chelation)",
+            "Liaison with state radiation regulators and IAEA Radiation Safety Division",
+        ],
+        statutory_authority="Australian Radiation Protection and Nuclear Safety Act 1998 (Cth)",
+        liaison_contact_role="ARPANSA Chief Radiation Health Scientist & Emergency Response Director",
+        preferred_brief_format="Radiological Assessment & Intervention SITREP (Radionuclide identity, absorbed dose mSv, plume projection, evacuation radius)."
+    ),
+    AgencyIdentifier.ANSTO: AgencyProfile(
+        id=AgencyIdentifier.ANSTO,
+        full_name="Australian Nuclear Science and Technology Organisation",
+        portfolio="Industry, Science and Resources",
+        mandate_summary="Australia's national nuclear science and sovereign isotope engineering hub at Lucas Heights, providing high-precision nuclear forensics.",
+        key_responsibilities=[
+            "High-resolution gamma spectrometry and thermal ionization mass spectrometry (TIMS)",
+            "Nuclear forensics and origin reactor attribution for unsealed or orphaned sources",
+            "Sovereign radioisotope synthesis and medical countermeasure diagnostic tracers",
+            "Specialized decontamination protocol verification for critical infrastructure",
+        ],
+        statutory_authority="Australian Nuclear Science and Technology Organisation Act 1987 (Cth)",
+        liaison_contact_role="ANSTO Leader of Nuclear Forensics & Lucas Heights Incident Response",
+        preferred_brief_format="Nuclear Forensics & Isotopic Characterization Dossier (Photopeaks, isotopic ratios, reactor burnup attribution)."
+    ),
+    AgencyIdentifier.ASNO: AgencyProfile(
+        id=AgencyIdentifier.ASNO,
+        full_name="Australian Safeguards and Non-Proliferation Office",
+        portfolio="Department of Foreign Affairs and Trade",
+        mandate_summary="Administering Australia's nuclear safeguards, Chemical Weapons Convention (CWC) compliance, and Comprehensive Nuclear-Test-Ban Treaty verification.",
+        key_responsibilities=[
+            "National register of nuclear material, fissile materials, and industrial high-activity sources",
+            "Verification compliance with IAEA Safeguards Agreements and Nuclear Non-Proliferation Treaty",
+            "Cross-border interdiction coordination with Border Force for undeclared radioactive shipments",
+        ],
+        statutory_authority="Nuclear Non-Proliferation (Safeguards) Act 1987 (Cth)",
+        liaison_contact_role="Director General, Australian Safeguards and Non-Proliferation Office",
+        preferred_brief_format="Non-Proliferation & Treaty Verification Alert (Safeguards status, illicit trafficking database notification)."
+    ),
+    AgencyIdentifier.HOME_AFFAIRS: AgencyProfile(
+        id=AgencyIdentifier.HOME_AFFAIRS,
+        full_name="Department of Home Affairs & Cyber and Infrastructure Security Centre",
+        portfolio="Department of Home Affairs",
+        mandate_summary="National security coordination, counter-terrorism, critical infrastructure protection, and Australian AI Safety Institute (AISI) co-stewardship.",
+        key_responsibilities=[
+            "Whole-of-Government National Counter-Terrorism Plan (NCTP) activation",
+            "Critical infrastructure protection and sector resilience (SOCI Act 2018)",
+            "Co-development and evaluation of sovereign AI safety benchmarks via Australian AISI",
+            "Coordination with state police, ASIO, and Australian Border Force (ABF)",
+        ],
+        statutory_authority="Security of Critical Infrastructure Act 2018 (Cth) & Home Affairs Mandate",
+        liaison_contact_role="Deputy Secretary, National Security & Emergency Management",
+        preferred_brief_format="National Security Threat Assessment Briefing (Threat attribution, critical infrastructure vulnerability, AISI risk appraisal)."
+    ),
 }

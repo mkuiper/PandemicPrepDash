@@ -8,6 +8,8 @@ class ThreatType(str, Enum):
     BIOLOGICAL_BACTERIA = "biological_bacteria"
     CHEMICAL_TOXIN = "chemical_toxin"
     CHEMICAL_NERVE_AGENT = "chemical_nerve_agent"
+    RADIOLOGICAL_DISPERSAL = "radiological_dispersal"
+    NUCLEAR_MATERIAL = "nuclear_material"
     SYNTHETIC_ENGINEERED = "synthetic_engineered"
     UNKNOWN = "unknown"
 
@@ -17,6 +19,7 @@ class SampleType(str, Enum):
     RNA = "RNA"
     PROTEIN = "PROTEIN"
     SMILES = "SMILES"
+    RADIOLOGICAL_SPECTRUM = "RADIOLOGICAL_SPECTRUM"
     SYNDROMIC_TEXT = "SYNDROMIC_TEXT"
 
 

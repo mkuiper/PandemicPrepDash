@@ -126,6 +126,78 @@ def create_sovereign_vaccine_pathway() -> Pathway:
     )
 
 
+def create_default_radiological_pathway() -> Pathway:
+    """Default Australian radiological / nuclear emergency response pathway."""
+    nodes = [
+        PathwayNode(
+            id="node_rad_detection",
+            label="Radiation Detection & Gamma Spectrometry",
+            category=NodeCategory.INGESTION,
+            description="Acquires HPGe gamma photopeak data, identifies radioisotopes, and measures activity.",
+            agent_team_id="radiological_defense_squad",
+            human_oversight_role="ARPANSA Radiation Monitoring Duty Officer",
+            position_x=100.0,
+            position_y=220.0,
+        ),
+        PathwayNode(
+            id="node_rad_plume",
+            label="HYSPLIT Plume & Dispersion Modeling",
+            category=NodeCategory.CHARACTERIZATION,
+            description="Simulates atmospheric dispersion, ground deposition (Bq/m²), and public dose rate.",
+            agent_team_id="radiological_defense_squad",
+            human_oversight_role="Bureau of Meteorology & ARPANSA Modeler",
+            position_x=380.0,
+            position_y=140.0,
+        ),
+        PathwayNode(
+            id="node_rad_decorporation",
+            label="Decorporation Countermeasures (Prussian Blue)",
+            category=NodeCategory.THERAPEUTICS,
+            description="Screens ion-exchange decorporation antidotes and authorizes National Medical Stockpile release.",
+            agent_team_id="medicinal_chemistry_squad",
+            human_oversight_role="TGA & Chief Medical Officer Evaluator",
+            position_x=660.0,
+            position_y=140.0,
+        ),
+        PathwayNode(
+            id="node_rad_arpansa_approval",
+            label="ARPANSA Emergency Intervention Signoff",
+            category=NodeCategory.BIOSECURITY,
+            description="Statutory review of Emergency Reference Levels under the ARPANS Act 1998.",
+            agent_team_id="biosecurity_squad",
+            requires_human_approval=True,
+            human_oversight_role="ARPANSA Chief Radiation Health Scientist & Home Affairs Delegate",
+            position_x=660.0,
+            position_y=300.0,
+        ),
+        PathwayNode(
+            id="node_rad_agency_reports",
+            label="Whole-of-Government Radiological Dispatches",
+            category=NodeCategory.AGENCY_REPORTING,
+            description="Dispatches briefings to ARPANSA, ANSTO, ASNO, Home Affairs, NEMA, and Cabinet.",
+            agent_team_id="policy_squad",
+            human_oversight_role="Home Affairs Crisis Centre Director",
+            position_x=960.0,
+            position_y=220.0,
+        ),
+    ]
+    edges = [
+        PathwayEdge(id="rad_e1", source="node_rad_detection", target="node_rad_plume", label="Isotope Confirmed"),
+        PathwayEdge(id="rad_e2", source="node_rad_plume", target="node_rad_decorporation", label="Dose Projected"),
+        PathwayEdge(id="rad_e3", source="node_rad_detection", target="node_rad_arpansa_approval", label="Activity Measured"),
+        PathwayEdge(id="rad_e4", source="node_rad_decorporation", target="node_rad_agency_reports", label="Medical Antidotes Ready"),
+        PathwayEdge(id="rad_e5", source="node_rad_arpansa_approval", target="node_rad_agency_reports", label="Statutory Signoff"),
+    ]
+    return Pathway(
+        id="pathway_default_radiological",
+        name="Radiological & Nuclear CBRN Response Pathway",
+        description="Whole-of-government emergency pathway for radiological dispersal devices (RDD / dirty bombs), atmospheric plume dispersion, decorporation medical countermeasures, and ARPANSA/ANSTO statutory dispatches.",
+        threat_type=ThreatType.RADIOLOGICAL_DISPERSAL,
+        nodes=nodes,
+        edges=edges,
+    )
+
+
 class TemplateManager:
     """Manages built-in and user-persisted response pathway templates."""
 
@@ -134,6 +206,7 @@ class TemplateManager:
         return {
             "pathway_default_biological": create_default_biological_pathway(),
             "pathway_default_chemical": create_default_chemical_pathway(),
+            "pathway_default_radiological": create_default_radiological_pathway(),
             "pathway_rapid_antiviral": create_rapid_antiviral_pathway(),
             "pathway_sovereign_vaccine": create_sovereign_vaccine_pathway(),
         }

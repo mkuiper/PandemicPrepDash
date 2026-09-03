@@ -5,16 +5,20 @@ from pydantic import BaseModel, Field
 
 
 class AgencyIdentifier(str, Enum):
-    ACDC = "ACDC"          # Australian Centre for Disease Control
-    TGA = "TGA"            # Therapeutic Goods Administration
-    DAFF = "DAFF"          # Department of Agriculture, Fisheries and Forestry
-    DSTG = "DSTG"          # Defence Science and Technology Group (Department of Defence)
-    NEMA = "NEMA"          # National Emergency Management Agency
-    DFAT = "DFAT"          # Department of Foreign Affairs and Trade
-    CSIRO = "CSIRO"        # Commonwealth Scientific and Industrial Research Organisation
-    OGTR = "OGTR"          # Office of the Gene Technology Regulator
-    CDNA = "CDNA"          # Communicable Diseases Network Australia
-    PHLN = "PHLN"          # Public Health Laboratory Network
+    ACDC = "ACDC"                  # Australian Centre for Disease Control
+    TGA = "TGA"                    # Therapeutic Goods Administration
+    DAFF = "DAFF"                  # Department of Agriculture, Fisheries and Forestry
+    DSTG = "DSTG"                  # Defence Science and Technology Group (Department of Defence)
+    NEMA = "NEMA"                  # National Emergency Management Agency
+    DFAT = "DFAT"                  # Department of Foreign Affairs and Trade
+    CSIRO = "CSIRO"                # Commonwealth Scientific and Industrial Research Organisation
+    OGTR = "OGTR"                  # Office of the Gene Technology Regulator
+    ARPANSA = "ARPANSA"            # Australian Radiation Protection and Nuclear Safety Agency
+    ANSTO = "ANSTO"                # Australian Nuclear Science and Technology Organisation
+    ASNO = "ASNO"                  # Australian Safeguards and Non-Proliferation Office
+    HOME_AFFAIRS = "HOME_AFFAIRS"  # Department of Home Affairs (National Counter-Terrorism & Critical Infrastructure)
+    CDNA = "CDNA"                  # Communicable Diseases Network Australia
+    PHLN = "PHLN"                  # Public Health Laboratory Network
 
 
 class SecurityClassification(str, Enum):

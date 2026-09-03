@@ -2,11 +2,13 @@ from typing import Dict, Any, List
 from .h5n1_avian_flu import H5N1_SCENARIO_DATA
 from .novel_coronavirus import CORONA_SCENARIO_DATA
 from .nerve_agent_toxin import NERVE_AGENT_SCENARIO_DATA
+from .radiological_scenario import SCENARIO_RADIOLOGICAL_CESIUM137
 
 SCENARIO_REGISTRY: Dict[str, Dict[str, Any]] = {
     "scen_h5n1_avian_flu": H5N1_SCENARIO_DATA,
     "scen_novel_coronavirus": CORONA_SCENARIO_DATA,
     "scen_nerve_agent_toxin": NERVE_AGENT_SCENARIO_DATA,
+    "scen_radiological_cesium137": SCENARIO_RADIOLOGICAL_CESIUM137,
 }
 
 
