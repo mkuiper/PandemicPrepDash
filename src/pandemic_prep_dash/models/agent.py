@@ -113,16 +113,19 @@ class InterNodeDialogue(BaseModel):
     resolved: bool = True
 
 
+from typing import List, Dict, Any, Optional, Union
+
+
 class AgentTeamConfig(BaseModel):
     team_id: str
     name: str
     description: str
-    lead_role: AgentRole
+    lead_role: Union[AgentRole, str] = AgentRole.BIOINFORMATICS_LEAD
     node_lead: Optional[AgentPersona] = None
     members: List[AgentPersona] = Field(default_factory=list)
     collaboration_strategy: str = "sequential_refinement"
     max_tool_invocations: int = 10
-    harness_engine: HarnessEngineType = HarnessEngineType.AGY
+    harness_engine: Union[HarnessEngineType, str] = HarnessEngineType.AGY
     harness_command: str = "agy exec"  # e.g. "agy exec", "claude -p", "codex exec", "opencode"
     sandbox_policy: str = "restricted_fs"  # restricted_fs, read_only, isolated_container
     approval_mode: str = "on_request"  # on_request, plan_approval, autonomous

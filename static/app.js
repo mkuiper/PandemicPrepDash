@@ -2077,6 +2077,31 @@ function renderDag() {
     portPlus.textContent = "+";
     g.appendChild(portPlus);
 
+    // Interactive Harness Settings Gear Button
+    const gearBtn = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    gearBtn.setAttribute("class", "node-gear-btn");
+    gearBtn.style.cursor = "pointer";
+    gearBtn.innerHTML = `
+      <circle cx="174" cy="74" r="8" fill="${isLight ? '#f1f5f9' : '#0f172a'}" stroke="${categoryInfo.color}" stroke-width="1" />
+      <text x="174" y="77" fill="#38bdf8" font-size="9px" text-anchor="middle" font-family="monospace">⚙</text>
+    `;
+    gearBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      AppState.selectedNodeId = node.id;
+      renderDag();
+      renderNodeInspector(node.id);
+      openConfigureSquadModal(node.id);
+    });
+    g.appendChild(gearBtn);
+
+    g.addEventListener("dblclick", (e) => {
+      e.stopPropagation();
+      AppState.selectedNodeId = node.id;
+      renderDag();
+      renderNodeInspector(node.id);
+      openConfigureSquadModal(node.id);
+    });
+
     g.addEventListener("click", () => {
       if (AppState.connecting.active) {
         completeConnection(node.id);
@@ -2195,13 +2220,26 @@ function renderNodeInspector(nodeId) {
     `;
   }
 
+const HARNESS_DEFAULT_COMMANDS = {
+  agy: "agy exec",
+  claude_code: "claude -p",
+  codex: "codex exec",
+  opencode: "opencode run",
+  sovereign_container: "podman run --network none -v /local/sandbox:/workspace:Z",
+  custom_harness: "python -m harness.react_loop",
+};
+
   const inboundEdges = edges.filter((e) => e.target === node.id);
   const outboundEdges = edges.filter((e) => e.source === node.id);
 
   const squadName = node.agent_team_config?.name || node.agent_team_id.replace("_", " ");
   const leadAgentName = node.agent_team_config?.node_lead?.name || "Harness Lead";
-  const harnessEngine = (node.agent_team_config?.harness_engine || "AGY").toUpperCase();
-  const modelDisplay = node.provider_config?.model_name || "llama-3.3-70b-instruct-q4";
+  const harnessEngineRaw = node.agent_team_config?.harness_engine || "agy";
+  const harnessEngine = harnessEngineRaw.toUpperCase();
+  const harnessCommand = node.agent_team_config?.harness_command || HARNESS_DEFAULT_COMMANDS[harnessEngineRaw] || "agy exec";
+  const sandboxPolicy = node.agent_team_config?.sandbox_policy || "restricted_fs";
+  const providerType = node.provider_config?.provider_type || node.agent_team_config?.provider_config?.provider_type || "local_open_weights";
+  const modelDisplay = node.provider_config?.model_name || node.agent_team_config?.provider_config?.model_name || "llama-3.3-70b-instruct-q4";
 
   container.innerHTML = `
     <div class="space-y-4">
@@ -2220,25 +2258,68 @@ function renderNodeInspector(nodeId) {
         <div class="text-slate-300 leading-relaxed">${node.description}</div>
       </div>
 
-      <div class="space-y-2 pt-2 border-t border-slate-800">
+      <!-- Live Interactive Agentic Harness Configuration -->
+      <div class="space-y-2.5 pt-2 border-t border-slate-800">
         <div class="flex items-center justify-between">
-          <span class="text-slate-500 uppercase font-semibold text-[10px]">Agentic Harness &amp; Squad</span>
-          <button id="btnConfigureNodeSquad" class="text-[11px] text-purple-400 hover:text-purple-300 flex items-center space-x-1 font-medium">
-            <i class="fa-solid fa-pen-to-square"></i>
-            <span>Configure Harness</span>
-          </button>
+          <span class="text-cyan-400 uppercase font-bold text-[10px] tracking-wider flex items-center">
+            <i class="fa-solid fa-microchip mr-1.5 text-cyan-400"></i>
+            Agentic Harness &amp; Squad
+          </span>
+          <span id="inspectorHarnessBadge" class="text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            ${harnessEngine}
+          </span>
         </div>
-        <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1.5 text-[11px]">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-200 flex items-center">
-              <i class="fa-solid fa-microchip text-cyan-400 mr-1.5"></i>
+
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2.5">
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="font-bold text-slate-200 truncate flex items-center">
+              <i class="fa-solid fa-users-gear text-purple-400 mr-1.5"></i>
               ${squadName}
             </span>
-            <span class="text-[9px] font-mono text-emerald-400">LEAD: ${leadAgentName}</span>
+            <span class="text-[9px] font-mono text-emerald-400 shrink-0 ml-2">LEAD: ${leadAgentName}</span>
           </div>
-          <div class="flex items-center justify-between text-[10px] text-slate-400 font-mono">
-            <span>Harness: <strong class="text-cyan-300">${harnessEngine}</strong></span>
-            <span>Model: ${modelDisplay}</span>
+
+          <div>
+            <label class="block text-slate-400 text-[10px] mb-1 font-medium">Execution Harness Engine</label>
+            <select id="quickHarnessEngineSelect" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-cyan-300 text-xs font-semibold focus:outline-none focus:border-cyan-500">
+              <option value="agy" ${harnessEngineRaw === "agy" ? "selected" : ""}>AGY (Antigravity Autonomous Harness)</option>
+              <option value="claude_code" ${harnessEngineRaw === "claude_code" ? "selected" : ""}>Claude Code CLI (claude -p)</option>
+              <option value="codex" ${harnessEngineRaw === "codex" ? "selected" : ""}>OpenAI Codex CLI (codex exec)</option>
+              <option value="opencode" ${harnessEngineRaw === "opencode" ? "selected" : ""}>OpenCode Multi-Agent Harness</option>
+              <option value="sovereign_container" ${harnessEngineRaw === "sovereign_container" ? "selected" : ""}>Air-Gapped Sovereign Podman Container</option>
+              <option value="custom_harness" ${harnessEngineRaw === "custom_harness" ? "selected" : ""}>Custom ReAct Execution Harness</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-slate-400 text-[10px] mb-1 font-medium">CLI Execution Command</label>
+            <input id="quickHarnessCommandInput" type="text" value="${harnessCommand}" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-slate-200 font-mono text-xs focus:outline-none focus:border-cyan-500">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-slate-400 text-[10px] mb-1 font-medium">Sandbox Policy</label>
+              <select id="quickHarnessSandboxSelect" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-[11px] focus:outline-none focus:border-cyan-500">
+                <option value="restricted_fs" ${sandboxPolicy === "restricted_fs" ? "selected" : ""}>Restricted FS</option>
+                <option value="read_only" ${sandboxPolicy === "read_only" ? "selected" : ""}>Read-Only</option>
+                <option value="isolated_container" ${sandboxPolicy === "isolated_container" ? "selected" : ""}>Isolated Container</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-400 text-[10px] mb-1 font-medium">Model Weights</label>
+              <input id="quickModelInput" type="text" value="${modelDisplay}" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 text-[11px] focus:outline-none focus:border-cyan-500">
+            </div>
+          </div>
+
+          <div class="pt-1 flex items-center space-x-2">
+            <button id="btnApplyQuickHarness" class="flex-1 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded text-xs transition shadow flex items-center justify-center space-x-1">
+              <i class="fa-solid fa-check"></i>
+              <span>Apply Harness</span>
+            </button>
+            <button id="btnConfigureNodeSquad" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/40 rounded text-xs font-semibold transition flex items-center space-x-1" title="Customize individual agent personas, tools, and skills">
+              <i class="fa-solid fa-sliders"></i>
+              <span>Squad &amp; Skills</span>
+            </button>
           </div>
         </div>
       </div>
@@ -2310,6 +2391,72 @@ function renderNodeInspector(nodeId) {
       </div>
     </div>
   `;
+
+  // Quick Harness Selector and Apply Event Listeners
+  const quickEngineSelect = document.getElementById("quickHarnessEngineSelect");
+  const quickCmdInput = document.getElementById("quickHarnessCommandInput");
+  quickEngineSelect?.addEventListener("change", (e) => {
+    quickCmdInput.value = HARNESS_DEFAULT_COMMANDS[e.target.value] || "agy exec";
+  });
+
+  document.getElementById("btnApplyQuickHarness")?.addEventListener("click", async () => {
+    const applyBtn = document.getElementById("btnApplyQuickHarness");
+    applyBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>Saving...</span>`;
+    applyBtn.disabled = true;
+
+    const newEngine = quickEngineSelect.value;
+    const newCmd = quickCmdInput.value;
+    const newSandbox = document.getElementById("quickHarnessSandboxSelect").value;
+    const newModel = document.getElementById("quickModelInput").value;
+
+    const currentConfig = node.agent_team_config ? { ...node.agent_team_config } : {
+      team_id: `squad_${node.id}`,
+      name: node.agent_team_id.replace("_", " "),
+      description: "Configured multi-agent squad",
+      lead_role: "Bioinformatics & Genomics Specialist",
+      collaboration_strategy: "sequential_refinement",
+      members: [],
+    };
+
+    currentConfig.harness_engine = newEngine;
+    currentConfig.harness_command = newCmd;
+    currentConfig.sandbox_policy = newSandbox;
+
+    const providerConfig = {
+      provider_type: "local_open_weights",
+      model_name: newModel,
+      endpoint_url: "http://localhost:11434/v1",
+      temperature: 0.2,
+      max_tokens: 4096,
+      is_sovereign_hosted: true,
+    };
+    currentConfig.provider_config = providerConfig;
+
+    try {
+      const res = await fetch(`/api/pathways/nodes/${node.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agent_team_config: currentConfig,
+          provider_config: providerConfig,
+        }),
+      });
+
+      if (res.ok) {
+        await refreshState();
+        renderNodeInspector(node.id);
+        renderDag();
+      } else {
+        alert("Failed to update harness configuration.");
+        applyBtn.innerHTML = `<i class="fa-solid fa-check"></i><span>Apply Harness</span>`;
+        applyBtn.disabled = false;
+      }
+    } catch (err) {
+      console.error("Failed to update harness:", err);
+      applyBtn.innerHTML = `<i class="fa-solid fa-check"></i><span>Apply Harness</span>`;
+      applyBtn.disabled = false;
+    }
+  });
 
   document.getElementById("btnConfigureNodeSquad")?.addEventListener("click", () => {
     openConfigureSquadModal(node.id);
@@ -2692,12 +2839,16 @@ function openConfigureSquadModal(nodeId) {
 
   // Harness configuration
   const harnessSelect = document.getElementById("configHarnessEngineSelect");
-  if (harnessSelect) {
-    harnessSelect.value = node.agent_team_config?.harness_engine || "agy";
-  }
   const cmdInput = document.getElementById("configHarnessCommand");
+  if (harnessSelect) {
+    const rawEngine = node.agent_team_config?.harness_engine || "agy";
+    harnessSelect.value = rawEngine;
+    harnessSelect.onchange = (e) => {
+      if (cmdInput) cmdInput.value = HARNESS_DEFAULT_COMMANDS[e.target.value] || "agy exec";
+    };
+  }
   if (cmdInput) {
-    cmdInput.value = node.agent_team_config?.harness_command || "agy exec";
+    cmdInput.value = node.agent_team_config?.harness_command || HARNESS_DEFAULT_COMMANDS[node.agent_team_config?.harness_engine || "agy"] || "agy exec";
   }
   const sandboxSelect = document.getElementById("configHarnessSandbox");
   if (sandboxSelect) {
@@ -2709,16 +2860,30 @@ function openConfigureSquadModal(nodeId) {
   document.getElementById("configProviderSelect").value = prov?.provider_type || "local_open_weights";
   document.getElementById("configModelName").value = prov?.model_name || "llama-3.3-70b-instruct-q4";
 
-  document.getElementById("configNodeHitlRequired").checked = node.requires_human_approval;
+  document.getElementById("configNodeHitlRequired").checked = !!node.requires_human_approval;
   document.getElementById("configNodeHitlRole").value = node.human_oversight_role || "Statutory Oversight Officer";
 
   // Render squad member cards with tools and skills
   const membersContainer = document.getElementById("squadMembersChecklist");
+  let anyChecked = false;
   membersContainer.innerHTML = AppState.personas
     .map((p) => {
-      const isMember = node.agent_team_config
-        ? node.agent_team_config.members?.some((m) => m.id === p.id)
-        : node.agent_team_id.includes(p.id.replace("agent_", "").replace("_lead", ""));
+      let isMember = false;
+      if (node.agent_team_config && node.agent_team_config.members && node.agent_team_config.members.length > 0) {
+        isMember = node.agent_team_config.members.some((m) => m.id === p.id);
+      } else {
+        const teamLower = (node.agent_team_id || "").toLowerCase();
+        const pIdLower = p.id.toLowerCase();
+        if (teamLower.includes("bioinfo") && pIdLower.includes("bioinfo")) isMember = true;
+        else if (teamLower.includes("struct") && pIdLower.includes("struct")) isMember = true;
+        else if (teamLower.includes("chem") && pIdLower.includes("medchem")) isMember = true;
+        else if (teamLower.includes("vaccin") && pIdLower.includes("vaccin")) isMember = true;
+        else if (teamLower.includes("biosecur") && pIdLower.includes("cbrn")) isMember = true;
+        else if (teamLower.includes("polic") && pIdLower.includes("policy")) isMember = true;
+        else if (teamLower.includes("rad") && pIdLower.includes("physic")) isMember = true;
+        else if (teamLower.includes("research") && pIdLower.includes("research")) isMember = true;
+      }
+      if (isMember) anyChecked = true;
 
       return `
       <div class="p-2.5 rounded-lg border border-slate-800 bg-slate-900/80 space-y-2">
@@ -2734,6 +2899,11 @@ function openConfigureSquadModal(nodeId) {
     `;
     })
     .join("");
+
+  if (!anyChecked) {
+    const firstCb = membersContainer.querySelector(".persona-checkbox");
+    if (firstCb) firstCb.checked = true;
+  }
 
   modal.classList.remove("hidden");
 }

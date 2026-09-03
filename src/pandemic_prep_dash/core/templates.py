@@ -10,6 +10,7 @@ import uuid
 
 from ..models.pathway import Pathway, PathwayNode, PathwayEdge, NodeCategory, NodeStatus
 from ..models.bio_chem import ThreatType
+from ..models.agent import AgentTeamConfig, HarnessEngineType, AgentRole
 from .registry import create_default_biological_pathway, create_default_chemical_pathway
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent.parent / "templates"
@@ -135,6 +136,15 @@ def create_default_radiological_pathway() -> Pathway:
             category=NodeCategory.INGESTION,
             description="Acquires HPGe gamma photopeak data, identifies radioisotopes, and measures activity.",
             agent_team_id="radiological_defense_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="radiological_defense_squad",
+                name="Nuclear Physics & Spectrometry Squad",
+                description="HPGe gamma photopeak & radionuclide identification squad",
+                lead_role=AgentRole.RADIOLOGICAL_PHYSICIST,
+                harness_engine=HarnessEngineType.AGY,
+                harness_command="agy exec",
+                sandbox_policy="restricted_fs",
+            ),
             human_oversight_role="ARPANSA Radiation Monitoring Duty Officer",
             position_x=100.0,
             position_y=220.0,
@@ -145,6 +155,15 @@ def create_default_radiological_pathway() -> Pathway:
             category=NodeCategory.CHARACTERIZATION,
             description="Simulates atmospheric dispersion, ground deposition (Bq/m²), and public dose rate.",
             agent_team_id="radiological_defense_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="radiological_defense_squad",
+                name="Atmospheric Dispersion Squad",
+                description="HYSPLIT atmospheric plume & fallout modeling squad",
+                lead_role=AgentRole.RADIOLOGICAL_PHYSICIST,
+                harness_engine=HarnessEngineType.CODEX,
+                harness_command="codex exec",
+                sandbox_policy="restricted_fs",
+            ),
             human_oversight_role="Bureau of Meteorology & ARPANSA Modeler",
             position_x=380.0,
             position_y=140.0,
@@ -155,6 +174,15 @@ def create_default_radiological_pathway() -> Pathway:
             category=NodeCategory.THERAPEUTICS,
             description="Screens ion-exchange decorporation antidotes and authorizes National Medical Stockpile release.",
             agent_team_id="medicinal_chemistry_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="medicinal_chemistry_squad",
+                name="Radiological Antidotes Squad",
+                description="Prussian Blue & DTPA decorporation squad",
+                lead_role=AgentRole.MEDICINAL_CHEMIST,
+                harness_engine=HarnessEngineType.AGY,
+                harness_command="agy exec",
+                sandbox_policy="restricted_fs",
+            ),
             human_oversight_role="TGA & Chief Medical Officer Evaluator",
             position_x=660.0,
             position_y=140.0,
@@ -165,6 +193,15 @@ def create_default_radiological_pathway() -> Pathway:
             category=NodeCategory.BIOSECURITY,
             description="Statutory review of Emergency Reference Levels under the ARPANS Act 1998.",
             agent_team_id="biosecurity_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="biosecurity_squad",
+                name="ARPANSA Intervention Squad",
+                description="Emergency Reference Levels & exclusion signoff squad",
+                lead_role=AgentRole.BIOSECURITY_ANALYST,
+                harness_engine=HarnessEngineType.SOVEREIGN_CONTAINER,
+                harness_command="podman run --network none -v /sandbox:/workspace:Z",
+                sandbox_policy="isolated_container",
+            ),
             requires_human_approval=True,
             human_oversight_role="ARPANSA Chief Radiation Health Scientist & Home Affairs Delegate",
             position_x=660.0,
@@ -176,6 +213,15 @@ def create_default_radiological_pathway() -> Pathway:
             category=NodeCategory.AGENCY_REPORTING,
             description="Dispatches briefings to ARPANSA, ANSTO, ASNO, Home Affairs, NEMA, and Cabinet.",
             agent_team_id="policy_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="policy_squad",
+                name="Whole-of-Gov Crisis Reporting Squad",
+                description="Cabinet & multi-agency emergency briefing squad",
+                lead_role=AgentRole.WHOLE_OF_GOV_LIAISON,
+                harness_engine=HarnessEngineType.CLAUDE_CODE,
+                harness_command="claude -p",
+                sandbox_policy="restricted_fs",
+            ),
             human_oversight_role="Home Affairs Crisis Centre Director",
             position_x=960.0,
             position_y=220.0,
