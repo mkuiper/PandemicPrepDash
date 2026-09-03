@@ -371,3 +371,78 @@ def test_lab_bridge_docs_chapter():
     assert "ANSTO" in chapter["content"]
 
 
+def test_evidence_analyzer_audit_endpoint():
+    res = client.get("/api/hub/evidence/analysis")
+    assert res.status_code == 200
+    rep = res.json()["report"]
+    assert "overall_confidence_score" in rep
+    assert "domain_scores" in rep
+    assert len(rep["knowledge_gaps"]) >= 1
+    assert len(rep["conflicting_evidence"]) >= 1
+    assert len(rep["required_validations"]) >= 1
+
+    # Check specific conflict structure
+    conflict = rep["conflicting_evidence"][0]
+    assert "claim_a" in conflict
+    assert "claim_b" in conflict
+    assert "recommended_arbitration" in conflict
+
+    # Trigger audit endpoint
+    res_audit = client.post("/api/hub/evidence/analysis/audit")
+    assert res_audit.status_code == 200
+    assert "report" in res_audit.json()
+
+
+def test_situation_version_control_timeline():
+    # 1. List pre-seeded snapshots
+    res = client.get("/api/version-control/snapshots")
+    assert res.status_code == 200
+    snaps = res.json()["snapshots"]
+    assert len(snaps) >= 1
+    assert any("Baseline" in s["checkpoint_name"] or "Ingestion" in s["checkpoint_name"] for s in snaps)
+
+    # 2. Create a manual checkpoint
+    res_create = client.post("/api/version-control/snapshots", json={
+        "checkpoint_name": "Antiviral IC50 Confirmed & NMS Activated",
+        "created_by": "Chief Medical Officer",
+        "change_summary": "Empirical lab assays validate therapeutic window; Section 19A emergency approval granted.",
+        "trigger_event": "MANUAL_DUTY_OFFICER_CHECKPOINT"
+    })
+    assert res_create.status_code == 200
+    new_snap = res_create.json()["snapshot"]
+    assert new_snap["checkpoint_name"] == "Antiviral IC50 Confirmed & NMS Activated"
+    assert new_snap["created_by"] == "Chief Medical Officer"
+    ver_id = new_snap["version_id"]
+
+    # 3. Fetch single snapshot by ID
+    res_get = client.get(f"/api/version-control/snapshots/{ver_id}")
+    assert res_get.status_code == 200
+    assert res_get.json()["snapshot"]["version_id"] == ver_id
+
+
+def test_operational_playbooks_metadata():
+    res = client.get("/api/pathways/templates")
+    assert res.status_code == 200
+    tmpls = res.json()["templates"]
+    assert len(tmpls) >= 4
+    # Ensure playbooks metadata fields exist
+    bio_pb = next((t for t in tmpls if t["id"] == "pathway_default_biological"), None)
+    assert bio_pb is not None
+    assert "playbook_title" in bio_pb
+    assert "scenario_scope" in bio_pb
+    assert "trigger_criteria" in bio_pb
+    assert "lead_agency" in bio_pb
+
+
+def test_architecture_documentation_chapter():
+    res = client.get("/api/docs/platform-system-architecture")
+    assert res.status_code == 200
+    chapter = res.json()["chapter"]
+    assert chapter["id"] == "platform-system-architecture"
+    assert "DAG Pipeline Engine" in chapter["content"]
+    assert "AGY" in chapter["content"]
+    assert "Claude Code" in chapter["content"]
+    assert "Codex" in chapter["content"]
+
+
+

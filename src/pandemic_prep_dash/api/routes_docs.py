@@ -217,6 +217,76 @@ Real-world physical validation from accredited Commonwealth reference laboratori
 * **4. Results Received & Pipeline Assimilated:** Empirical assay data (e.g. confirmed PRNT IC50, aerosol transmission positive) are uploaded into the blackboard, resolving active blocker alerts and refining downstream situation briefs.
         """,
     },
+    {
+        "id": "platform-system-architecture",
+        "title": "8. Platform System Architecture & Agentic Harness Specifications",
+        "icon": "fa-diagram-project",
+        "category": "Technical Architecture",
+        "summary": "Full multi-tier system topology, node harness execution models (AGY, Claude Code, Codex, OpenCode), and audit trails.",
+        "content": """
+# Platform System Architecture & Agentic Harness Specifications
+
+PandemicPrepDash is architected as an auditable, sovereign, multi-agent emergency management engine designed to operate within Australian Government secure enclaves.
+
+### 1. High-Level Multi-Tier Architecture
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                               OPERATIONAL PRESENTATION TIER                            │
+│  (Adaptive DAG Visualizer • Central Message Board • Data Inspector • Agency Briefings) │
+└───────────────────────────────────────────▲────────────────────────────────────────────┘
+                                            │ REST APIs / SSE WebSockets
+┌───────────────────────────────────────────▼────────────────────────────────────────────┐
+│                             FASTAPI BACKEND & ORCHESTRATION ENGINE                      │
+│  ┌──────────────────────────┐  ┌──────────────────────────┐  ┌──────────────────────┐  │
+│  │   DAG Pipeline Engine    │  │ Central Control Hub &    │  │ Evidence Synthesis & │  │
+│  │ (NetworkX DAG / States)  │  │ Blackboard Intelligence  │  │ Knowledge Gap Audit  │  │
+│  └────────────┬─────────────┘  └────────────▲─────────────┘  └───────────▲──────────┘  │
+│               │ Ingests / Dispatches        │ State Sync                 │             │
+│  ┌────────────▼─────────────┐  ┌────────────┴─────────────┐  ┌───────────┴──────────┐  │
+│  │  Node Agentic Harnesses  │  │ Physical Reference Lab   │  │ Incident Version     │  │
+│  │  (AGY, Claude, Codex,    │  │ Bridge (ACDP, ANSTO,     │  │ Control & Snapshots  │  │
+│  │   OpenCode, Sovereign)   │  │  TGA, ARPANSA, DSTG)     │  │ (Immutable Checkpts) │  │
+│  └──────────────────────────┘  └──────────────────────────┘  └──────────────────────┘  │
+└───────────────────────────────────────────▲────────────────────────────────────────────┘
+                                            │ CLI & Model Context Protocols (MCP)
+┌───────────────────────────────────────────▼────────────────────────────────────────────┐
+│                    SOVEREIGN SCIENTIFIC TOOLBOX & MCP INTEGRATIONS                     │
+│  • NCBI BLAST+ Suite (v2.15)              • AlphaFold 3 Inference Engine (v3.0)        │
+│  • AutoDock Vina (v1.2)                   • HYSPLIT-Rad Atmospheric Dispersion (v5.3)  │
+│  • RDKit Cheminformatics (v2024.03)       • Australian SSBA Regulatory Scanner (v2.0)  │
+│  • ARPANSA RadNet MCP Server              • TGA ARTG Prescriptions MCP Server          │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 2. Node Agentic Harness Execution Loop
+
+Each node in the DAG is wrapped by an autonomous `NodeAgenticHarness` executing a structured ReAct loop:
+
+1. **Directive Intake:** Scans the Central Message Board for human expert directives directed to `@node_id` or category tags.
+2. **Context Synthesis:** Ingests upstream blackboard artifacts, specimen parameters, and previous run outputs.
+3. **Multi-Agent Deliberation:** The squad (led by its designated non-anthropomorphic Node Lead) executes its collaboration strategy (Sequential Refinement, Consensus, or Adversarial Audit).
+4. **Tool Execution:** Executes authorized CLI tools (BLAST+, AlphaFold, AutoDock, HYSPLIT) or MCP servers in isolated sandboxes (`restricted_fs` or air-gapped container).
+5. **Quality Verification & Blocker Gate:** Evaluates results against safety thresholds (e.g. furin cleavage sites, >10 mSv/hr plume contours). If critical uncertainty exists, an active `BlockerAlert` is posted to the Central Hub.
+6. **Hub Broadcast & Artifact Logging:** Generates human-readable progress updates to the Central Message Board and commits outputs to the blackboard.
+
+### 3. Supported Agentic Harness Engines
+
+The platform allows configuring the specific execution harness per node:
+
+* **AGY (Antigravity Autonomous Coding Harness):** DeepMind Advanced Agentic Coding environment with native tool-calling and subagent invocation.
+* **Claude Code CLI (`claude -p`):** Anthropic reasoning harness with strict permission policies and code understanding.
+* **OpenAI Codex CLI (`codex exec`):** High-speed deterministic inference running frontier reasoning models (`gpt-5.6-sol`).
+* **OpenCode Harness:** Open-source local multi-agent harness for on-premises cluster execution.
+* **Sovereign Containerized Harness:** Air-gapped container execution (Podman/Docker) satisfying Australian PSPF INFOSEC-10 standards.
+
+### 4. Incident Progression & Version Control System
+
+To maintain operational clarity for the Commonwealth Incident Controller, all pipeline mutations and empirical lab dispatches are recorded as immutable situation snapshots (`v1.0`, `v1.1`, `v1.2`):
+* **Trigger Events:** Captures automated snapshots on specimen ingestion, step completion, blocker generation, and empirical lab result ingestion.
+* **Audit Trail:** Records author, timestamp, change summary, and snapshot of node artifacts to support retrospective royal commissions or inquiry reviews.
+        """,
+    },
 ]
 
 

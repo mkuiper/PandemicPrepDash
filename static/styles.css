@@ -262,3 +262,57 @@ html.theme-light .msg-bubble-system {
   border-color: #e2e8f0 !important;
 }
 
+/* Version Timeline styling */
+.timeline-item {
+  position: relative;
+  padding-left: 20px;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  bottom: -8px;
+  width: 2px;
+  background-color: #334155;
+}
+.timeline-item:last-child::before {
+  display: none;
+}
+.timeline-dot {
+  position: absolute;
+  left: 2px;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #06b6d4;
+}
+
+/* Conflict, Gap, and Validation Cards */
+.card-conflict {
+  background-color: rgba(69, 10, 10, 0.35);
+  border: 1px solid rgba(244, 63, 94, 0.4);
+}
+.card-gap {
+  background-color: rgba(49, 46, 129, 0.35);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+.card-validation {
+  background-color: rgba(6, 78, 59, 0.35);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+html.theme-light .card-conflict {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+}
+html.theme-light .card-gap {
+  background-color: #faf5ff !important;
+  border-color: #e9d5ff !important;
+}
+html.theme-light .card-validation {
+  background-color: #f0fdf4 !important;
+  border-color: #bbf7d0 !important;
+}
+

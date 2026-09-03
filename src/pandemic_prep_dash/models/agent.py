@@ -24,6 +24,15 @@ class ModelProviderType(str, Enum):
     CUSTOM_ENDPOINT = "custom_endpoint"
 
 
+class HarnessEngineType(str, Enum):
+    AGY = "agy"  # Antigravity (AGY) Autonomous Harness
+    CLAUDE_CODE = "claude_code"  # Claude Code CLI Agent Harness
+    CODEX = "codex"  # OpenAI Codex CLI Agent Harness
+    OPENCODE = "opencode"  # OpenCode Multi-Agent Harness
+    SOVEREIGN_CONTAINER = "sovereign_container"  # Air-Gapped Isolated Podman Container
+    CUSTOM_HARNESS = "custom_harness"  # Custom Scripted ReAct Harness
+
+
 class ModelProviderConfig(BaseModel):
     provider_type: ModelProviderType = ModelProviderType.LOCAL_OPEN_WEIGHTS
     model_name: str = "llama-3.3-70b-instruct-q4"
@@ -113,6 +122,10 @@ class AgentTeamConfig(BaseModel):
     members: List[AgentPersona] = Field(default_factory=list)
     collaboration_strategy: str = "sequential_refinement"
     max_tool_invocations: int = 10
+    harness_engine: HarnessEngineType = HarnessEngineType.AGY
+    harness_command: str = "agy exec"  # e.g. "agy exec", "claude -p", "codex exec", "opencode"
+    sandbox_policy: str = "restricted_fs"  # restricted_fs, read_only, isolated_container
+    approval_mode: str = "on_request"  # on_request, plan_approval, autonomous
     provider_config: ModelProviderConfig = Field(default_factory=ModelProviderConfig)
     enabled_mcp_servers: List[str] = Field(default_factory=list)
     enabled_aus_gov_skills: List[str] = Field(default_factory=list)

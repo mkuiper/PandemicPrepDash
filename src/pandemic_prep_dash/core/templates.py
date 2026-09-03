@@ -215,12 +215,50 @@ class TemplateManager:
     def list_all_templates(cls) -> List[Dict[str, Any]]:
         results: List[Dict[str, Any]] = []
 
-        # Built-in templates
+        # Built-in templates / Operational Playbooks
+        playbook_meta = {
+            "pathway_default_biological": {
+                "playbook_title": "Whole-of-Government Novel Respiratory & Avian Flu Playbook",
+                "scenario_scope": "HPAI H5N1, Coronavirus, and novel zoonotic respiratory threats",
+                "trigger_criteria": "Confirmed spillover, cluster of severe unexplained respiratory illness, or novel clade detection",
+                "lead_agency": "ACDP / Department of Health / DAFF",
+            },
+            "pathway_default_chemical": {
+                "playbook_title": "CBRN Fourth-Generation Neurotoxin Interdiction Playbook",
+                "scenario_scope": "Novichok, G/V-series nerve agents, and synthetic neurotoxins",
+                "trigger_criteria": "Sudden severe cholinergic toxidrome or suspected CWC Schedule 1 substance",
+                "lead_agency": "DSTG CBRN / Home Affairs",
+            },
+            "pathway_default_radiological": {
+                "playbook_title": "Radiological Dispersal Incident (Dirty Bomb) Emergency Playbook",
+                "scenario_scope": "Industrial gamma source detonation, Caesium-137 / Cobalt-60 RDD",
+                "trigger_criteria": "Uncontrolled radionuclide release or detected gamma photopeak >10 mSv/hr",
+                "lead_agency": "ARPANSA / ANSTO Lucas Heights",
+            },
+            "pathway_rapid_antiviral": {
+                "playbook_title": "Accelerated Antiviral Repurposing & TGA Section 19A Playbook",
+                "scenario_scope": "Rapid small-molecule docking and National Medical Stockpile triage",
+                "trigger_criteria": "Immediate clinical requirement for therapeutic intervention before vaccines are ready",
+                "lead_agency": "Therapeutic Goods Administration (TGA)",
+            },
+            "pathway_sovereign_vaccine": {
+                "playbook_title": "CSL Seqirus / Moderna Sovereign mRNA-LNP Rapid Design Playbook",
+                "scenario_scope": "Epitope prediction, pre-fusion stabilization, and sovereign production",
+                "trigger_criteria": "Novel pandemic pathogen requiring domestic Australian biomanufacturing",
+                "lead_agency": "CSIRO / TGA / Department of Health",
+            },
+        }
+
         for k, p in cls.get_builtin_templates().items():
+            meta = playbook_meta.get(k, {})
             results.append({
                 "id": k,
                 "name": p.name,
+                "playbook_title": meta.get("playbook_title", p.name),
                 "description": p.description,
+                "scenario_scope": meta.get("scenario_scope", "Whole-of-Government emergency response"),
+                "trigger_criteria": meta.get("trigger_criteria", "Incident Controller authorization"),
+                "lead_agency": meta.get("lead_agency", "Commonwealth Inter-Agency Lead"),
                 "threat_type": p.threat_type.value if hasattr(p.threat_type, "value") else str(p.threat_type),
                 "node_count": len(p.nodes),
                 "edge_count": len(p.edges),

@@ -16,6 +16,8 @@ const AppState = {
   providers: [],
   docsChapters: [],
   labRequests: [],
+  evidenceReport: null,
+  snapshots: [],
   selectedDocChapterId: "conops-overview",
   selectedNodeId: null,
   selectedAgencyId: "ACDP",
@@ -182,7 +184,7 @@ function setupEventListeners() {
     switchTab("tab-datahub");
   });
 
-  // Modal triggers
+  // Modals
   document.getElementById("btnConnectModal").addEventListener("click", () => openConnectModal());
   document.getElementById("btnAddNodeModal").addEventListener("click", () => {
     document.getElementById("addNodeModal").classList.remove("hidden");
@@ -192,7 +194,7 @@ function setupEventListeners() {
     document.getElementById("proposeAssayModal").classList.remove("hidden");
   });
 
-  // Templates
+  // Playbooks (formerly Templates)
   document.getElementById("btnTemplatesMenu").addEventListener("click", openTemplatesManager);
   document.getElementById("btnSaveTemplateModal").addEventListener("click", () => {
     document.getElementById("saveTemplateModal").classList.remove("hidden");
@@ -203,6 +205,14 @@ function setupEventListeners() {
   });
   document.getElementById("btnExportPathwayJson").addEventListener("click", exportPathwayJson);
   document.getElementById("inputImportPathway").addEventListener("change", handleImportPathwayFile);
+
+  // Situation Snapshot / Version Control
+  document.getElementById("btnSnapshotModal")?.addEventListener("click", openSnapshotModal);
+  document.getElementById("btnOpenSnapshotModalFromHub")?.addEventListener("click", openSnapshotModal);
+  document.getElementById("createSnapshotForm")?.addEventListener("submit", handleCreateSnapshotSubmit);
+
+  // Evidence Audit
+  document.getElementById("btnTriggerEvidenceAudit")?.addEventListener("click", runEvidenceAudit);
 
   // Connection mode
   document.getElementById("btnCancelConnect").addEventListener("click", cancelConnectionMode);
@@ -264,7 +274,7 @@ function setupEventListeners() {
 
 async function loadInitialData() {
   try {
-    const [scenRes, stateRes, agencyRes, dummyRes, personasRes, docsRes, govRes, polRes, toolsRes, mcpsRes, skillsRes, labRes] = await Promise.all([
+    const [scenRes, stateRes, agencyRes, dummyRes, personasRes, docsRes, govRes, polRes, toolsRes, mcpsRes, skillsRes, labRes, evidRes, snapRes] = await Promise.all([
       fetch("/api/scenarios").then((r) => r.json()),
       fetch("/api/pathways/state").then((r) => r.json()),
       fetch("/api/agencies").then((r) => r.json()),
@@ -277,6 +287,8 @@ async function loadInitialData() {
       fetch("/api/agents/mcps").then((r) => r.json()).catch(() => ({ mcps: [] })),
       fetch("/api/agents/skills").then((r) => r.json()).catch(() => ({ skills: [] })),
       fetch("/api/lab-bridge/requests").then((r) => r.json()).catch(() => ({ requests: [] })),
+      fetch("/api/hub/evidence/analysis").then((r) => r.json()).catch(() => ({ report: null })),
+      fetch("/api/version-control/snapshots").then((r) => r.json()).catch(() => ({ snapshots: [] })),
     ]);
 
     AppState.scenarios = scenRes.scenarios || [];
@@ -291,6 +303,8 @@ async function loadInitialData() {
     AppState.mcps = mcpsRes.mcps || [];
     AppState.skills = skillsRes.skills || [];
     AppState.labRequests = labRes.requests || [];
+    AppState.evidenceReport = evidRes.report;
+    AppState.snapshots = snapRes.snapshots || [];
 
     populateScenarioDropdown();
     populatePresetSequencesDropdown();
@@ -346,12 +360,16 @@ function openCustomSampleModal() {
 
 async function refreshState() {
   try {
-    const [stateRes, labRes] = await Promise.all([
+    const [stateRes, labRes, evidRes, snapRes] = await Promise.all([
       fetch("/api/pathways/state").then((r) => r.json()),
       fetch("/api/lab-bridge/requests").then((r) => r.json()).catch(() => ({ requests: [] })),
+      fetch("/api/hub/evidence/analysis").then((r) => r.json()).catch(() => ({ report: null })),
+      fetch("/api/version-control/snapshots").then((r) => r.json()).catch(() => ({ snapshots: [] })),
     ]);
     AppState.state = stateRes;
     AppState.labRequests = labRes.requests || [];
+    AppState.evidenceReport = evidRes.report;
+    AppState.snapshots = snapRes.snapshots || [];
     updateUIState();
   } catch (err) {
     console.error("Failed to refresh state:", err);
@@ -599,6 +617,12 @@ function renderCentralDataHub() {
     });
   }
 
+  // Render Version Timeline View
+  renderVersionTimelineView();
+
+  // Render Evidence Analysis View
+  renderEvidenceAnalysisView();
+
   // Specimen Intel
   const specIntel = dataHub.specimen_intel || {};
   const specEl = document.getElementById("hubSpecimenIntelContent");
@@ -678,6 +702,217 @@ function renderCentralDataHub() {
     `
       )
       .join("");
+  }
+}
+
+// ---------------- Situation Progression & Version Control View ----------------
+
+function renderVersionTimelineView() {
+  const container = document.getElementById("hubVersionTimelineList");
+  if (!container) return;
+
+  const list = AppState.snapshots || [];
+  if (!list.length) {
+    container.innerHTML = `<div class="text-slate-500 italic text-xs py-2 text-center">No checkpoint versions logged. Click 'Capture Checkpoint' to create one.</div>`;
+    return;
+  }
+
+  container.innerHTML = list
+    .slice()
+    .reverse()
+    .map((s) => {
+      const timeDisplay = s.created_at ? s.created_at.split("T")[1]?.slice(0, 8) : "";
+      return `
+      <div class="timeline-item space-y-1">
+        <div class="timeline-dot"></div>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">${s.version_id}</span>
+            <span class="font-bold text-slate-200 text-xs">${s.checkpoint_name}</span>
+          </div>
+          <span class="text-[10px] font-mono text-slate-500">${timeDisplay}</span>
+        </div>
+        <p class="text-slate-300 text-[11px]">${s.change_summary}</p>
+        <div class="flex items-center space-x-3 text-[10px] text-slate-400 font-mono">
+          <span>By: ${s.created_by}</span>
+          <span>•</span>
+          <span>Nodes: ${s.completed_nodes_count}/${s.total_nodes_count}</span>
+          ${s.open_blockers_count > 0 ? `<span class="text-amber-400 font-bold">• ${s.open_blockers_count} Blockers</span>` : ""}
+        </div>
+      </div>
+    `;
+    })
+    .join("");
+}
+
+function openSnapshotModal() {
+  const modal = document.getElementById("createSnapshotModal");
+  if (!modal) return;
+  document.getElementById("snapshotTitleInput").value = `Operational Snapshot at Step ${AppState.state?.stats?.completed_nodes || 0}`;
+  document.getElementById("snapshotSummaryInput").value = "State checkpoint verified by Incident Controller; pipeline progression logged for audit trail.";
+  modal.classList.remove("hidden");
+}
+
+async function handleCreateSnapshotSubmit(e) {
+  e.preventDefault();
+  const title = document.getElementById("snapshotTitleInput").value;
+  const creator = document.getElementById("snapshotCreatorInput").value;
+  const summary = document.getElementById("snapshotSummaryInput").value;
+
+  try {
+    const res = await fetch("/api/version-control/snapshots", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        checkpoint_name: title,
+        created_by: creator,
+        change_summary: summary,
+      }),
+    });
+
+    if (res.ok) {
+      document.getElementById("createSnapshotModal").classList.add("hidden");
+      await refreshState();
+      renderVersionTimelineView();
+    }
+  } catch (err) {
+    console.error("Failed to create situation snapshot:", err);
+  }
+}
+
+// ---------------- Evidence Synthesis & Knowledge Gap Analysis View ----------------
+
+function renderEvidenceAnalysisView() {
+  const container = document.getElementById("hubEvidenceReportContainer");
+  const badge = document.getElementById("evidenceOverallConfidenceBadge");
+  if (!container || !AppState.evidenceReport) return;
+
+  const rep = AppState.evidenceReport;
+  if (badge) {
+    badge.textContent = `Confidence: ${Math.round(rep.overall_confidence_score * 100)}%`;
+  }
+
+  // Domain score bars
+  const domainBars = Object.entries(rep.domain_scores || {})
+    .map(([domain, score]) => {
+      const pct = Math.round(score * 100);
+      let colorClass = "bg-emerald-500";
+      if (pct < 50) colorClass = "bg-rose-500";
+      else if (pct < 75) colorClass = "bg-amber-500";
+
+      return `
+      <div class="space-y-0.5">
+        <div class="flex justify-between text-[10px] text-slate-400 font-mono">
+          <span>${domain}</span>
+          <span class="font-bold text-slate-200">${pct}%</span>
+        </div>
+        <div class="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden flex">
+          <div style="width: ${pct}%" class="${colorClass}"></div>
+        </div>
+      </div>
+    `;
+    })
+    .join("");
+
+  // Conflicting Evidence cards
+  const conflictCards = (rep.conflicting_evidence || []).map((c) => {
+    return `
+    <div class="card-conflict p-3 rounded-lg space-y-1.5 text-xs">
+      <div class="flex items-center justify-between">
+        <span class="font-bold text-rose-300 flex items-center">
+          <i class="fa-solid fa-triangle-exclamation text-rose-400 mr-1.5"></i>
+          Conflicting Evidence: ${c.title}
+        </span>
+        <span class="text-[9px] font-mono px-1.5 py-0.2 bg-rose-950 text-rose-400 rounded border border-rose-800">${c.domain}</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-[11px] bg-slate-950/70 p-2 rounded border border-rose-900/40">
+        <div>
+          <span class="text-slate-400 font-semibold block text-[10px]">${c.source_a}:</span>
+          <span class="text-slate-200">${c.claim_a}</span>
+        </div>
+        <div>
+          <span class="text-slate-400 font-semibold block text-[10px]">${c.source_b}:</span>
+          <span class="text-slate-200">${c.claim_b}</span>
+        </div>
+      </div>
+      <div class="text-[11px] text-slate-300"><strong>Discrepancy Rationale:</strong> ${c.discrepancy_explanation}</div>
+      <div class="text-[10px] text-amber-300"><strong>Operational Risk:</strong> ${c.operational_risk}</div>
+      <div class="text-[10px] text-cyan-300 pt-1 border-t border-rose-900/40 font-medium"><strong>Recommended Arbitration:</strong> ${c.recommended_arbitration}</div>
+    </div>
+    `;
+  }).join("");
+
+  // Knowledge Gaps cards
+  const gapCards = (rep.knowledge_gaps || []).map((g) => {
+    return `
+    <div class="card-gap p-3 rounded-lg space-y-1 text-xs">
+      <div class="flex items-center justify-between">
+        <span class="font-bold text-purple-300 flex items-center">
+          <i class="fa-solid fa-circle-question text-purple-400 mr-1.5"></i>
+          Knowledge Gap: ${g.title}
+        </span>
+        <span class="text-[9px] font-mono px-1.5 py-0.2 bg-purple-950 text-purple-300 rounded border border-purple-800">${g.severity}</span>
+      </div>
+      <p class="text-slate-300 text-[11px] leading-relaxed">${g.description}</p>
+      <div class="text-[10px] text-rose-300"><strong>Impact if Unresolved:</strong> ${g.impact_if_unresolved}</div>
+      <div class="text-[10px] text-cyan-300 font-medium"><strong>Investigation:</strong> ${g.suggested_investigation}</div>
+    </div>
+    `;
+  }).join("");
+
+  // Required Validations cards
+  const valCards = (rep.required_validations || []).map((v) => {
+    return `
+    <div class="card-validation p-3 rounded-lg space-y-1.5 text-xs">
+      <div class="flex items-center justify-between">
+        <span class="font-bold text-emerald-300 flex items-center">
+          <i class="fa-solid fa-vial-virus text-emerald-400 mr-1.5"></i>
+          ${v.assay_title}
+        </span>
+        <span class="text-[9px] font-mono px-1.5 py-0.2 bg-emerald-950 text-emerald-400 rounded border border-emerald-800">${v.urgency}</span>
+      </div>
+      <div class="text-[11px] text-slate-300"><strong>Facility:</strong> ${v.target_facility}</div>
+      <div class="text-[11px] text-slate-200"><strong>Critical Question:</strong> ${v.critical_question}</div>
+      <div class="text-[10px] text-emerald-300 font-medium"><strong>Unblocks Decision:</strong> ${v.unblocks_decision}</div>
+      <div class="pt-1 flex justify-end">
+        <button class="btn-jump-lab-bridge px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px] font-bold transition flex items-center space-x-1 shadow">
+          <i class="fa-solid fa-paper-plane text-[9px]"></i>
+          <span>Dispatch to Lab Bridge</span>
+        </button>
+      </div>
+    </div>
+    `;
+  }).join("");
+
+  container.innerHTML = `
+    <div class="space-y-2 bg-slate-950 p-3 rounded-lg border border-slate-800">
+      <span class="text-slate-400 font-bold text-[10px] uppercase block">Domain Evidentiary Confidence Breakdown:</span>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+        ${domainBars}
+      </div>
+    </div>
+
+    ${conflictCards ? `<div class="space-y-2"><span class="text-rose-400 font-bold text-[10px] uppercase block">Active Evidentiary Conflicts &amp; Discrepancies:</span>${conflictCards}</div>` : ""}
+    ${gapCards ? `<div class="space-y-2"><span class="text-purple-400 font-bold text-[10px] uppercase block">Critical Knowledge Gaps:</span>${gapCards}</div>` : ""}
+    ${valCards ? `<div class="space-y-2"><span class="text-emerald-400 font-bold text-[10px] uppercase block">Mandatory Empirical Validations:</span>${valCards}</div>` : ""}
+  `;
+
+  container.querySelectorAll(".btn-jump-lab-bridge").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      switchTab("tab-lab-bridge");
+    });
+  });
+}
+
+async function runEvidenceAudit() {
+  try {
+    const res = await fetch("/api/hub/evidence/analysis/audit", { method: "POST" });
+    const data = await res.json();
+    AppState.evidenceReport = data.report;
+    renderEvidenceAnalysisView();
+    alert("Critical Evidentiary Audit Completed. Domain confidence updated and discrepancies analyzed.");
+  } catch (err) {
+    console.error("Evidence audit failed:", err);
   }
 }
 
@@ -1647,6 +1882,7 @@ function formatMarkdownToHtml(md) {
     .replace(/\*\*(.*?)\*\*/gim, '<strong class="text-white font-semibold">$1</strong>')
     .replace(/\*(.*?)\*/gim, '<em class="text-slate-300">$1</em>')
     .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" class="text-cyan-400 hover:underline inline-flex items-center">$1<i class="fa-solid fa-arrow-up-right-from-square text-[8px] ml-1"></i></a>')
+    .replace(/```([\s\S]*?)```/gim, '<pre class="bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono text-[11px] text-cyan-300 overflow-x-auto my-2">$1</pre>')
     .replace(/`(.*?)`/gim, '<code class="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800 text-cyan-300 font-mono text-[10px]">$1</code>')
     .replace(/\n\n/gim, '<p class="mb-2 leading-relaxed text-slate-300">')
     .replace(/\n/gim, "<br>");
@@ -1804,13 +2040,14 @@ function renderDag() {
     bottomText.setAttribute("y", "78");
     bottomText.setAttribute("fill", isLight ? "#64748b" : "#64748b");
     bottomText.setAttribute("font-size", "9px");
+    const harnessType = node.agent_team_config?.harness_engine || "AGY";
     if (node.status === "completed" && node.latency_ms) {
-      bottomText.textContent = `⚡ ${node.latency_ms} ms`;
+      bottomText.textContent = `⚡ ${node.latency_ms} ms (${harnessType.toUpperCase()})`;
     } else if (node.requires_human_approval) {
-      bottomText.textContent = `🛡️ HITL Gate`;
+      bottomText.textContent = `🛡️ HITL Gate (${harnessType.toUpperCase()})`;
       bottomText.setAttribute("fill", "#d97706");
     } else {
-      bottomText.textContent = `ID: ${node.id}`;
+      bottomText.textContent = `Harness: ${harnessType.toUpperCase()}`;
     }
     g.appendChild(bottomText);
 
@@ -1963,6 +2200,7 @@ function renderNodeInspector(nodeId) {
 
   const squadName = node.agent_team_config?.name || node.agent_team_id.replace("_", " ");
   const leadAgentName = node.agent_team_config?.node_lead?.name || "Harness Lead";
+  const harnessEngine = (node.agent_team_config?.harness_engine || "AGY").toUpperCase();
   const modelDisplay = node.provider_config?.model_name || "llama-3.3-70b-instruct-q4";
 
   container.innerHTML = `
@@ -1999,8 +2237,8 @@ function renderNodeInspector(nodeId) {
             <span class="text-[9px] font-mono text-emerald-400">LEAD: ${leadAgentName}</span>
           </div>
           <div class="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+            <span>Harness: <strong class="text-cyan-300">${harnessEngine}</strong></span>
             <span>Model: ${modelDisplay}</span>
-            <span class="text-cyan-400">Harness Loop Active</span>
           </div>
         </div>
       </div>
@@ -2294,12 +2532,12 @@ async function handleCustomSample(e) {
   }
 }
 
-// ---------------- Templates Management ----------------
+// ---------------- Operational Playbooks (formerly Templates) Management ----------------
 
 async function openTemplatesManager() {
   const modal = document.getElementById("templatesManagerModal");
   const container = document.getElementById("templatesListContainer");
-  container.innerHTML = `<div class="text-slate-500 italic p-4 text-center">Loading templates...</div>`;
+  container.innerHTML = `<div class="text-slate-500 italic p-4 text-center">Loading operational playbooks...</div>`;
   modal.classList.remove("hidden");
 
   try {
@@ -2308,31 +2546,40 @@ async function openTemplatesManager() {
     AppState.templates = data.templates || [];
 
     if (!AppState.templates.length) {
-      container.innerHTML = `<div class="text-slate-500 italic p-4 text-center">No templates available.</div>`;
+      container.innerHTML = `<div class="text-slate-500 italic p-4 text-center">No playbooks available.</div>`;
       return;
     }
 
     container.innerHTML = AppState.templates
       .map((t) => {
         const isCurrent = t.id === AppState.state?.pathway?.id;
+        const playbookTitle = t.playbook_title || t.name;
+        const scope = t.scenario_scope || t.description;
+        const trigger = t.trigger_criteria || "Incident Controller command";
+        const lead = t.lead_agency || "Commonwealth Lead";
+
         return `
-        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 flex items-center justify-between">
-          <div class="space-y-0.5 max-w-sm">
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-start justify-between space-x-4 shadow-sm hover:border-slate-700 transition">
+          <div class="space-y-1.5 flex-1">
             <div class="flex items-center space-x-2">
-              <span class="font-bold text-slate-100 text-xs">${t.name}</span>
-              ${t.is_builtin ? `<span class="text-[9px] font-mono px-1.5 py-0.2 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded">BUILT-IN</span>` : `<span class="text-[9px] font-mono px-1.5 py-0.2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded">USER SAVED</span>`}
-              ${isCurrent ? `<span class="text-[9px] font-mono px-1.5 py-0.2 bg-cyan-500/20 text-cyan-300 rounded font-semibold">ACTIVE</span>` : ""}
+              <span class="font-bold text-slate-100 text-sm tracking-tight">${playbookTitle}</span>
+              ${t.is_builtin ? `<span class="text-[9px] font-mono px-1.5 py-0.2 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded font-bold">COMMONWEALTH PLAYBOOK</span>` : `<span class="text-[9px] font-mono px-1.5 py-0.2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded font-bold">USER PLAYBOOK</span>`}
+              ${isCurrent ? `<span class="text-[9px] font-mono px-1.5 py-0.2 bg-cyan-500/20 text-cyan-300 rounded font-bold">ACTIVE</span>` : ""}
             </div>
-            <p class="text-slate-400 text-[11px] truncate">${t.description}</p>
-            <div class="text-[10px] text-slate-500 font-mono">${t.node_count} nodes • ${t.edge_count} edges • ${t.threat_type}</div>
+            <p class="text-slate-300 text-xs leading-relaxed">${scope}</p>
+            <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-400 font-mono pt-1">
+              <div><strong class="text-amber-400">Trigger:</strong> ${trigger}</div>
+              <div><strong class="text-cyan-400">Lead Agency:</strong> ${lead}</div>
+            </div>
+            <div class="text-[10px] text-slate-500 font-mono">${t.node_count} nodes • ${t.edge_count} edges • Threat: ${t.threat_type}</div>
           </div>
-          <div class="flex items-center space-x-1.5">
-            <button data-template-id="${t.id}" class="btn-load-template px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-medium transition">
-              Load
+          <div class="flex flex-col items-end space-y-2 shrink-0">
+            <button data-template-id="${t.id}" class="btn-load-template px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-bold transition shadow">
+              Deploy Playbook
             </button>
             ${
               !t.is_builtin
-                ? `<button data-template-id="${t.id}" class="btn-delete-template px-2 py-1 text-rose-400 hover:text-rose-300 text-xs transition" title="Delete Template"><i class="fa-solid fa-trash-can"></i></button>`
+                ? `<button data-template-id="${t.id}" class="btn-delete-template px-2 py-1 text-rose-400 hover:text-rose-300 text-xs transition" title="Delete Playbook"><i class="fa-solid fa-trash-can"></i></button>`
                 : ""
             }
           </div>
@@ -2354,14 +2601,14 @@ async function openTemplatesManager() {
     document.querySelectorAll(".btn-delete-template").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const id = btn.dataset.templateId;
-        if (confirm("Delete this user template?")) {
+        if (confirm("Delete this user playbook?")) {
           await fetch(`/api/pathways/templates/${id}`, { method: "DELETE" });
           openTemplatesManager();
         }
       });
     });
   } catch (err) {
-    container.innerHTML = `<div class="text-rose-400 p-4 text-center">Failed to load templates: ${err}</div>`;
+    container.innerHTML = `<div class="text-rose-400 p-4 text-center">Failed to load playbooks: ${err}</div>`;
   }
 }
 
@@ -2380,12 +2627,12 @@ async function handleSaveTemplate(e) {
     if (res.ok) {
       document.getElementById("saveTemplateModal").classList.add("hidden");
       document.getElementById("saveTemplateForm").reset();
-      alert(`Pathway template '${name}' saved successfully!`);
+      alert(`Operational response playbook '${name}' saved successfully!`);
     } else {
-      alert("Failed to save template.");
+      alert("Failed to save playbook.");
     }
   } catch (err) {
-    console.error("Save template error:", err);
+    console.error("Save playbook error:", err);
   }
 }
 
@@ -2397,7 +2644,7 @@ async function exportPathwayJson() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `pathway_${data.name.toLowerCase().replace(/[^a-z0-9]/g, "_")}.json`;
+    a.download = `playbook_${data.name.toLowerCase().replace(/[^a-z0-9]/g, "_")}.json`;
     a.click();
     URL.revokeObjectURL(url);
   } catch (err) {
@@ -2420,7 +2667,7 @@ async function handleImportPathwayFile(e) {
       if (res.ok) {
         document.getElementById("templatesManagerModal").classList.add("hidden");
         await refreshState();
-        alert("Custom pathway imported successfully!");
+        alert("Custom operational playbook imported successfully!");
       } else {
         const err = await res.json();
         alert(`Import failed: ${err.detail}`);
@@ -2432,7 +2679,7 @@ async function handleImportPathwayFile(e) {
   reader.readAsText(file);
 }
 
-// ---------------- Squad & Provider Configuration ----------------
+// ---------------- Squad & Execution Harness Configuration ----------------
 
 function openConfigureSquadModal(nodeId) {
   const node = AppState.state?.pathway?.nodes?.find((n) => n.id === nodeId);
@@ -2443,14 +2690,29 @@ function openConfigureSquadModal(nodeId) {
   document.getElementById("configSquadName").value = node.agent_team_config?.name || node.agent_team_id.replace("_", " ");
   document.getElementById("configSquadStrategy").value = node.agent_team_config?.collaboration_strategy || "sequential_refinement";
 
+  // Harness configuration
+  const harnessSelect = document.getElementById("configHarnessEngineSelect");
+  if (harnessSelect) {
+    harnessSelect.value = node.agent_team_config?.harness_engine || "agy";
+  }
+  const cmdInput = document.getElementById("configHarnessCommand");
+  if (cmdInput) {
+    cmdInput.value = node.agent_team_config?.harness_command || "agy exec";
+  }
+  const sandboxSelect = document.getElementById("configHarnessSandbox");
+  if (sandboxSelect) {
+    sandboxSelect.value = node.agent_team_config?.sandbox_policy || "restricted_fs";
+  }
+
+  // Provider
   const prov = node.provider_config || node.agent_team_config?.provider_config;
   document.getElementById("configProviderSelect").value = prov?.provider_type || "local_open_weights";
   document.getElementById("configModelName").value = prov?.model_name || "llama-3.3-70b-instruct-q4";
-  document.getElementById("configEndpointUrl").value = prov?.endpoint_url || "http://localhost:11434/v1";
 
   document.getElementById("configNodeHitlRequired").checked = node.requires_human_approval;
   document.getElementById("configNodeHitlRole").value = node.human_oversight_role || "Statutory Oversight Officer";
 
+  // Render squad member cards with tools and skills
   const membersContainer = document.getElementById("squadMembersChecklist");
   membersContainer.innerHTML = AppState.personas
     .map((p) => {
@@ -2459,13 +2721,16 @@ function openConfigureSquadModal(nodeId) {
         : node.agent_team_id.includes(p.id.replace("agent_", "").replace("_lead", ""));
 
       return `
-      <label class="flex items-center space-x-2 p-1.5 rounded hover:bg-slate-900 cursor-pointer">
-        <input type="checkbox" value="${p.id}" class="persona-checkbox rounded bg-slate-900 border-slate-700 text-cyan-600 focus:ring-0" ${isMember ? "checked" : ""}>
-        <div class="truncate">
-          <div class="font-bold text-slate-200 text-xs font-mono">${p.name}</div>
-          <div class="text-[10px] text-slate-500 truncate">${p.role}</div>
-        </div>
-      </label>
+      <div class="p-2.5 rounded-lg border border-slate-800 bg-slate-900/80 space-y-2">
+        <label class="flex items-center space-x-2 cursor-pointer">
+          <input type="checkbox" value="${p.id}" class="persona-checkbox rounded bg-slate-950 border-slate-700 text-cyan-600 focus:ring-0" ${isMember ? "checked" : ""}>
+          <div class="truncate">
+            <div class="font-bold text-slate-200 text-xs font-mono">${p.name}</div>
+            <div class="text-[10px] text-cyan-400 truncate">${p.role}</div>
+          </div>
+        </label>
+        <div class="text-[10px] text-slate-400 line-clamp-2">${p.specialization}</div>
+      </div>
     `;
     })
     .join("");
@@ -2478,9 +2743,11 @@ async function handleSaveSquadConfig(e) {
   const nodeId = document.getElementById("configSquadNodeId").value;
   const name = document.getElementById("configSquadName").value;
   const strategy = document.getElementById("configSquadStrategy").value;
+  const harnessEngine = document.getElementById("configHarnessEngineSelect").value;
+  const harnessCmd = document.getElementById("configHarnessCommand").value;
+  const sandboxPolicy = document.getElementById("configHarnessSandbox").value;
   const providerType = document.getElementById("configProviderSelect").value;
   const modelName = document.getElementById("configModelName").value;
-  const endpointUrl = document.getElementById("configEndpointUrl").value;
   const hitlRequired = document.getElementById("configNodeHitlRequired").checked;
   const hitlRole = document.getElementById("configNodeHitlRole").value;
 
@@ -2495,7 +2762,7 @@ async function handleSaveSquadConfig(e) {
   const provider_config = {
     provider_type: providerType,
     model_name: modelName,
-    endpoint_url: endpointUrl,
+    endpoint_url: "http://localhost:11434/v1",
     temperature: 0.2,
     max_tokens: 4096,
     is_sovereign_hosted: providerType.includes("local") || providerType.includes("sovereign"),
@@ -2509,6 +2776,10 @@ async function handleSaveSquadConfig(e) {
     node_lead: selectedPersonas[0],
     members: selectedPersonas,
     collaboration_strategy: strategy,
+    harness_engine: harnessEngine,
+    harness_command: harnessCmd,
+    sandbox_policy: sandboxPolicy,
+    approval_mode: hitlRequired ? "on_request" : "autonomous",
     provider_config: provider_config,
   };
 
@@ -2528,6 +2799,7 @@ async function handleSaveSquadConfig(e) {
       document.getElementById("configureSquadModal").classList.add("hidden");
       await refreshState();
       renderNodeInspector(nodeId);
+      alert(`Node '${nodeId}' updated with ${harnessEngine.toUpperCase()} harness.`);
     } else {
       alert("Failed to update node configuration.");
     }
