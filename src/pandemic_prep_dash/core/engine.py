@@ -51,10 +51,24 @@ class PathwayExecutionEngine:
         return G
 
     def set_scenario(self, scenario_id: str):
-        """Switches active scenario and resets execution state."""
+        """Switches active scenario, aligns pathway template if needed, and resets execution state."""
         self.scenario_id = scenario_id
         self.scenario_data = get_scenario(scenario_id)
+        threat_type = self.scenario_data.get("threat_type")
+
+        # Auto-align pathway threat type if switching between chemical and biological
+        from ..models.bio_chem import ThreatType
+        if threat_type == ThreatType.CHEMICAL_NERVE_AGENT and self.pathway.threat_type != ThreatType.CHEMICAL_NERVE_AGENT:
+            from .registry import create_default_chemical_pathway
+            self.pathway = create_default_chemical_pathway()
+        elif threat_type != ThreatType.CHEMICAL_NERVE_AGENT and self.pathway.threat_type == ThreatType.CHEMICAL_NERVE_AGENT:
+            from .registry import create_default_biological_pathway
+            self.pathway = create_default_biological_pathway()
+
         self.reset()
+        # Pre-seed initial sample artifact so users can inspect it right away
+        if "sample" in self.scenario_data:
+            self.run.node_artifacts["sample"] = self.scenario_data["sample"]
 
     def reset(self):
         """Resets all nodes and execution state to initial condition."""

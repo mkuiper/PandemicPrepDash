@@ -12,6 +12,7 @@ from ..models.agent import AgentThoughtLog, AgentThoughtPhase, AgentRole
 from ..agents.teams import AGENT_TEAMS, AGENT_PERSONAS
 from ..agencies.generator import AgencyReportGenerator
 from ..agencies.registry import AUSTRALIAN_AGENCIES
+from .bio_analyzer import BioinformaticsIdentifier
 
 
 class NodeExecutor:
@@ -33,20 +34,30 @@ class NodeExecutor:
         new_logs: List[AgentThoughtLog] = []
         new_artifacts: Dict[str, Any] = {}
 
-        team_config = AGENT_TEAMS.get(node.agent_team_id)
-        lead_persona = team_config.members[0] if team_config and team_config.members else AGENT_PERSONAS["dr_rostova"]
+        # Prioritize custom node-level configured agent squad if present
+        if node.agent_team_config and node.agent_team_config.members:
+            team_config = node.agent_team_config
+            lead_persona = team_config.members[0]
+            team_name = team_config.name
+        else:
+            team_config = AGENT_TEAMS.get(node.agent_team_id)
+            lead_persona = team_config.members[0] if team_config and team_config.members else AGENT_PERSONAS["dr_rostova"]
+            team_name = team_config.name if team_config else "Bioinformatics Squad"
 
         if node.category == NodeCategory.INGESTION:
             sample_data = scenario_data.get("sample", {})
+            raw_payload = sample_data.get("raw_payload", "")
+            bio_metrics = BioinformaticsIdentifier.analyze_payload(raw_payload, sample_data.get("name", ""))
+
             new_logs.append(
                 AgentThoughtLog(
                     id=f"th_{uuid.uuid4().hex[:8]}",
                     agent_id=lead_persona.id,
                     agent_name=lead_persona.name,
-                    agent_role=lead_persona.role.value,
+                    agent_role=f"{lead_persona.role.value} ({team_name})",
                     node_id=node.id,
                     phase=AgentThoughtPhase.OBSERVATION,
-                    message=f"Received raw input sample '{sample_data.get('name', 'Sample')}'. Initiating format parsing and QC audit.",
+                    message=f"Received input '{sample_data.get('name', 'Sample')}'. Initiating format inspection for {bio_metrics['sequence_type']} payload ({bio_metrics['length']} units).",
                     confidence=0.98,
                 )
             )
@@ -55,31 +66,41 @@ class NodeExecutor:
                     id=f"th_{uuid.uuid4().hex[:8]}",
                     agent_id=lead_persona.id,
                     agent_name=lead_persona.name,
-                    agent_role=lead_persona.role.value,
+                    agent_role=f"{lead_persona.role.value} ({team_name})",
                     node_id=node.id,
                     phase=AgentThoughtPhase.TOOL_EXECUTION,
-                    message="Parsed sequence payload and verified source coordinates.",
-                    tool_name="fasta_smiles_parser",
-                    tool_input={"format": sample_data.get("sample_type", "RNA"), "location": sample_data.get("source_location")},
-                    tool_output_summary="Quality checks passed. Sequence length/structure conforms to diagnostic threshold.",
+                    message=f"Verified sequence integrity. Length: {bio_metrics['length']} bp, GC content: {bio_metrics['gc_content']}%.",
+                    tool_name="bio_sequence_inspector",
+                    tool_input={"format": bio_metrics["sequence_type"], "length": bio_metrics["length"], "location": sample_data.get("source_location")},
+                    tool_output_summary=f"Quality check PASSED. Computed GC%: {bio_metrics['gc_content']}%. Format: {bio_metrics['sequence_type']}.",
                     confidence=0.99,
                 )
             )
+            sample_data["computed_metrics"] = bio_metrics
             new_artifacts["sample"] = sample_data
-            node.outputs = {"sample_id": sample_data.get("sample_id"), "status": "verified"}
+            node.outputs = {"sample_id": sample_data.get("sample_id"), "length": bio_metrics["length"], "gc_content": bio_metrics["gc_content"], "status": "verified"}
 
         elif node.category == NodeCategory.CHARACTERIZATION:
-            ident_data = scenario_data.get("identification", {})
+            raw_payload = scenario_data.get("sample", {}).get("raw_payload", "")
+            real_analysis = BioinformaticsIdentifier.analyze_payload(raw_payload, scenario_data.get("name", ""))
+            ident_data = dict(scenario_data.get("identification", {}))
+
+            # Augment identification with real computational analysis
+            ident_data["computed_length"] = real_analysis["length"]
+            ident_data["computed_gc_content"] = real_analysis["gc_content"]
+            if real_analysis.get("genomic_mutations_detected"):
+                ident_data["detected_motifs"] = real_analysis["genomic_mutations_detected"]
+
             new_logs.append(
                 AgentThoughtLog(
                     id=f"th_{uuid.uuid4().hex[:8]}",
                     agent_id=lead_persona.id,
                     agent_name=lead_persona.name,
-                    agent_role=lead_persona.role.value,
+                    agent_role=f"{lead_persona.role.value} ({team_name})",
                     node_id=node.id,
                     phase=AgentThoughtPhase.HYPOTHESIS,
-                    message="Comparing sequence against reference databases to determine taxonomy and evolutionary lineage.",
-                    confidence=0.94,
+                    message=f"Aligning {real_analysis['sequence_type']} sequence against NCBI GenBank & GISAID reference database. Candidate match: {real_analysis['agent_name']}.",
+                    confidence=0.95,
                 )
             )
             new_logs.append(
@@ -87,14 +108,14 @@ class NodeExecutor:
                     id=f"th_{uuid.uuid4().hex[:8]}",
                     agent_id=lead_persona.id,
                     agent_name=lead_persona.name,
-                    agent_role=lead_persona.role.value,
+                    agent_role=f"{lead_persona.role.value} ({team_name})",
                     node_id=node.id,
                     phase=AgentThoughtPhase.TOOL_EXECUTION,
-                    message="Completed high-sensitivity database alignment and variant calling.",
+                    message="Completed k-mer pattern alignment and signature motif scan.",
                     tool_name="blast_and_clade_classifier",
-                    tool_input={"target_databases": ["NCBI_RefSeq", "GISAID", "PubChem"]},
-                    tool_output_summary=f"Matched {ident_data.get('agent_name')} ({ident_data.get('clade_or_lineage')}) with {ident_data.get('alignment_confidence', 99)}% identity.",
-                    confidence=0.97,
+                    tool_input={"query_length": real_analysis["length"], "target_databases": ["NCBI_RefSeq", "GISAID", "PubChem"]},
+                    tool_output_summary=f"Matched {ident_data.get('agent_name', real_analysis['agent_name'])} with {real_analysis['alignment_confidence']}% alignment confidence.",
+                    confidence=0.98,
                 )
             )
             new_logs.append(
@@ -102,11 +123,11 @@ class NodeExecutor:
                     id=f"th_{uuid.uuid4().hex[:8]}",
                     agent_id=lead_persona.id,
                     agent_name=lead_persona.name,
-                    agent_role=lead_persona.role.value,
+                    agent_role=f"{lead_persona.role.value} ({team_name})",
                     node_id=node.id,
                     phase=AgentThoughtPhase.SYNTHESIS,
-                    message=f"Key molecular determinants identified: {', '.join(ident_data.get('genomic_mutations_detected', []))}",
-                    confidence=0.96,
+                    message=f"Motifs confirmed: {'; '.join(real_analysis.get('genomic_mutations_detected', []))}",
+                    confidence=0.97,
                 )
             )
             new_artifacts["identification"] = ident_data

@@ -2,7 +2,7 @@ from enum import Enum
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from pydantic import BaseModel, Field, model_validator
-from .agent import AgentThoughtLog
+from .agent import AgentThoughtLog, AgentTeamConfig
 from .bio_chem import ThreatType
 
 
@@ -34,6 +34,7 @@ class PathwayNode(BaseModel):
     description: str
     status: NodeStatus = NodeStatus.PENDING
     agent_team_id: str = "bioinformatics_squad"
+    agent_team_config: Optional[AgentTeamConfig] = None
     requires_human_approval: bool = False
     approval_granted: bool = True
     inputs: Dict[str, Any] = Field(default_factory=dict)

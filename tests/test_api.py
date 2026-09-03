@@ -92,3 +92,41 @@ def test_custom_scenario_creation():
     data = res.json()
     assert data["status"] == "success"
     assert "scen_custom_" in data["scenario_id"]
+
+
+def test_dummy_sequences_and_templates_api():
+    # Test dummy sequences
+    res_seq = client.get("/api/scenarios/dummy-sequences")
+    assert res_seq.status_code == 200
+    seqs = res_seq.json()["dummy_sequences"]
+    assert len(seqs) >= 5
+    assert any("H5N1" in s["name"] for s in seqs)
+    
+    # Test templates list
+    res_tmpl = client.get("/api/pathways/templates")
+    assert res_tmpl.status_code == 200
+    templates = res_tmpl.json()["templates"]
+    assert len(templates) >= 4
+    
+    # Save template
+    res_save = client.post("/api/pathways/templates/save", json={
+        "name": "EPI-Rapid Response Template",
+        "description": "Rapid epidemic response template test"
+    })
+    assert res_save.status_code == 200
+    tmpl_id = res_save.json()["template_id"]
+    
+    # Load template
+    res_load = client.post(f"/api/pathways/templates/load/{tmpl_id}")
+    assert res_load.status_code == 200
+    
+    # Export pathway JSON
+    res_exp = client.get("/api/pathways/export/json")
+    assert res_exp.status_code == 200
+    assert "nodes" in res_exp.json()
+    assert "edges" in res_exp.json()
+    
+    # Delete saved template
+    res_del = client.delete(f"/api/pathways/templates/{tmpl_id}")
+    assert res_del.status_code == 200
+

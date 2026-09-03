@@ -5,6 +5,9 @@
 const AppState = {
   state: null,
   scenarios: [],
+  dummySequences: [],
+  personas: [],
+  templates: [],
   selectedNodeId: null,
   selectedAgencyId: "ACDC",
   agencies: [],
@@ -127,24 +130,27 @@ function setupEventListeners() {
   document.getElementById("btnRunAll").addEventListener("click", executeRunAll);
   document.getElementById("btnReset").addEventListener("click", resetExecution);
 
-  // Pathway Controls
-  document.getElementById("btnSwitchPathway").addEventListener("click", () => {
-    const currentType = AppState.state?.pathway?.threat_type;
-    const newKey = currentType === "chemical_nerve_agent" ? "pathway_default_biological" : "pathway_default_chemical";
-    switchPathwayTemplate(newKey);
-  });
-
   // Modals Triggers
-  document.getElementById("btnConnectModal").addEventListener("click", openConnectModal);
+  document.getElementById("btnConnectModal").addEventListener("click", () => openConnectModal());
   document.getElementById("btnAddNodeModal").addEventListener("click", () => {
     document.getElementById("addNodeModal").classList.remove("hidden");
   });
-  document.getElementById("btnCustomSampleModal").addEventListener("click", () => {
-    document.getElementById("customSampleModal").classList.remove("hidden");
-  });
+  document.getElementById("btnCustomSampleModal").addEventListener("click", openCustomSampleModal);
   document.getElementById("btnHelpModal").addEventListener("click", () => {
     document.getElementById("helpGuideModal").classList.remove("hidden");
   });
+
+  // Templates Management
+  document.getElementById("btnTemplatesMenu").addEventListener("click", openTemplatesManager);
+  document.getElementById("btnSaveTemplateModal").addEventListener("click", () => {
+    document.getElementById("saveTemplateModal").classList.remove("hidden");
+  });
+  document.getElementById("btnOpenSaveFromManager").addEventListener("click", () => {
+    document.getElementById("templatesManagerModal").classList.add("hidden");
+    document.getElementById("saveTemplateModal").classList.remove("hidden");
+  });
+  document.getElementById("btnExportPathwayJson").addEventListener("click", exportPathwayJson);
+  document.getElementById("inputImportPathway").addEventListener("change", handleImportPathwayFile);
 
   // Connection Mode Cancel Button
   document.getElementById("btnCancelConnect").addEventListener("click", cancelConnectionMode);
@@ -164,10 +170,9 @@ function setupEventListeners() {
   // Modal Closers
   document.querySelectorAll(".modal-close").forEach((btn) => {
     btn.addEventListener("click", () => {
-      document.getElementById("addNodeModal").classList.add("hidden");
-      document.getElementById("customSampleModal").classList.add("hidden");
-      document.getElementById("connectNodesModal").classList.add("hidden");
-      document.getElementById("helpGuideModal").classList.add("hidden");
+      document.querySelectorAll(".fixed.z-50").forEach((modal) => {
+        modal.classList.add("hidden");
+      });
     });
   });
 
@@ -175,26 +180,36 @@ function setupEventListeners() {
   document.getElementById("connectNodesForm").addEventListener("submit", handleConnectNodesSubmit);
   document.getElementById("addNodeForm").addEventListener("submit", handleAddNode);
   document.getElementById("customSampleForm").addEventListener("submit", handleCustomSample);
+  document.getElementById("saveTemplateForm").addEventListener("submit", handleSaveTemplate);
+  document.getElementById("configureSquadForm").addEventListener("submit", handleSaveSquadConfig);
 
   // Dispatch All Briefings
   document.getElementById("btnDispatchAllReports").addEventListener("click", dispatchAllBriefings);
+
+  // Preset Sequence Selector in Custom Sample Modal
+  document.getElementById("presetSequenceSelect").addEventListener("change", handlePresetSequenceChange);
 }
 
 // ---------------- API Calls and Data Loaders ----------------
 
 async function loadInitialData() {
   try {
-    const [scenRes, stateRes, agencyRes] = await Promise.all([
+    const [scenRes, stateRes, agencyRes, dummyRes, personasRes] = await Promise.all([
       fetch("/api/scenarios").then((r) => r.json()),
       fetch("/api/pathways/state").then((r) => r.json()),
       fetch("/api/agencies").then((r) => r.json()),
+      fetch("/api/scenarios/dummy-sequences").then((r) => r.json()).catch(() => ({ dummy_sequences: [] })),
+      fetch("/api/agents/personas").then((r) => r.json()).catch(() => ({ personas: [] })),
     ]);
 
     AppState.scenarios = scenRes.scenarios || [];
     AppState.state = stateRes;
     AppState.agencies = agencyRes.agencies || [];
+    AppState.dummySequences = dummyRes.dummy_sequences || [];
+    AppState.personas = personasRes.personas || [];
 
     populateScenarioDropdown();
+    populatePresetSequencesDropdown();
     updateUIState();
   } catch (err) {
     console.error("Failed to load initial data:", err);
@@ -203,16 +218,46 @@ async function loadInitialData() {
 
 function populateScenarioDropdown() {
   const select = document.getElementById("scenarioSelect");
+  if (!select) return;
   select.innerHTML = "";
   AppState.scenarios.forEach((s) => {
     const opt = document.createElement("option");
     opt.value = s.scenario_id;
-    opt.textContent = `${s.name} (${s.threat_type})`;
+    opt.textContent = `${s.name}`;
     if (s.scenario_id === AppState.state?.scenario?.scenario_id) {
       opt.selected = true;
     }
     select.appendChild(opt);
   });
+}
+
+function populatePresetSequencesDropdown() {
+  const select = document.getElementById("presetSequenceSelect");
+  if (!select) return;
+  select.innerHTML = `<option value="">-- Choose a test sequence to load --</option>`;
+  AppState.dummySequences.forEach((item) => {
+    const opt = document.createElement("option");
+    opt.value = item.id;
+    opt.textContent = `${item.name} [${item.type}]`;
+    select.appendChild(opt);
+  });
+}
+
+function handlePresetSequenceChange(e) {
+  const selectedId = e.target.value;
+  if (!selectedId) return;
+  const seq = AppState.dummySequences.find((s) => s.id === selectedId);
+  if (!seq) return;
+
+  document.getElementById("customSampleName").value = seq.name;
+  document.getElementById("customSampleType").value = seq.type;
+  document.getElementById("customSampleLocation").value = "Australian Diagnostic Reference Laboratory";
+  document.getElementById("customSamplePayload").value = seq.payload;
+}
+
+function openCustomSampleModal() {
+  populatePresetSequencesDropdown();
+  document.getElementById("customSampleModal").classList.remove("hidden");
 }
 
 async function refreshState() {
@@ -228,11 +273,22 @@ async function refreshState() {
 function updateUIState() {
   if (!AppState.state) return;
 
-  const { pathway, run, stats } = AppState.state;
+  const { pathway, run, scenario, stats } = AppState.state;
+
+  // Sync Scenario Dropdown & Specimen Badge
+  const select = document.getElementById("scenarioSelect");
+  if (select && scenario?.scenario_id) {
+    select.value = scenario.scenario_id;
+  }
+
+  const specBadge = document.getElementById("activeSpecimenBadge");
+  if (specBadge && scenario) {
+    specBadge.textContent = scenario.name || scenario.sample?.name || "Active Specimen";
+  }
 
   // Header badges
   const ssbaBadge = document.getElementById("threatClassificationBadge");
-  const threatTier = run.node_artifacts?.threat_assessment?.ssba_tier || "Tier 1 SSBA";
+  const threatTier = run.node_artifacts?.threat_assessment?.ssba_tier || (pathway.threat_type === "chemical_nerve_agent" ? "CWC Schedule 1" : "Tier 1 SSBA");
   ssbaBadge.textContent = threatTier;
 
   // Pathway summary
@@ -254,6 +310,31 @@ function updateUIState() {
     renderCountermeasures();
   } else if (AppState.activeTab === "tab-agentfeed") {
     renderAgentFeed();
+  }
+}
+
+// ---------------- Scenario Selection ----------------
+
+async function selectScenario(scenarioId) {
+  try {
+    const res = await fetch(`/api/scenarios/select/${scenarioId}`, { method: "POST" });
+    if (!res.ok) {
+      console.error("Failed to switch scenario:", await res.text());
+      return;
+    }
+    await refreshState();
+    // Re-render
+    if (AppState.activeTab === "tab-pathway") {
+      AppState.selectedNodeId = null;
+      renderDag();
+      renderNodeInspector(null);
+    } else if (AppState.activeTab === "tab-agencies") {
+      renderAgencyView();
+    } else if (AppState.activeTab === "tab-countermeasures") {
+      renderCountermeasures();
+    }
+  } catch (err) {
+    console.error("Scenario switch error:", err);
   }
 }
 
@@ -295,26 +376,220 @@ async function resetExecution() {
   }
 }
 
-async function selectScenario(scenarioId) {
+// ---------------- Templates Management ----------------
+
+async function openTemplatesManager() {
+  const modal = document.getElementById("templatesManagerModal");
+  const container = document.getElementById("templatesListContainer");
+  container.innerHTML = `<div class="text-slate-500 italic p-4 text-center">Loading templates...</div>`;
+  modal.classList.remove("hidden");
+
   try {
-    await fetch(`/api/scenarios/select/${scenarioId}`, { method: "POST" });
-    await refreshState();
+    const res = await fetch("/api/pathways/templates");
+    const data = await res.json();
+    AppState.templates = data.templates || [];
+
+    if (!AppState.templates.length) {
+      container.innerHTML = `<div class="text-slate-500 italic p-4 text-center">No templates available.</div>`;
+      return;
+    }
+
+    container.innerHTML = AppState.templates
+      .map((t) => {
+        const isCurrent = t.id === AppState.state?.pathway?.id;
+        return `
+        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 flex items-center justify-between">
+          <div class="space-y-0.5 max-w-sm">
+            <div class="flex items-center space-x-2">
+              <span class="font-bold text-slate-100 text-xs">${t.name}</span>
+              ${t.is_builtin ? `<span class="text-[9px] font-mono px-1.5 py-0.2 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded">BUILT-IN</span>` : `<span class="text-[9px] font-mono px-1.5 py-0.2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded">USER SAVED</span>`}
+              ${isCurrent ? `<span class="text-[9px] font-mono px-1.5 py-0.2 bg-cyan-500/20 text-cyan-300 rounded font-semibold">ACTIVE</span>` : ""}
+            </div>
+            <p class="text-slate-400 text-[11px] truncate">${t.description}</p>
+            <div class="text-[10px] text-slate-500 font-mono">${t.node_count} nodes • ${t.edge_count} edges • ${t.threat_type}</div>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <button data-template-id="${t.id}" class="btn-load-template px-3 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-medium transition">
+              Load
+            </button>
+            ${
+              !t.is_builtin
+                ? `<button data-template-id="${t.id}" class="btn-delete-template px-2 py-1 text-rose-400 hover:text-rose-300 text-xs transition" title="Delete Template"><i class="fa-solid fa-trash-can"></i></button>`
+                : ""
+            }
+          </div>
+        </div>
+      `;
+      })
+      .join("");
+
+    // Attach load/delete buttons
+    document.querySelectorAll(".btn-load-template").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.templateId;
+        await fetch(`/api/pathways/templates/load/${id}`, { method: "POST" });
+        modal.classList.add("hidden");
+        await refreshState();
+        populateScenarioDropdown();
+      });
+    });
+
+    document.querySelectorAll(".btn-delete-template").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.templateId;
+        if (confirm("Delete this user template?")) {
+          await fetch(`/api/pathways/templates/${id}`, { method: "DELETE" });
+          openTemplatesManager();
+        }
+      });
+    });
   } catch (err) {
-    console.error("Scenario switch failed:", err);
+    container.innerHTML = `<div class="text-rose-400 p-4 text-center">Failed to load templates: ${err}</div>`;
   }
 }
 
-async function switchPathwayTemplate(pathwayKey) {
+async function handleSaveTemplate(e) {
+  e.preventDefault();
+  const name = document.getElementById("templateNameInput").value;
+  const description = document.getElementById("templateDescInput").value;
+
   try {
-    await fetch("/api/pathways/switch", {
+    const res = await fetch("/api/pathways/templates/save", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pathway_key: pathwayKey }),
+      body: JSON.stringify({ name, description }),
     });
-    await refreshState();
-    populateScenarioDropdown();
+
+    if (res.ok) {
+      document.getElementById("saveTemplateModal").classList.add("hidden");
+      document.getElementById("saveTemplateForm").reset();
+      alert(`Pathway template '${name}' saved successfully!`);
+    } else {
+      alert("Failed to save template.");
+    }
   } catch (err) {
-    console.error("Pathway template switch failed:", err);
+    console.error("Save template error:", err);
+  }
+}
+
+async function exportPathwayJson() {
+  try {
+    const res = await fetch("/api/pathways/export/json");
+    const data = await res.json();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `pathway_${data.name.toLowerCase().replace(/[^a-z0-9]/g, "_")}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("Export JSON failed:", err);
+  }
+}
+
+async function handleImportPathwayFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (event) => {
+    try {
+      const json = JSON.parse(event.target.result);
+      const res = await fetch("/api/pathways/import/json", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(json),
+      });
+      if (res.ok) {
+        document.getElementById("templatesManagerModal").classList.add("hidden");
+        await refreshState();
+        alert("Custom pathway imported successfully!");
+      } else {
+        const err = await res.json();
+        alert(`Import failed: ${err.detail}`);
+      }
+    } catch (err) {
+      alert("Invalid JSON file: " + err);
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ---------------- Configurable Node Agent Squad ----------------
+
+function openConfigureSquadModal(nodeId) {
+  const node = AppState.state?.pathway?.nodes?.find((n) => n.id === nodeId);
+  if (!node) return;
+
+  const modal = document.getElementById("configureSquadModal");
+  document.getElementById("configSquadNodeId").value = node.id;
+  document.getElementById("configSquadName").value = node.agent_team_config?.name || node.agent_team_id.replace("_", " ");
+  document.getElementById("configSquadStrategy").value = node.agent_team_config?.collaboration_strategy || "sequential_refinement";
+  document.getElementById("configSquadInstructions").value = node.agent_team_config?.description || "";
+
+  // Render members checklist
+  const membersContainer = document.getElementById("squadMembersChecklist");
+  membersContainer.innerHTML = AppState.personas
+    .map((p) => {
+      const isMember = node.agent_team_config
+        ? node.agent_team_config.members?.some((m) => m.id === p.id)
+        : node.agent_team_id.includes(p.id.replace("dr_", "").replace("cdr_", ""));
+
+      return `
+      <label class="flex items-center space-x-2 p-1.5 rounded hover:bg-slate-900 cursor-pointer">
+        <input type="checkbox" value="${p.id}" class="persona-checkbox rounded bg-slate-900 border-slate-700 text-cyan-600 focus:ring-0" ${isMember ? "checked" : ""}>
+        <div class="truncate">
+          <div class="font-bold text-slate-200 text-xs">${p.name}</div>
+          <div class="text-[10px] text-slate-500 truncate">${p.role}</div>
+        </div>
+      </label>
+    `;
+    })
+    .join("");
+
+  modal.classList.remove("hidden");
+}
+
+async function handleSaveSquadConfig(e) {
+  e.preventDefault();
+  const nodeId = document.getElementById("configSquadNodeId").value;
+  const name = document.getElementById("configSquadName").value;
+  const strategy = document.getElementById("configSquadStrategy").value;
+  const description = document.getElementById("configSquadInstructions").value;
+
+  const selectedPersonaIds = Array.from(document.querySelectorAll(".persona-checkbox:checked")).map((cb) => cb.value);
+  const selectedPersonas = AppState.personas.filter((p) => selectedPersonaIds.includes(p.id));
+
+  if (!selectedPersonas.length) {
+    alert("Please select at least one specialist agent persona for this squad.");
+    return;
+  }
+
+  const agent_team_config = {
+    team_id: `squad_${nodeId}`,
+    name: name,
+    description: description || "Node-customized agent squad",
+    lead_role: selectedPersonas[0].role,
+    members: selectedPersonas,
+    collaboration_strategy: strategy,
+  };
+
+  try {
+    const res = await fetch(`/api/pathways/nodes/${nodeId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ agent_team_config }),
+    });
+
+    if (res.ok) {
+      document.getElementById("configureSquadModal").classList.add("hidden");
+      await refreshState();
+      renderNodeInspector(nodeId);
+    } else {
+      alert("Failed to update squad config.");
+    }
+  } catch (err) {
+    console.error("Save squad config error:", err);
   }
 }
 
@@ -490,7 +765,6 @@ async function handleCustomSample(e) {
     document.getElementById("customSampleModal").classList.add("hidden");
     document.getElementById("customSampleForm").reset();
 
-    // Reload scenarios and state
     const scenRes = await fetch("/api/scenarios").then((r) => r.json());
     AppState.scenarios = scenRes.scenarios || [];
     populateScenarioDropdown();
@@ -608,7 +882,7 @@ function renderDag() {
     g.appendChild(strip);
 
     // Status Indicator Dot / Badge
-    let statusColor = isLight ? "#64748b" : "#64748b";
+    let statusColor = "#64748b";
     let statusText = node.status.toUpperCase();
     if (node.status === "completed") statusColor = "#10b981";
     if (node.status === "running") statusColor = "#0284c7";
@@ -647,13 +921,14 @@ function renderDag() {
     labelText.textContent = truncateString(node.label, 20);
     g.appendChild(labelText);
 
-    // Subtitle / Agent Team
+    // Subtitle / Agent Squad name
+    const squadDisplayName = node.agent_team_config?.name || node.agent_team_id.replace("_", " ");
     const teamText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     teamText.setAttribute("x", "16");
     teamText.setAttribute("y", "62");
     teamText.setAttribute("fill", isLight ? "#475569" : "#94a3b8");
     teamText.setAttribute("font-size", "10px");
-    teamText.textContent = truncateString(node.agent_team_id.replace("_", " "), 22);
+    teamText.textContent = truncateString(squadDisplayName, 22);
     g.appendChild(teamText);
 
     // Latency or Gatekeeper status bottom
@@ -730,7 +1005,6 @@ function makeDraggable(element, node) {
   let startX, startY;
 
   element.addEventListener("mousedown", (e) => {
-    // If click was on port handle, don't drag
     if (e.target.classList.contains("node-connect-handle")) return;
     isDragging = true;
     startX = e.clientX - node.position_x;
@@ -806,9 +1080,12 @@ function renderNodeInspector(nodeId) {
     `;
   }
 
-  // Calculate Inbound & Outbound Connections
   const inboundEdges = edges.filter((e) => e.target === node.id);
   const outboundEdges = edges.filter((e) => e.source === node.id);
+
+  const squadName = node.agent_team_config?.name || node.agent_team_id.replace("_", " ");
+  const squadMembers = node.agent_team_config?.members?.map((m) => m.name).join(", ") || "Lead Specialist & Domain Agents";
+  const squadStrategy = node.agent_team_config?.collaboration_strategy || "Sequential Refinement";
 
   container.innerHTML = `
     <div class="space-y-4">
@@ -827,11 +1104,24 @@ function renderNodeInspector(nodeId) {
         <div class="text-slate-300 leading-relaxed">${node.description}</div>
       </div>
 
-      <div>
-        <span class="text-slate-500 uppercase font-semibold text-[10px]">Assigned Agent Squad</span>
-        <div class="mt-1 bg-slate-950 p-2.5 rounded border border-slate-800 flex items-center space-x-2">
-          <i class="fa-solid fa-users-gear text-purple-400"></i>
-          <span class="font-medium text-slate-200">${node.agent_team_id.replace("_", " ")}</span>
+      <!-- Configurable Agent Squad Section -->
+      <div class="space-y-2 pt-2 border-t border-slate-800">
+        <div class="flex items-center justify-between">
+          <span class="text-slate-500 uppercase font-semibold text-[10px]">Configured Agent Squad</span>
+          <button id="btnConfigureNodeSquad" class="text-[11px] text-purple-400 hover:text-purple-300 flex items-center space-x-1 font-medium">
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span>Edit Squad</span>
+          </button>
+        </div>
+        <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1 text-[11px]">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-200 flex items-center">
+              <i class="fa-solid fa-users-gear text-cyan-400 mr-1.5"></i>
+              ${squadName}
+            </span>
+            <span class="text-[9px] font-mono text-slate-400">${squadStrategy}</span>
+          </div>
+          <div class="text-slate-400 text-[10px] truncate">Members: ${squadMembers}</div>
         </div>
       </div>
 
@@ -905,6 +1195,13 @@ function renderNodeInspector(nodeId) {
   `;
 
   // Attach button events
+  const btnConfigureSquad = document.getElementById("btnConfigureNodeSquad");
+  if (btnConfigureSquad) {
+    btnConfigureSquad.addEventListener("click", () => {
+      openConfigureSquadModal(node.id);
+    });
+  }
+
   const btnApprove = document.getElementById("btnApproveNode");
   if (btnApprove) {
     btnApprove.addEventListener("click", async () => {
@@ -992,7 +1289,6 @@ async function renderAgencyView() {
     sidebar.appendChild(btn);
   });
 
-  // Fetch report for selected agency
   try {
     const repRes = await fetch(`/api/agencies/${AppState.selectedAgencyId}/report`);
     const rep = await repRes.json();
@@ -1003,7 +1299,6 @@ async function renderAgencyView() {
     if (rep.classification.includes("SECRET")) classificationColor = "border-rose-500/40 bg-rose-500/10 text-rose-400";
 
     card.innerHTML = `
-      <!-- Briefing Header -->
       <div class="border-b border-slate-800 pb-5 space-y-3">
         <div class="flex items-center justify-between">
           <span class="px-2.5 py-0.5 rounded text-[11px] font-mono font-bold tracking-wider uppercase border ${classificationColor}">
@@ -1043,7 +1338,6 @@ async function renderAgencyView() {
         </div>
       </div>
 
-      <!-- Executive Summary -->
       <div class="space-y-2">
         <h4 class="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center">
           <i class="fa-solid fa-flag text-cyan-400 mr-2"></i>
@@ -1054,7 +1348,6 @@ async function renderAgencyView() {
         </div>
       </div>
 
-      <!-- Situation Update -->
       <div class="space-y-2">
         <h4 class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center">
           <i class="fa-solid fa-circle-info mr-2"></i>
@@ -1065,7 +1358,6 @@ async function renderAgencyView() {
         </div>
       </div>
 
-      <!-- Strategic Implications -->
       <div class="space-y-2">
         <h4 class="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center">
           <i class="fa-solid fa-chart-line mr-2"></i>
@@ -1076,7 +1368,6 @@ async function renderAgencyView() {
         </ul>
       </div>
 
-      <!-- Operational Action Items -->
       <div class="space-y-2">
         <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center">
           <i class="fa-solid fa-list-check mr-2"></i>
@@ -1087,7 +1378,6 @@ async function renderAgencyView() {
         </ol>
       </div>
 
-      <!-- Cross Agency Dependencies -->
       <div class="space-y-2 pt-2 border-t border-slate-800">
         <h4 class="text-xs font-semibold text-slate-400 flex items-center">
           <i class="fa-solid fa-link text-slate-500 mr-2"></i>

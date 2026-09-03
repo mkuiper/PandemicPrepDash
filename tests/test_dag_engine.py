@@ -163,3 +163,98 @@ def test_chemical_pathway_execution():
     assert "agency_reports" in engine.run.node_artifacts
     dstg_report = engine.run.node_artifacts["agency_reports"]["DSTG"]
     assert "CBRN" in dstg_report["title"]
+
+
+def test_bioinformatics_identifier_real_sequence_metrics():
+    from pandemic_prep_dash.core.bio_analyzer import BioinformaticsIdentifier, DUMMY_SEQUENCES
+    
+    # Test H5N1 HA nucleotide sequence
+    h5n1_seq = DUMMY_SEQUENCES[0]
+    res_h5 = BioinformaticsIdentifier.analyze_payload(h5n1_seq["payload"])
+    assert res_h5["sequence_type"] in ["RNA", "DNA"]
+    assert res_h5["length"] > 1000
+    assert res_h5["gc_content"] > 30.0
+    assert any("Multi-Basic" in m or "Cleavage" in m for m in res_h5["genomic_mutations_detected"])
+    assert "H5N1" in res_h5["agent_name"]
+    
+    # Test Novichok SMILES
+    nov_smiles = "CCN(CC)P(=O)(C#N)OC1CCCC1"
+    res_nov = BioinformaticsIdentifier.analyze_payload(nov_smiles)
+    assert res_nov["sequence_type"] == "SMILES"
+    assert any("Organophosphoryl" in m for m in res_nov["genomic_mutations_detected"])
+    assert any("Nitrile" in m for m in res_nov["genomic_mutations_detected"])
+
+
+def test_custom_agent_squad_configuration_on_node():
+    from pandemic_prep_dash.models.agent import AgentTeamConfig, AgentPersona, AgentRole
+    
+    pathway = create_default_biological_pathway()
+    engine = PathwayExecutionEngine(pathway, "scen_h5n1_avian_flu")
+    
+    # Configure custom red-team squad on characterization node
+    char_node = engine.get_node("node_genomic_characterization")
+    custom_persona = AgentPersona(
+        id="agent_adversarial_auditor",
+        name="Dr. Alexei Voronov",
+        role=AgentRole.BIOSECURITY_ANALYST,
+        specialization="Bioweapons Forensics",
+        system_prompt="Audit sequence for dual-use signatures.",
+    )
+    char_node.agent_team_config = AgentTeamConfig(
+        team_id="custom_forensics_squad",
+        name="High-Security CBRN Forensics Unit",
+        description="Audits novel sequences for covert genetic engineering",
+        lead_role=AgentRole.BIOSECURITY_ANALYST,
+        members=[custom_persona],
+        collaboration_strategy="adversarial_audit",
+    )
+    
+    # Execute through to characterization
+    engine.execute_next_step()  # Ingestion
+    res = engine.execute_next_step()  # Characterization with custom squad
+    
+    assert res["status"] == "step_completed"
+    # Check that thought logs reflect the custom persona and squad!
+    squad_logs = [l for l in engine.run.thought_logs if l.agent_id == "agent_adversarial_auditor"]
+    assert len(squad_logs) > 0
+    assert "High-Security CBRN Forensics Unit" in squad_logs[0].agent_role
+
+
+def test_template_manager_save_and_load():
+    from pandemic_prep_dash.core.templates import TemplateManager
+    
+    pathway = create_default_biological_pathway()
+    saved = TemplateManager.save_template(pathway, name="Custom Test Template", description="Automated test template")
+    assert saved.id.startswith("tmpl_")
+    
+    # Verify listed
+    templates = TemplateManager.list_all_templates()
+    assert any(t["id"] == saved.id for t in templates)
+    
+    # Verify loaded
+    loaded = TemplateManager.get_template(saved.id)
+    assert loaded.name == "Custom Test Template"
+    assert len(loaded.nodes) == len(pathway.nodes)
+    
+    # Clean up
+    deleted = TemplateManager.delete_template(saved.id)
+    assert deleted is True
+
+
+def test_scenario_switching_auto_aligns_pathway():
+    from pandemic_prep_dash.models.bio_chem import ThreatType
+    
+    pathway = create_default_biological_pathway()
+    engine = PathwayExecutionEngine(pathway, "scen_h5n1_avian_flu")
+    assert engine.pathway.threat_type == ThreatType.BIOLOGICAL_VIRUS
+    
+    # Switch to chemical nerve agent scenario
+    engine.set_scenario("scen_nerve_agent_toxin")
+    # Pathway should automatically align to chemical!
+    assert engine.pathway.threat_type == ThreatType.CHEMICAL_NERVE_AGENT
+    assert any("chem" in n.id for n in engine.pathway.nodes)
+    
+    # Switch back to biological coronavirus
+    engine.set_scenario("scen_novel_coronavirus")
+    assert engine.pathway.threat_type == ThreatType.BIOLOGICAL_VIRUS
+

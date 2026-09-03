@@ -117,39 +117,48 @@
     <section id="tab-pathway" class="tab-panel w-full h-full flex flex-col">
       <!-- Toolbar banner -->
       <div class="bg-slate-900/50 border-b border-slate-800/80 px-6 py-2 flex items-center justify-between text-xs transition-colors duration-200">
-        <div class="flex items-center space-x-4">
-          <span class="text-slate-400 flex items-center">
+        <div class="flex items-center space-x-3 overflow-hidden">
+          <span class="text-slate-400 flex items-center truncate">
             <span class="text-slate-500 font-semibold mr-1.5">Pathway:</span>
-            <span id="pathwayNameDisplay" class="text-slate-200 font-medium">Biological Response Pipeline</span>
+            <span id="pathwayNameDisplay" class="text-slate-200 font-medium truncate">Biological Response Pipeline</span>
           </span>
           <span class="text-slate-600">•</span>
-          <div class="flex items-center space-x-2">
-            <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-            <span id="nodesStatusSummary" class="text-slate-400">0 / 0 Completed</span>
+          <span class="text-slate-400 flex items-center truncate">
+            <span class="text-slate-500 font-semibold mr-1.5">Specimen:</span>
+            <span id="activeSpecimenBadge" class="px-2 py-0.5 rounded bg-cyan-950/70 border border-cyan-500/30 text-cyan-300 font-mono text-[10px] truncate">H5N1 Clade 2.3.4.4b</span>
+          </span>
+          <span class="text-slate-600">•</span>
+          <div class="flex items-center space-x-2 shrink-0">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span id="nodesStatusSummary" class="text-slate-400 text-[11px]">0 / 0 Completed</span>
           </div>
         </div>
 
-        <div class="flex items-center space-x-2">
-          <button id="btnConnectModal" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition flex items-center space-x-1">
+        <div class="flex items-center space-x-2 shrink-0">
+          <button id="btnConnectModal" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition flex items-center space-x-1" title="Connect two nodes in the workflow">
             <i class="fa-solid fa-link text-cyan-400"></i>
-            <span>Connect Nodes</span>
+            <span>Connect</span>
           </button>
-          <button id="btnAddNodeModal" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition flex items-center space-x-1">
+          <button id="btnAddNodeModal" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition flex items-center space-x-1" title="Add a new analytical or response node">
             <i class="fa-solid fa-plus text-emerald-400"></i>
             <span>Add Node</span>
           </button>
-          <button id="btnSwitchPathway" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition flex items-center space-x-1">
-            <i class="fa-solid fa-shuffle text-purple-400"></i>
-            <span>Switch Pipeline Template</span>
+          <button id="btnTemplatesMenu" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition flex items-center space-x-1" title="Load or save pathway templates">
+            <i class="fa-solid fa-layer-group text-purple-400"></i>
+            <span>Templates</span>
+          </button>
+          <button id="btnSaveTemplateModal" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition flex items-center space-x-1" title="Save current pathway as a reusable template">
+            <i class="fa-solid fa-floppy-disk text-amber-400"></i>
+            <span>Save</span>
           </button>
         </div>
       </div>
 
-      <!-- Connecting Mode Banner (Shown when user clicks a node port handle to start connecting) -->
+      <!-- Connecting Mode Banner -->
       <div id="connectModeBanner" class="hidden bg-cyan-950 border-b border-cyan-500/60 px-6 py-2 flex items-center justify-between text-xs text-cyan-200 animate-pulse">
         <div class="flex items-center space-x-2">
           <i class="fa-solid fa-link text-cyan-400 text-sm"></i>
-          <span><strong>Connection Mode Active:</strong> Click any target node to create a connection from <span id="connectSourceLabel" class="font-bold text-white underline"></span></span>
+          <span><strong>Connection Mode Active:</strong> Click any target node to connect from <span id="connectSourceLabel" class="font-bold text-white underline"></span></span>
         </div>
         <button id="btnCancelConnect" class="px-2.5 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px] font-medium transition">
           Cancel (Esc)
@@ -201,12 +210,9 @@
       </div>
 
       <div class="flex-1 flex overflow-hidden">
-        <!-- Agency List Selector Sidebar -->
         <aside class="w-72 bg-slate-900/70 border-r border-slate-800 p-3 overflow-y-auto space-y-1.5 shrink-0 transition-colors duration-200" id="agencySidebarList">
           <!-- Populated by JS -->
         </aside>
-
-        <!-- Briefing Document Viewport -->
         <div class="flex-1 p-6 overflow-y-auto bg-slate-950 flex justify-center transition-colors duration-200">
           <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-xl p-8 shadow-xl space-y-6 transition-colors duration-200" id="agencyBriefingCard">
             <!-- Populated by JS -->
@@ -217,7 +223,6 @@
 
     <!-- TAB 3: Countermeasures & Molecular Intelligence -->
     <section id="tab-countermeasures" class="tab-panel hidden w-full h-full overflow-y-auto p-6 space-y-6 transition-colors duration-200">
-      <!-- Target Summary Grid -->
       <div>
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-bold text-slate-100 flex items-center">
@@ -231,7 +236,6 @@
         </div>
       </div>
 
-      <!-- Therapeutics Repurposing Section -->
       <div>
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-bold text-slate-100 flex items-center">
@@ -259,7 +263,6 @@
         </div>
       </div>
 
-      <!-- Vaccine Candidates Section -->
       <div>
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-bold text-slate-100 flex items-center">
@@ -286,7 +289,6 @@
           <span class="text-slate-400" id="feedLogsCount">0 entries</span>
         </div>
       </div>
-
       <div class="flex-1 p-6 overflow-y-auto space-y-3 bg-slate-950/60" id="agentThoughtFeedList">
         <!-- Filled dynamically -->
       </div>
@@ -334,22 +336,139 @@
           </div>
         </div>
       </div>
-
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3">
-        <h3 class="text-sm font-semibold text-emerald-400 flex items-center">
-          <i class="fa-solid fa-diagram-project mr-2"></i>
-          Adaptive DAG Execution Model
-        </h3>
-        <p class="text-slate-400">
-          The pipeline models the response pathway as a Directed Acyclic Graph (DAG) with dependency tracking via NetworkX.
-          When an upstream node finishes, its outputs populate the shared blackboard and downstream nodes are unblocked.
-          Nodes requiring Human-in-the-Loop review (e.g. CBRN Biosecurity classification) automatically pause until confirmed by an authorized operator.
-        </p>
-      </div>
     </section>
   </main>
 
   <!-- Modals -->
+
+  <!-- Templates Manager Modal (Load / Save / Export / Import) -->
+  <div id="templatesManagerModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 w-full max-w-xl shadow-2xl space-y-4 text-xs">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center">
+          <i class="fa-solid fa-layer-group text-purple-400 mr-2"></i>
+          Response Pathway Templates
+        </h3>
+        <button class="modal-close text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-sm"></i></button>
+      </div>
+
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-slate-400 font-semibold uppercase text-[10px]">Available Templates</span>
+          <div class="flex items-center space-x-2">
+            <button id="btnExportPathwayJson" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px] flex items-center space-x-1">
+              <i class="fa-solid fa-file-export text-cyan-400"></i>
+              <span>Export JSON</span>
+            </button>
+            <label class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px] flex items-center space-x-1 cursor-pointer">
+              <i class="fa-solid fa-file-import text-emerald-400"></i>
+              <span>Import JSON</span>
+              <input id="inputImportPathway" type="file" accept=".json" class="hidden">
+            </label>
+          </div>
+        </div>
+
+        <div id="templatesListContainer" class="space-y-2 max-h-60 overflow-y-auto">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
+          <span class="text-slate-500 text-[11px]">Save modified workflows for future CBRN exercises.</span>
+          <button id="btnOpenSaveFromManager" class="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded font-medium transition flex items-center space-x-1.5">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Save Current Pathway</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Template Modal -->
+  <div id="saveTemplateModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 w-full max-w-md shadow-2xl space-y-4 text-xs">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center">
+          <i class="fa-solid fa-floppy-disk text-amber-400 mr-2"></i>
+          Save Pathway as Template
+        </h3>
+        <button class="modal-close text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-sm"></i></button>
+      </div>
+      <form id="saveTemplateForm" class="space-y-3">
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Template Name</label>
+          <input id="templateNameInput" type="text" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-purple-500" placeholder="e.g. Rapid Zoonotic Containment Protocol">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Description</label>
+          <textarea id="templateDescInput" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-purple-500" placeholder="Context, purpose, and targeted agencies..."></textarea>
+        </div>
+        <div class="flex justify-end space-x-2 pt-3 border-t border-slate-800">
+          <button type="button" class="modal-close px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-medium">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded font-medium">Save Template</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Configure Node Agent Squad Modal -->
+  <div id="configureSquadModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 w-full max-w-lg shadow-2xl space-y-4 text-xs">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center">
+          <i class="fa-solid fa-users-gear text-cyan-400 mr-2"></i>
+          Configure Node Agent Squad
+        </h3>
+        <button class="modal-close text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-sm"></i></button>
+      </div>
+      <form id="configureSquadForm" class="space-y-3">
+        <input type="hidden" id="configSquadNodeId">
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Squad Name</label>
+          <input id="configSquadName" type="text" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">Preset Squad Blueprint</label>
+            <select id="configPresetSquadSelect" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+              <option value="bioinformatics_squad">Bioinformatics & Genomics Squad</option>
+              <option value="structural_biology_squad">Structural Biology Squad</option>
+              <option value="medicinal_chemistry_squad">Medicinal Chemistry & Repurposing</option>
+              <option value="vaccine_squad">Vaccinology & Epitope Engineering</option>
+              <option value="biosecurity_squad">CBRN & Biosecurity Intelligence</option>
+              <option value="policy_squad">Whole-of-Gov Policy Liaison</option>
+              <option value="custom">Custom Multi-Disciplinary Squad</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">Collaboration Strategy</label>
+            <select id="configSquadStrategy" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+              <option value="sequential_refinement">Sequential Refinement</option>
+              <option value="consensus">Consensus Voting</option>
+              <option value="adversarial_audit">Adversarial Red-Team Audit</option>
+              <option value="single_expert">Lead Specialist Direct</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1.5 font-medium">Squad Member Personas</label>
+          <div class="grid grid-cols-2 gap-2 bg-slate-950 p-3 rounded border border-slate-800 text-[11px]" id="squadMembersChecklist">
+            <!-- Filled dynamically -->
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Squad Mission / Instructions</label>
+          <textarea id="configSquadInstructions" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500" placeholder="Specific guidelines or analytical focus for this squad..."></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-2 pt-3 border-t border-slate-800">
+          <button type="button" class="modal-close px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-medium">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded font-medium">Save Squad Config</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Connect Nodes Modal -->
   <div id="connectNodesModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -364,15 +483,11 @@
       <form id="connectNodesForm" class="space-y-3">
         <div>
           <label class="block text-slate-400 mb-1 font-medium">Source Node (Upstream Producer)</label>
-          <select id="connectSourceSelect" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
-            <!-- Populated dynamically -->
-          </select>
+          <select id="connectSourceSelect" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500"></select>
         </div>
         <div>
           <label class="block text-slate-400 mb-1 font-medium">Target Node (Downstream Consumer)</label>
-          <select id="connectTargetSelect" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
-            <!-- Populated dynamically -->
-          </select>
+          <select id="connectTargetSelect" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500"></select>
         </div>
         <div>
           <label class="block text-slate-400 mb-1 font-medium">Optional Connection Label</label>
@@ -441,16 +556,29 @@
     </div>
   </div>
 
-  <!-- Custom Specimen Upload Modal -->
+  <!-- Custom Specimen Upload Modal with Test Sequences -->
   <div id="customSampleModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 w-full max-w-lg shadow-2xl space-y-4 text-xs">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <h3 class="text-sm font-bold text-white flex items-center">
           <i class="fa-solid fa-vial-virus text-cyan-400 mr-2"></i>
-          Ingest Custom Biological / Chemical Specimen
+          Ingest Specimen & Dummy Sequences
         </h3>
         <button class="modal-close text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-sm"></i></button>
       </div>
+
+      <!-- Quick Test Sequence Inserter -->
+      <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1.5">
+        <label class="block text-cyan-400 font-semibold text-[11px] flex items-center">
+          <i class="fa-solid fa-bolt mr-1.5 text-amber-400"></i>
+          Insert Preset Reference Test Sequence:
+        </label>
+        <select id="presetSequenceSelect" class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-slate-200 text-xs focus:outline-none focus:border-cyan-500 cursor-pointer">
+          <option value="">-- Choose a test sequence to load --</option>
+          <!-- Populated from DUMMY_SEQUENCES -->
+        </select>
+      </div>
+
       <form id="customSampleForm" class="space-y-3">
         <div>
           <label class="block text-slate-400 mb-1 font-medium">Specimen Name / Identifier</label>
@@ -469,7 +597,7 @@
           </div>
           <div>
             <label class="block text-slate-400 mb-1 font-medium">Source / Jurisdiction</label>
-            <input id="customSampleLocation" type="text" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500" placeholder="e.g. Northern Territory, Australia">
+            <input id="customSampleLocation" type="text" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500" placeholder="e.g. Victoria, Australia">
           </div>
         </div>
         <div>
@@ -487,7 +615,6 @@
   <!-- Help & User Guide Modal -->
   <div id="helpGuideModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-3xl shadow-2xl flex flex-col max-h-[88vh] overflow-hidden text-xs">
-      <!-- Header -->
       <div class="p-5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-950/40">
         <div class="flex items-center space-x-3">
           <div class="h-9 w-9 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-lg">
@@ -501,9 +628,7 @@
         <button class="modal-close text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-base"></i></button>
       </div>
 
-      <!-- Help Content (Scrollable) -->
       <div class="p-6 overflow-y-auto space-y-6 text-slate-300 leading-relaxed">
-        <!-- Section 1: Connecting Nodes -->
         <div class="bg-cyan-950/30 border border-cyan-500/30 rounded-xl p-4 space-y-2.5">
           <h4 class="font-bold text-cyan-300 text-xs flex items-center">
             <i class="fa-solid fa-link mr-2 text-cyan-400"></i>
@@ -519,69 +644,42 @@
             </div>
             <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
               <strong class="text-white block mb-1">Method 2: "Connect Nodes" Toolbar Button</strong>
-              <span>Click the <strong>Connect Nodes</strong> button in the pathway toolbar (or inside the Node Inspector sidebar). Pick the Source and Target from the dropdown and click <em>Create Connection</em>.</span>
-            </div>
-          </div>
-          <div class="text-[10px] text-slate-400 italic pt-1">
-            Note: The engine uses NetworkX cycle detection. You cannot create a connection that would introduce a circular loop.
-          </div>
-        </div>
-
-        <!-- Section 2: Moving & Managing Nodes -->
-        <div class="space-y-2">
-          <h4 class="font-bold text-slate-100 text-xs flex items-center">
-            <i class="fa-solid fa-up-down-left-right mr-2 text-purple-400"></i>
-            Moving, Editing, & Deleting Nodes
-          </h4>
-          <ul class="space-y-1.5 text-[11px] list-disc list-inside text-slate-300">
-            <li><strong>Moving:</strong> Click and drag any node card across the canvas to reposition it. Positions are saved automatically.</li>
-            <li><strong>Inspecting:</strong> Click on any node to open its details in the right-hand <em>Node Inspector</em>.</li>
-            <li><strong>Adding Nodes:</strong> Click the <strong>Add Node</strong> button in the toolbar to create custom nodes (e.g. experimental Cryo-EM assays or clinical trials).</li>
-            <li><strong>Disconnecting:</strong> In the Node Inspector, see inbound/outbound connections and click <em>Disconnect</em> to sever an edge. Alternatively, click directly on any edge on the canvas to remove it.</li>
-          </ul>
-        </div>
-
-        <!-- Section 3: Execution & Human Gatekeeper -->
-        <div class="space-y-2">
-          <h4 class="font-bold text-slate-100 text-xs flex items-center">
-            <i class="fa-solid fa-play mr-2 text-emerald-400"></i>
-            Execution Controls & Human-in-the-Loop Gatekeeper
-          </h4>
-          <div class="space-y-2 text-[11px]">
-            <p>
-              Click <strong>Step</strong> to run one ready node at a time, or click <strong>Execute Pathway</strong> to process all branches concurrently.
-            </p>
-            <div class="bg-amber-950/30 border border-amber-600/30 rounded-lg p-3 text-slate-200">
-              <strong class="text-amber-400 block mb-1"><i class="fa-solid fa-shield-halved mr-1.5"></i>Security Gatekeeper Checkpoint:</strong>
-              When the pathway reaches <em>CBRN Threat & SSBA Assessment</em>, execution automatically pauses. Under the <em>National Health Security Act 2007</em>, human signoff is legally required for Security Sensitive Biological Agent (SSBA Tier 1) classification. Inspect the node and click <strong>Authorize & Proceed</strong> to continue.
+              <span>Click the <strong>Connect</strong> button in the pathway toolbar (or inside the Node Inspector sidebar). Pick the Source and Target from the dropdown and click <em>Create Connection</em>.</span>
             </div>
           </div>
         </div>
 
-        <!-- Section 4: Whole-of-Government Agency Reports -->
         <div class="space-y-2">
           <h4 class="font-bold text-slate-100 text-xs flex items-center">
-            <i class="fa-solid fa-landmark mr-2 text-indigo-400"></i>
-            Whole-of-Australian-Government Briefings & Dispatches
+            <i class="fa-solid fa-users-gear mr-2 text-cyan-400"></i>
+            Configurable Agentic Teams per Node
           </h4>
           <p class="text-[11px]">
-            Once the reporting node finishes, visit the <strong>Whole-of-Gov Briefings</strong> tab to view situation reports generated for 8 Australian Commonwealth departments:
+            Every single node in the pathway can be assigned a customized agentic squad. Click on any node, then in the Node Inspector click <strong>Configure Agent Squad</strong>. You can customize the squad name, collaboration strategy (Sequential Refinement, Consensus, or Red-Team Debate), and select which specialist personas participate.
           </p>
-          <div class="grid grid-cols-2 gap-2 text-[10px] font-mono">
-            <div class="p-2 rounded bg-slate-950 border border-slate-800"><span class="text-cyan-400 font-bold">ACDC:</span> Epidemiological SITREP & CDNA definitions</div>
-            <div class="p-2 rounded bg-slate-950 border border-slate-800"><span class="text-emerald-400 font-bold">TGA:</span> Countermeasures & Section 19A exemptions</div>
-            <div class="p-2 rounded bg-slate-950 border border-slate-800"><span class="text-amber-400 font-bold">DAFF:</span> One-Health spillover & livestock buffers</div>
-            <div class="p-2 rounded bg-slate-950 border border-slate-800"><span class="text-rose-400 font-bold">DSTG:</span> CBRN defence & dual-use forensics</div>
-            <div class="p-2 rounded bg-slate-950 border border-slate-800"><span class="text-blue-400 font-bold">NEMA:</span> Crisis supply chains & COMDISPLAN</div>
-            <div class="p-2 rounded bg-slate-950 border border-slate-800"><span class="text-purple-400 font-bold">DFAT:</span> WHO IHR Article 6 notification</div>
-          </div>
-          <p class="text-[11px] text-slate-400 pt-1">
-            You can click <em>Dispatch to Agency</em> to simulate secure transmission or <em>Export Markdown</em> to download the briefing document.
+        </div>
+
+        <div class="space-y-2">
+          <h4 class="font-bold text-slate-100 text-xs flex items-center">
+            <i class="fa-solid fa-vial mr-2 text-emerald-400"></i>
+            Dummy Test Sequences & Real Identification
+          </h4>
+          <p class="text-[11px]">
+            Click <strong>Custom Specimen</strong> and use the <strong>Insert Preset Reference Test Sequence</strong> dropdown to test realistic biological sequences (H5N1 HA, SARS-CoV-X Spike, Ricin Toxin, Ebola GP) or chemical nerve agents (Novichok A-234, Sarin). When the bioinformatics node executes, it performs genuine sequence inspection, length calculation, GC% analysis, and signature cleavage motif detection!
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <h4 class="font-bold text-slate-100 text-xs flex items-center">
+            <i class="fa-solid fa-layer-group mr-2 text-purple-400"></i>
+            Saving & Loading Pathway Templates
+          </h4>
+          <p class="text-[11px]">
+            Click <strong>Templates</strong> to switch between pre-configured pathways (Default Biological, Chemical CBRN, Rapid Antiviral Repurposing, Sovereign mRNA Vaccine) or click <strong>Save</strong> to store your customized pathway as a named reusable template that persists across sessions.
           </p>
         </div>
       </div>
 
-      <!-- Footer -->
       <div class="p-4 border-t border-slate-800 flex justify-end shrink-0 bg-slate-950/40">
         <button class="modal-close px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded font-medium text-xs">Got it, close guide</button>
       </div>

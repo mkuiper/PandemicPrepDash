@@ -23,9 +23,17 @@ class CustomScenarioRequest(BaseModel):
     description: str = "User-submitted custom specimen"
 
 
+from ..core.bio_analyzer import DUMMY_SEQUENCES
+
+
 @router.get("")
 def get_all_scenarios():
     return {"scenarios": list_scenarios()}
+
+
+@router.get("/dummy-sequences")
+def get_dummy_sequences():
+    return {"dummy_sequences": DUMMY_SEQUENCES}
 
 
 @router.get("/{scenario_id}")
