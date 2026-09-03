@@ -302,3 +302,72 @@ def test_governance_and_cloud_compute_api():
     assert any("ISM" in p["name"] for p in policies)
     assert any("SSBA" in p["name"] for p in policies)
 
+
+def test_physical_lab_bridge_lifecycle():
+    # 1. List pre-seeded assay requests
+    res = client.get("/api/lab-bridge/requests")
+    assert res.status_code == 200
+    requests = res.json()["requests"]
+    assert len(requests) >= 2
+    assert any("ACDP" in r["target_facility"] for r in requests)
+
+    # 2. Propose a new physical assay request
+    new_req = {
+        "title": "Emergency Pseudovirus PRNT50 Cross-Neutralization Assay",
+        "assay_category": "virology_neutralization",
+        "target_facility": "ACDP (CSIRO Australian Centre for Disease Prevention - PC4)",
+        "originating_node_id": "node_vaccine_design",
+        "requesting_agent_role": "Vaccine Squad Lead",
+        "hypothesis_to_test": "Monoclonal antibody cocktail mAb-AUS-01 demonstrates sub-nanomolar neutralization.",
+        "critical_question": "Does mAb-AUS-01 neutralize emerging clade with IC50 < 0.5 ug/mL?",
+        "specimen_requirements": "100 uL serum sample",
+        "biosafety_level": "PC4 Containment",
+        "estimated_turnaround_hours": 24,
+        "priority": "CRITICAL",
+    }
+    res_prop = client.post("/api/lab-bridge/requests", json=new_req)
+    assert res_prop.status_code == 200
+    created = res_prop.json()["request"]
+    req_id = created["request_id"]
+    assert created["status"] == "PROPOSED_BY_AGENT"
+
+    # 3. Authorize and dispatch to reference facility
+    res_disp = client.post(f"/api/lab-bridge/requests/{req_id}/dispatch", json={
+        "authorized_by": "National Incident Commander"
+    })
+    assert res_disp.status_code == 200
+    dispatched = res_disp.json()["request"]
+    assert dispatched["status"] == "DISPATCHED_TO_FACILITY"
+    assert dispatched["authorized_by"] == "National Incident Commander"
+
+    # 4. Ingest real-world empirical lab findings
+    res_res = client.post(f"/api/lab-bridge/requests/{req_id}/results", json={
+        "results_payload": {
+            "neutralization_confirmed": True,
+            "IC50_ug_per_ml": 0.18,
+            "potency_index": "STRONG_PROTECTION"
+        },
+        "impact_notes": "Sub-nanomolar neutralization confirmed empirically at ACDP PC4.",
+        "tested_by_specialist": "Dr. Ian Barr, ACDP"
+    })
+    assert res_res.status_code == 200
+    completed = res_res.json()["request"]
+    assert completed["status"] == "RESULTS_RECEIVED"
+    assert completed["results_payload"]["IC50_ug_per_ml"] == 0.18
+
+    # 5. Check announcement on Message Board
+    res_msgs = client.get("/api/hub/messages")
+    assert res_msgs.status_code == 200
+    msgs = res_msgs.json()["messages"]
+    assert any("EMPIRICAL LAB FINDINGS RECEIVED" in m["content"] for m in msgs)
+
+
+def test_lab_bridge_docs_chapter():
+    res = client.get("/api/docs/real-world-lab-bridge")
+    assert res.status_code == 200
+    chapter = res.json()["chapter"]
+    assert chapter["id"] == "real-world-lab-bridge"
+    assert "ACDP" in chapter["content"]
+    assert "ANSTO" in chapter["content"]
+
+

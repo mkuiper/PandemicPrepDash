@@ -79,7 +79,7 @@
     </div>
   </header>
 
-  <!-- Navigation Bar / Tabs -->
+  <!-- Navigation Bar / Tabs (Complete Suite) -->
   <nav class="bg-slate-900/80 border-b border-slate-800/80 px-6 flex items-center space-x-1 text-xs shrink-0 backdrop-blur transition-colors duration-200 overflow-x-auto">
     <button data-tab="tab-pathway" class="tab-btn active px-3.5 py-2.5 font-medium border-b-2 border-cyan-500 text-cyan-400 flex items-center space-x-2 transition shrink-0">
       <i class="fa-solid fa-diagram-project"></i>
@@ -90,9 +90,22 @@
       <span>Central Control Hub &amp; Messages</span>
       <span id="hubBlockersBadge" class="hidden ml-1 px-1.5 py-0.2 bg-amber-500/20 text-amber-300 rounded-full text-[10px] font-bold">0</span>
     </button>
+    <button data-tab="tab-lab-bridge" class="tab-btn px-3.5 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition shrink-0">
+      <i class="fa-solid fa-vial-virus"></i>
+      <span>Lab &amp; Assay Bridge</span>
+      <span id="labRequestsCountBadge" class="ml-1 px-1.5 py-0.2 bg-purple-500/20 text-purple-300 rounded-full text-[10px] font-bold">0</span>
+    </button>
     <button data-tab="tab-inspector" class="tab-btn px-3.5 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition shrink-0">
       <i class="fa-solid fa-microscope"></i>
       <span>Pipeline Data Inspector</span>
+    </button>
+    <button data-tab="tab-tools" class="tab-btn px-3.5 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition shrink-0">
+      <i class="fa-solid fa-toolbox"></i>
+      <span>Tools &amp; MCP</span>
+    </button>
+    <button data-tab="tab-agency-map" class="tab-btn px-3.5 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition shrink-0">
+      <i class="fa-solid fa-sitemap"></i>
+      <span>Agency Map &amp; Mandates</span>
     </button>
     <button data-tab="tab-agencies" class="tab-btn px-3.5 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition shrink-0">
       <i class="fa-solid fa-landmark"></i>
@@ -101,7 +114,7 @@
     </button>
     <button data-tab="tab-governance" class="tab-btn px-3.5 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition shrink-0">
       <i class="fa-solid fa-cloud"></i>
-      <span>Cloud, Compute &amp; Governance</span>
+      <span>Cloud &amp; Governance</span>
     </button>
     <button data-tab="tab-docs" class="tab-btn px-3.5 py-2.5 font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition shrink-0">
       <i class="fa-solid fa-book"></i>
@@ -166,12 +179,10 @@
 
       <!-- Graph Viewport & Node Inspector layout -->
       <div class="flex-1 flex overflow-hidden relative">
-        <!-- SVG DAG Canvas Area -->
         <div class="flex-1 h-full relative overflow-auto bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:20px_20px]" id="dagViewport">
           <svg id="dagSvg" class="w-full h-full min-w-[1300px] min-h-[650px]"></svg>
         </div>
 
-        <!-- Node Inspector Sidebar -->
         <aside id="nodeInspector" class="w-96 bg-slate-900 border-l border-slate-800 flex flex-col shrink-0 shadow-2xl transition-all duration-200">
           <div class="p-4 border-b border-slate-800 flex items-center justify-between">
             <div class="flex items-center space-x-2">
@@ -254,7 +265,6 @@
               </button>
             </div>
 
-            <!-- Quick Directive Chips -->
             <div class="flex items-center space-x-1.5 pt-0.5 overflow-x-auto text-[10px]">
               <span class="text-slate-500 shrink-0 font-medium">Quick Directives:</span>
               <button class="quick-directive-btn px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 truncate">Request Status Update</button>
@@ -266,7 +276,6 @@
 
         <!-- RIGHT: Live Blackboard Intelligence & Active Blockers -->
         <div class="w-1/2 p-5 overflow-y-auto space-y-5 bg-slate-950/60">
-          <!-- Active Blockers Card -->
           <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-md">
             <div class="flex items-center justify-between">
               <h3 class="font-bold text-amber-400 text-xs uppercase tracking-wider flex items-center">
@@ -275,23 +284,17 @@
               </h3>
               <span id="dataHubBlockersCountText" class="text-[10px] font-mono text-slate-500">0 Open</span>
             </div>
-            <div id="dataHubBlockersList" class="space-y-2">
-              <!-- Blockers populated by JS -->
-            </div>
+            <div id="dataHubBlockersList" class="space-y-2"></div>
           </div>
 
-          <!-- Specimen & Variant Intelligence -->
           <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-md">
             <h4 class="font-bold text-slate-100 text-xs flex items-center">
               <i class="fa-solid fa-dna text-cyan-400 mr-2"></i>
               Specimen Intel &amp; Variant Determinants
             </h4>
-            <div id="hubSpecimenIntelContent" class="text-xs text-slate-300 space-y-2">
-              <!-- Populated by JS -->
-            </div>
+            <div id="hubSpecimenIntelContent" class="text-xs text-slate-300 space-y-2"></div>
           </div>
 
-          <!-- Peer-Reviewed Literature Intelligence (Live PubMed) -->
           <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-md">
             <div class="flex items-center justify-between">
               <h4 class="font-bold text-slate-100 text-xs flex items-center">
@@ -300,28 +303,45 @@
               </h4>
               <span class="text-[10px] font-mono text-slate-500">Real-Time Citations</span>
             </div>
-            <div id="hubLiteratureContent" class="space-y-2.5 text-xs text-slate-300 max-h-64 overflow-y-auto">
-              <!-- Populated by JS -->
-            </div>
+            <div id="hubLiteratureContent" class="space-y-2.5 text-xs text-slate-300 max-h-64 overflow-y-auto"></div>
           </div>
 
-          <!-- Resolved Countermeasures Card -->
           <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-md">
             <h4 class="font-bold text-slate-100 text-xs flex items-center">
               <i class="fa-solid fa-capsules text-emerald-400 mr-2"></i>
               Screened Medical Countermeasures
             </h4>
-            <div id="hubCountermeasuresContent" class="space-y-2 text-xs text-slate-300">
-              <!-- Populated by JS -->
-            </div>
+            <div id="hubCountermeasuresContent" class="space-y-2 text-xs text-slate-300"></div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- TAB 3: Pipeline Data Inspector (Tools for Humans to Inspect Pipeline Data) -->
+    <!-- TAB 3: Physical Laboratory & Assay Coordination Bridge (NEW) -->
+    <section id="tab-lab-bridge" class="tab-panel hidden w-full h-full flex flex-col overflow-hidden">
+      <div class="bg-slate-900/60 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between text-xs shrink-0">
+        <div>
+          <h2 class="font-bold text-white flex items-center text-sm">
+            <i class="fa-solid fa-vial-virus text-cyan-400 mr-2"></i>
+            Physical Reference Laboratory &amp; Assay Coordination Bridge
+          </h2>
+          <p class="text-slate-400 text-[11px]">Bridges autonomous computational models with accredited physical reference facilities (ACDP Geelong PC4, ANSTO Lucas Heights, TGA Labs, ARPANSA).</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button id="btnProposeAssayModal" class="px-3 py-1.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium rounded-lg text-xs transition flex items-center space-x-1.5 shadow">
+            <i class="fa-solid fa-plus"></i>
+            <span>Propose Physical Assay</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 p-6 overflow-y-auto space-y-4" id="labBridgeRequestsList">
+        <!-- Filled dynamically by JS -->
+      </div>
+    </section>
+
+    <!-- TAB 4: Pipeline Data Inspector -->
     <section id="tab-inspector" class="tab-panel hidden w-full h-full flex flex-col overflow-hidden">
-      <!-- Tool Selector Header -->
       <div class="bg-slate-900/60 border-b border-slate-800 px-6 py-2.5 flex items-center justify-between text-xs shrink-0">
         <div class="flex items-center space-x-2">
           <span class="font-bold text-white flex items-center">
@@ -348,10 +368,8 @@
         </div>
       </div>
 
-      <!-- Sub-tool Panels Container -->
       <div class="flex-1 p-6 overflow-y-auto space-y-6">
-        
-        <!-- SUB-TOOL 1: Sequence & Genomic Reads Inspector -->
+        <!-- Tool 1: Sequence -->
         <div id="tool-sequence" class="inspect-tool-panel space-y-4">
           <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4 shadow-md">
             <div class="flex items-center justify-between">
@@ -375,31 +393,23 @@
               </div>
             </div>
 
-            <!-- Sequence Base Composition Bar -->
             <div class="space-y-1">
               <div class="flex justify-between text-[11px] text-slate-400">
                 <span>Nucleotide Base Proportions:</span>
                 <span id="inspectBaseStats" class="font-mono">A: 0% | C: 0% | G: 0% | T/U: 0%</span>
               </div>
-              <div class="h-2.5 w-full bg-slate-950 rounded-full overflow-hidden flex" id="inspectBaseBar">
-                <div style="width: 25%" class="bg-emerald-500"></div>
-                <div style="width: 25%" class="bg-cyan-500"></div>
-                <div style="width: 25%" class="bg-amber-500"></div>
-                <div style="width: 25%" class="bg-rose-500"></div>
-              </div>
+              <div class="h-2.5 w-full bg-slate-950 rounded-full overflow-hidden flex" id="inspectBaseBar"></div>
             </div>
 
-            <!-- Search / Motif Highlighter -->
             <div class="flex items-center space-x-3 pt-2">
               <div class="flex-1 relative">
-                <input id="inputHighlightMotif" type="text" placeholder="Search motif or coordinate (e.g. R-X-R/K-R, RKKR, E627K)..." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500">
+                <input id="inputHighlightMotif" type="text" placeholder="Search motif or coordinate (e.g. RKKR, E627K, polybasic)..." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500">
               </div>
               <button id="btnHighlightMotif" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 rounded text-xs font-medium border border-slate-700 transition">
                 Highlight Motif
               </button>
             </div>
 
-            <!-- Color-Coded Sequence Box -->
             <div class="space-y-1">
               <div class="text-[11px] font-mono text-slate-400 flex items-center justify-between">
                 <span>Raw Sequence Data:</span>
@@ -412,7 +422,7 @@
           </div>
         </div>
 
-        <!-- SUB-TOOL 2: 3D Macromolecular Target & Pocket Inspector -->
+        <!-- Tool 2: Structure -->
         <div id="tool-structure" class="inspect-tool-panel hidden space-y-4">
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4 shadow-md">
@@ -424,7 +434,6 @@
                 <span id="inspectTargetNameBadge" class="text-xs font-mono text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">Target Model</span>
               </div>
 
-              <!-- Interactive Simulated 3D Ribbon / Mesh Canvas -->
               <div class="w-full h-80 bg-slate-950 rounded-xl border border-slate-800 relative flex items-center justify-center overflow-hidden" id="molViewerCanvasContainer">
                 <div id="molCanvasRepresentation" class="w-full h-full flex flex-col items-center justify-center p-6 text-center space-y-3">
                   <div class="relative w-48 h-48 flex items-center justify-center">
@@ -439,7 +448,6 @@
                 </div>
               </div>
 
-              <!-- pLDDT Confidence Legend -->
               <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 flex items-center justify-between text-[11px] font-mono">
                 <span class="text-slate-400">AlphaFold Confidence Spectrum:</span>
                 <div class="flex items-center space-x-3">
@@ -451,7 +459,6 @@
               </div>
             </div>
 
-            <!-- Pocket & Catalytic Residues Sidebar -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4 shadow-md">
               <h4 class="font-bold text-xs text-slate-100 uppercase tracking-wider flex items-center">
                 <i class="fa-solid fa-bullseye text-emerald-400 mr-1.5"></i>
@@ -476,7 +483,7 @@
           </div>
         </div>
 
-        <!-- SUB-TOOL 3: SMILES & Chemical Compound Inspector -->
+        <!-- Tool 3: Chemistry -->
         <div id="tool-chemical" class="inspect-tool-panel hidden space-y-4">
           <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4 shadow-md">
             <div class="flex items-center justify-between">
@@ -490,7 +497,6 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <!-- SMILES Diagram / Chemo Card -->
               <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-3 flex flex-col justify-between">
                 <div class="space-y-2">
                   <div class="flex items-center justify-between">
@@ -501,8 +507,6 @@
                     CC(=O)N[C@@H]1[C@H](C=C(O[C@H]1[C@@H]([C@@H](CO)O)O)C(=O)O)N
                   </div>
                 </div>
-                
-                <!-- Chemo Diagram Graphic -->
                 <div class="w-full h-36 bg-slate-900 rounded-lg border border-slate-800 flex items-center justify-center p-4">
                   <div class="text-center font-mono text-xs text-slate-400 space-y-1">
                     <i class="fa-solid fa-circle-nodes text-3xl text-emerald-400 mb-2"></i>
@@ -512,7 +516,6 @@
                 </div>
               </div>
 
-              <!-- Physicochemical Properties Table -->
               <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-3">
                 <h4 class="font-bold text-slate-200 text-xs uppercase tracking-wider">Physicochemical Profile &amp; Rules</h4>
                 <div class="space-y-2 text-xs font-mono text-slate-300">
@@ -528,7 +531,7 @@
           </div>
         </div>
 
-        <!-- SUB-TOOL 4: Atmospheric Plume Map Inspector -->
+        <!-- Tool 4: Plume -->
         <div id="tool-plume" class="inspect-tool-panel hidden space-y-4">
           <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4 shadow-md">
             <div class="flex items-center justify-between">
@@ -542,19 +545,14 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <!-- Plume Map Graphic -->
               <div class="lg:col-span-2 bg-slate-950 p-6 rounded-xl border border-slate-800 flex items-center justify-center min-h-[300px] relative overflow-hidden">
-                <!-- Radial Contours Visualization -->
                 <div class="relative w-72 h-72 flex items-center justify-center">
-                  <!-- Outer 5km Zone -->
                   <div class="absolute inset-0 rounded-full border border-amber-500/30 bg-amber-500/5 flex items-start justify-center pt-2">
                     <span class="text-[9px] font-mono text-amber-400">5.0 km Urgent Protective Zone</span>
                   </div>
-                  <!-- Intermediate 1km Zone -->
                   <div class="absolute inset-12 rounded-full border border-orange-500/40 bg-orange-500/10 flex items-start justify-center pt-2">
                     <span class="text-[9px] font-mono text-orange-300">1.0 km Exclusion Perimeter</span>
                   </div>
-                  <!-- Inner 450m Hot Zone -->
                   <div class="absolute inset-24 rounded-full border-2 border-rose-500 bg-rose-500/20 flex items-center justify-center">
                     <div class="text-center">
                       <i class="fa-solid fa-radiation text-rose-400 text-lg animate-pulse"></i>
@@ -564,7 +562,6 @@
                 </div>
               </div>
 
-              <!-- Plume Parameters & Evacuation Metrics -->
               <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-3 text-xs">
                 <h4 class="font-bold text-slate-200 text-xs uppercase tracking-wider">Dispersion Model Parameters</h4>
                 <div class="space-y-2 font-mono text-[11px] text-slate-300">
@@ -578,11 +575,83 @@
             </div>
           </div>
         </div>
-
       </div>
     </section>
 
-    <!-- TAB 4: Whole-of-Government Agency Briefings -->
+    <!-- TAB 5: Software Toolbox & MCP Servers (RESTORED) -->
+    <section id="tab-tools" class="tab-panel hidden w-full h-full overflow-y-auto p-8 max-w-6xl mx-auto space-y-8 text-slate-300 text-xs leading-relaxed transition-colors duration-200">
+      <div class="border-b border-slate-800 pb-4 flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center mb-1">
+            <i class="fa-solid fa-toolbox text-cyan-400 mr-2.5"></i>
+            Software Toolbox, MCP Servers &amp; Australian Gov Skills
+          </h2>
+          <p class="text-sm text-slate-400">Standard computational suites, Model Context Protocol integration servers, and Australian Government operational playbooks used by agent harnesses.</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="px-3 py-1 bg-slate-800 border border-slate-700 text-cyan-400 rounded text-xs font-mono">
+            All MCP Endpoints Active
+          </span>
+        </div>
+      </div>
+
+      <!-- Computational Software Tools -->
+      <div class="space-y-4">
+        <h3 class="text-sm font-bold text-slate-100 flex items-center">
+          <i class="fa-solid fa-screwdriver-wrench text-emerald-400 mr-2"></i>
+          Computational Software Toolbox (CLI &amp; Analytical Suites)
+        </h3>
+        <div id="toolsListGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- MCP Servers -->
+      <div class="space-y-4">
+        <h3 class="text-sm font-bold text-slate-100 flex items-center">
+          <i class="fa-solid fa-network-wired text-purple-400 mr-2"></i>
+          Model Context Protocol (MCP) Integration Servers
+        </h3>
+        <div id="mcpServersGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Australian Gov Skills Repository -->
+      <div class="space-y-4">
+        <h3 class="text-sm font-bold text-slate-100 flex items-center">
+          <i class="fa-solid fa-shield text-amber-400 mr-2"></i>
+          Australian Government Skills &amp; Statutory Playbooks
+        </h3>
+        <div id="skillsRepositoryList" class="space-y-3">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: Government Departments & Agency Map (RESTORED) -->
+    <section id="tab-agency-map" class="tab-panel hidden w-full h-full overflow-y-auto p-8 max-w-6xl mx-auto space-y-8 text-slate-300 text-xs leading-relaxed transition-colors duration-200">
+      <div class="border-b border-slate-800 pb-4 flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center mb-1">
+            <i class="fa-solid fa-sitemap text-cyan-400 mr-2.5"></i>
+            Australian Government Departments &amp; Statutory Agency Map
+          </h2>
+          <p class="text-sm text-slate-400">Jurisdictional authority, statutory powers under Commonwealth legislation, and direct links to legislation.gov.au.</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="px-3 py-1 bg-slate-800 border border-slate-700 text-slate-300 rounded text-xs font-mono">
+            12 Commonwealth Authorities Registered
+          </span>
+        </div>
+      </div>
+
+      <div id="agencyMapPortfoliosContainer" class="space-y-6">
+        <!-- Populated by JS grouped into portfolios -->
+      </div>
+    </section>
+
+    <!-- TAB 7: Whole-of-Government Agency Briefings -->
     <section id="tab-agencies" class="tab-panel hidden w-full h-full flex flex-col overflow-hidden">
       <div class="bg-slate-900/50 border-b border-slate-800 px-6 py-3 flex items-center justify-between shrink-0 transition-colors duration-200">
         <div>
@@ -601,18 +670,14 @@
       </div>
 
       <div class="flex-1 flex overflow-hidden">
-        <aside class="w-80 bg-slate-900/70 border-r border-slate-800 p-3 overflow-y-auto space-y-1.5 shrink-0 transition-colors duration-200" id="agencySidebarList">
-          <!-- Populated by JS -->
-        </aside>
+        <aside class="w-80 bg-slate-900/70 border-r border-slate-800 p-3 overflow-y-auto space-y-1.5 shrink-0 transition-colors duration-200" id="agencySidebarList"></aside>
         <div class="flex-1 p-6 overflow-y-auto bg-slate-950 flex justify-center transition-colors duration-200">
-          <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-xl p-8 shadow-xl space-y-6 transition-colors duration-200" id="agencyBriefingCard">
-            <!-- Populated by JS -->
-          </div>
+          <div class="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-xl p-8 shadow-xl space-y-6 transition-colors duration-200" id="agencyBriefingCard"></div>
         </div>
       </div>
     </section>
 
-    <!-- TAB 5: Cloud Infrastructure, Compute & Data Governance -->
+    <!-- TAB 8: Cloud Infrastructure, Compute & Data Governance -->
     <section id="tab-governance" class="tab-panel hidden w-full h-full overflow-y-auto p-8 max-w-6xl mx-auto space-y-8 text-slate-300 text-xs leading-relaxed transition-colors duration-200">
       <div class="border-b border-slate-800 pb-4 flex items-center justify-between">
         <div>
@@ -629,7 +694,6 @@
         </div>
       </div>
 
-      <!-- Cloud Compute Configuration Form -->
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4 shadow-md">
         <h3 class="text-sm font-bold text-slate-100 flex items-center">
           <i class="fa-solid fa-server text-emerald-400 mr-2"></i>
@@ -680,7 +744,6 @@
         </form>
       </div>
 
-      <!-- API Keys & Integration Secrets -->
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4 shadow-md">
         <h3 class="text-sm font-bold text-slate-100 flex items-center">
           <i class="fa-solid fa-key text-amber-400 mr-2"></i>
@@ -715,39 +778,140 @@
         </form>
       </div>
 
-      <!-- Australian Government Policy & Governance Controls -->
       <div class="space-y-4">
         <h3 class="text-sm font-bold text-slate-100 flex items-center">
           <i class="fa-solid fa-scale-balanced text-purple-400 mr-2"></i>
           Commonwealth Governance &amp; Statutory Compliance Policies
         </h3>
-        <div id="govPoliciesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Populated by JS -->
-        </div>
+        <div id="govPoliciesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
       </div>
     </section>
 
-    <!-- TAB 6: Comprehensive Documentation Center -->
+    <!-- TAB 9: Documentation Center -->
     <section id="tab-docs" class="tab-panel hidden w-full h-full flex overflow-hidden">
-      <!-- Docs Chapter Navigation Sidebar -->
       <aside class="w-80 bg-slate-900 border-r border-slate-800 p-4 overflow-y-auto space-y-1.5 shrink-0 transition-colors duration-200" id="docsChaptersSidebar">
         <div class="px-2 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
           Operational Manuals
         </div>
-        <!-- Populated by JS -->
       </aside>
 
-      <!-- Docs Reading Pane -->
       <div class="flex-1 p-8 overflow-y-auto bg-slate-950 flex justify-center transition-colors duration-200">
-        <article id="docsReadingPane" class="w-full max-w-4xl space-y-6 text-slate-300 text-xs leading-relaxed">
-          <div class="text-slate-500 italic py-12 text-center">Select a chapter from the documentation sidebar to read.</div>
-        </article>
+        <article id="docsReadingPane" class="w-full max-w-4xl space-y-6 text-slate-300 text-xs leading-relaxed"></article>
       </div>
     </section>
 
   </main>
 
-  <!-- Modals -->
+  <!-- MODALS -->
+
+  <!-- Propose Physical Assay Request Modal -->
+  <div id="proposeAssayModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 w-full max-w-lg shadow-2xl space-y-4 text-xs">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center">
+          <i class="fa-solid fa-vial-virus text-cyan-400 mr-2"></i>
+          Propose Physical Reference Assay / Challenge Study
+        </h3>
+        <button class="modal-close text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-sm"></i></button>
+      </div>
+      <form id="proposeAssayForm" class="space-y-3">
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Assay Title</label>
+          <input id="assayTitleInput" type="text" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500" placeholder="e.g. Ferret Airborne Aerosol Transmission Study">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">Assay Category</label>
+            <select id="assayCategorySelect" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+              <option value="animal_challenge_study">Animal Challenge / Transmission (Ferrets/NHP)</option>
+              <option value="virology_neutralization">In Vitro Neutralization (PRNT90 / Pseudovirus)</option>
+              <option value="therapeutic_potency_ic50">Therapeutic Potency &amp; IC50 Inhibition</option>
+              <option value="gamma_spectrometry_isotopes">Gamma Spectrometry &amp; Isotope Attribution</option>
+              <option value="in_vivo_bioassay">In Vivo Whole-Body Bioassay</option>
+              <option value="chemical_toxicology_gcms">Chemical Toxicology &amp; GC-MS Fluoride Reactivation</option>
+              <option value="diagnostic_pcr_validation">Diagnostic PCR Sensitivity &amp; Primer Validation</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">Accredited Reference Facility</label>
+            <select id="assayFacilitySelect" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+              <option value="ACDP (CSIRO Australian Centre for Disease Prevention - PC4)">ACDP Geelong (CSIRO PC4 Reference)</option>
+              <option value="TGA Laboratories Division (ACT)">TGA Laboratories Division (Symonston, ACT)</option>
+              <option value="ANSTO Nuclear Science &amp; Radiochemistry (Lucas Heights)">ANSTO Nuclear Science (Lucas Heights)</option>
+              <option value="ARPANSA Radiation Health Services (Yallambie)">ARPANSA Radiation Health Services (Yallambie)</option>
+              <option value="DSTG CBRN Defence Laboratories (Fishermans Bend)">DSTG CBRN Defence Labs (Fishermans Bend)</option>
+              <option value="DAFF National Animal Health Diagnostic Laboratories">DAFF National Animal Health Labs</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Critical Question to Resolve</label>
+          <textarea id="assayCriticalQuestion" rows="2" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500" placeholder="e.g. Does the isolate transmit between naive mammals via airborne droplet without direct contact?"></textarea>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Hypothesis to Test</label>
+          <textarea id="assayHypothesis" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500" placeholder="e.g. PB2 E627K mutation enables enhanced airborne replication in respiratory tract."></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">Specimen Requirements</label>
+            <input id="assaySpecimenReq" type="text" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500" placeholder="e.g. 1.0 mL viable lung homogenate (>10^6 TCID50/mL)">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">Turnaround Hours &amp; Priority</label>
+            <div class="flex space-x-2">
+              <input id="assayHoursInput" type="number" value="48" min="1" max="168" class="w-24 bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+              <select id="assayPrioritySelect" class="flex-1 bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+                <option value="CRITICAL">CRITICAL</option>
+                <option value="HIGH" selected>HIGH</option>
+                <option value="ROUTINE">ROUTINE</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-end space-x-2 pt-3 border-t border-slate-800">
+          <button type="button" class="modal-close px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-medium">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded">Submit Assay Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Record Assay Results Modal -->
+  <div id="recordAssayResultsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 w-full max-w-md shadow-2xl space-y-4 text-xs">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center">
+          <i class="fa-solid fa-microscope text-emerald-400 mr-2"></i>
+          Record Empirical Laboratory Results
+        </h3>
+        <button class="modal-close text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-sm"></i></button>
+      </div>
+      <form id="recordAssayResultsForm" class="space-y-3">
+        <input type="hidden" id="recordResultsRequestId">
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Assay Target</label>
+          <div id="recordResultsTitleDisplay" class="font-bold text-slate-200 bg-slate-950 p-2 rounded border border-slate-800"></div>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Evaluating Specialist Name</label>
+          <input id="recordResultsSpecialist" type="text" value="Dr. Ian Barr (ACDP Senior Diagnostic Virologist)" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Results Summary &amp; Key Metrics</label>
+          <textarea id="recordResultsSummaryInput" rows="3" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white font-mono focus:outline-none focus:border-emerald-500" placeholder="e.g. PRNT90 Titer: 1:640. Mammalian airborne transmission in ferrets: CONFIRMED at 48h."></textarea>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Impact on Whole-of-Gov Response</label>
+          <textarea id="recordResultsImpactInput" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-emerald-500" placeholder="e.g. Unblocks Section 19A emergency antiviral distribution; raises national risk tier."></textarea>
+        </div>
+        <div class="flex justify-end space-x-2 pt-3 border-t border-slate-800">
+          <button type="button" class="modal-close px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-medium">Cancel</button>
+          <button type="submit" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded">Ingest Lab Results</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Resolve Blocker Modal -->
   <div id="resolveBlockerModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -777,7 +941,7 @@
     </div>
   </div>
 
-  <!-- Templates Manager Modal (Load / Save / Export / Import) -->
+  <!-- Templates Manager Modal -->
   <div id="templatesManagerModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 w-full max-w-xl shadow-2xl space-y-4 text-xs">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -804,9 +968,7 @@
           </div>
         </div>
 
-        <div id="templatesListContainer" class="space-y-2 max-h-60 overflow-y-auto">
-          <!-- Populated by JS -->
-        </div>
+        <div id="templatesListContainer" class="space-y-2 max-h-60 overflow-y-auto"></div>
 
         <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
           <span class="text-slate-500 text-[11px]">Save modified workflows for future emergency exercises.</span>
@@ -863,7 +1025,6 @@
           <input id="configSquadName" type="text" required class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
         </div>
         
-        <!-- LLM Provider & Inference Endpoint -->
         <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
           <label class="block text-cyan-400 font-semibold text-[11px] flex items-center">
             <i class="fa-solid fa-server mr-1.5 text-amber-400"></i>
@@ -916,7 +1077,6 @@
           </div>
         </div>
 
-        <!-- Human Oversight Placeholder Configuration -->
         <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
           <label class="block text-amber-400 font-semibold text-[11px] flex items-center">
             <i class="fa-solid fa-user-shield mr-1.5"></i>
@@ -934,9 +1094,7 @@
 
         <div>
           <label class="block text-slate-400 mb-1.5 font-medium">Specialist Agents in Squad</label>
-          <div class="grid grid-cols-2 gap-2 bg-slate-950 p-3 rounded border border-slate-800 text-[11px]" id="squadMembersChecklist">
-            <!-- Filled dynamically -->
-          </div>
+          <div class="grid grid-cols-2 gap-2 bg-slate-950 p-3 rounded border border-slate-800 text-[11px]" id="squadMembersChecklist"></div>
         </div>
 
         <div class="flex justify-end space-x-2 pt-3 border-t border-slate-800">
@@ -1036,7 +1194,7 @@
     </div>
   </div>
 
-  <!-- Custom Specimen Upload Modal with Test Sequences -->
+  <!-- Custom Specimen Upload Modal -->
   <div id="customSampleModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 w-full max-w-lg shadow-2xl space-y-4 text-xs">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -1047,7 +1205,6 @@
         <button class="modal-close text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-sm"></i></button>
       </div>
 
-      <!-- Quick Test Sequence Inserter -->
       <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1.5">
         <label class="block text-cyan-400 font-semibold text-[11px] flex items-center">
           <i class="fa-solid fa-bolt mr-1.5 text-amber-400"></i>
@@ -1055,7 +1212,6 @@
         </label>
         <select id="presetSequenceSelect" class="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-slate-200 text-xs focus:outline-none focus:border-cyan-500 cursor-pointer">
           <option value="">-- Choose a test sequence to load --</option>
-          <!-- Populated from DUMMY_SEQUENCES -->
         </select>
       </div>
 

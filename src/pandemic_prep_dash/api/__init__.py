@@ -7,6 +7,7 @@ from .routes_agents import router as agents_router
 from .routes_hub import router as hub_router
 from .routes_docs import router as docs_router
 from .routes_governance import router as governance_router
+from .routes_lab_bridge import router as lab_bridge_router
 
 api_router = APIRouter()
 api_router.include_router(scenarios_router)
@@ -17,5 +18,6 @@ api_router.include_router(agents_router)
 api_router.include_router(hub_router)
 api_router.include_router(docs_router)
 api_router.include_router(governance_router)
+api_router.include_router(lab_bridge_router)
 
 __all__ = ["api_router"]

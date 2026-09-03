@@ -1,7 +1,7 @@
 /**
  * PandemicPrepDash - Frontend Application Logic
  * Australian Whole-of-Government Emergency Response Platform.
- * Developed from a modern UI/UX engineering perspective.
+ * Developed with full multi-agent cooperative, real-world lab bridge, and modern UI/UX engineering.
  */
 
 const AppState = {
@@ -15,6 +15,7 @@ const AppState = {
   mcps: [],
   providers: [],
   docsChapters: [],
+  labRequests: [],
   selectedDocChapterId: "conops-overview",
   selectedNodeId: null,
   selectedAgencyId: "ACDP",
@@ -124,8 +125,14 @@ function switchTab(targetTab) {
     renderDag();
   } else if (targetTab === "tab-datahub") {
     renderCentralDataHub();
+  } else if (targetTab === "tab-lab-bridge") {
+    renderLabBridgeView();
   } else if (targetTab === "tab-inspector") {
     renderPipelineDataInspector();
+  } else if (targetTab === "tab-tools") {
+    renderToolsView();
+  } else if (targetTab === "tab-agency-map") {
+    renderAgencyMapView();
   } else if (targetTab === "tab-agencies") {
     renderAgencyView();
   } else if (targetTab === "tab-governance") {
@@ -160,33 +167,32 @@ function setupInspectorSubtabs() {
 // ---------------- Setup Event Listeners ----------------
 
 function setupEventListeners() {
-  // Theme Toggle
   document.getElementById("themeToggleBtn").addEventListener("click", toggleTheme);
 
-  // Scenario select
   const scenSelect = document.getElementById("scenarioSelect");
   scenSelect.addEventListener("change", (e) => {
     selectScenario(e.target.value);
   });
 
-  // Action Buttons
   document.getElementById("btnStep").addEventListener("click", executeStep);
   document.getElementById("btnRunAll").addEventListener("click", executeRunAll);
   document.getElementById("btnReset").addEventListener("click", resetExecution);
 
-  // Blocker Header Badge click jumps to Data Hub
   document.getElementById("blockerCountHeaderBadge").addEventListener("click", () => {
     switchTab("tab-datahub");
   });
 
-  // Modals Triggers
+  // Modal triggers
   document.getElementById("btnConnectModal").addEventListener("click", () => openConnectModal());
   document.getElementById("btnAddNodeModal").addEventListener("click", () => {
     document.getElementById("addNodeModal").classList.remove("hidden");
   });
   document.getElementById("btnCustomSampleModal").addEventListener("click", openCustomSampleModal);
+  document.getElementById("btnProposeAssayModal")?.addEventListener("click", () => {
+    document.getElementById("proposeAssayModal").classList.remove("hidden");
+  });
 
-  // Templates Management
+  // Templates
   document.getElementById("btnTemplatesMenu").addEventListener("click", openTemplatesManager);
   document.getElementById("btnSaveTemplateModal").addEventListener("click", () => {
     document.getElementById("saveTemplateModal").classList.remove("hidden");
@@ -198,10 +204,10 @@ function setupEventListeners() {
   document.getElementById("btnExportPathwayJson").addEventListener("click", exportPathwayJson);
   document.getElementById("inputImportPathway").addEventListener("change", handleImportPathwayFile);
 
-  // Connection Mode Cancel Button
+  // Connection mode
   document.getElementById("btnCancelConnect").addEventListener("click", cancelConnectionMode);
 
-  // Message Board Sending
+  // Message Board
   document.getElementById("btnSendHubMessage").addEventListener("click", handleSendHubMessage);
   document.querySelectorAll(".quick-directive-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -209,10 +215,10 @@ function setupEventListeners() {
     });
   });
 
-  // Sequence Motif Highlighter
+  // Sequence Motif
   document.getElementById("btnHighlightMotif")?.addEventListener("click", handleHighlightMotif);
 
-  // Escape key cancels connection mode or closes modals
+  // Escape key
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       if (AppState.connecting.active) {
@@ -224,7 +230,7 @@ function setupEventListeners() {
     }
   });
 
-  // Modal Closers
+  // Modal close buttons
   document.querySelectorAll(".modal-close").forEach((btn) => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".fixed.z-50").forEach((modal) => {
@@ -233,30 +239,32 @@ function setupEventListeners() {
     });
   });
 
-  // Form Submissions
+  // Forms
   document.getElementById("connectNodesForm").addEventListener("submit", handleConnectNodesSubmit);
   document.getElementById("addNodeForm").addEventListener("submit", handleAddNode);
   document.getElementById("customSampleForm").addEventListener("submit", handleCustomSample);
   document.getElementById("saveTemplateForm").addEventListener("submit", handleSaveTemplate);
   document.getElementById("configureSquadForm").addEventListener("submit", handleSaveSquadConfig);
   document.getElementById("resolveBlockerForm").addEventListener("submit", handleResolveBlocker);
+  document.getElementById("proposeAssayForm")?.addEventListener("submit", handleProposeAssaySubmit);
+  document.getElementById("recordAssayResultsForm")?.addEventListener("submit", handleRecordAssayResultsSubmit);
 
-  // Governance Forms
+  // Governance
   document.getElementById("formCloudComputeConfig")?.addEventListener("submit", handleSaveComputeConfig);
   document.getElementById("formApiKeysConfig")?.addEventListener("submit", handleSaveApiKeysConfig);
 
-  // Dispatch All Briefings
-  document.getElementById("btnDispatchAllReports").addEventListener("click", dispatchAllBriefings);
+  // Dispatch All
+  document.getElementById("btnDispatchAllReports")?.addEventListener("click", dispatchAllBriefings);
 
-  // Preset Sequence Selector in Custom Sample Modal
-  document.getElementById("presetSequenceSelect").addEventListener("change", handlePresetSequenceChange);
+  // Preset Sequence
+  document.getElementById("presetSequenceSelect")?.addEventListener("change", handlePresetSequenceChange);
 }
 
 // ---------------- API Calls and Data Loaders ----------------
 
 async function loadInitialData() {
   try {
-    const [scenRes, stateRes, agencyRes, dummyRes, personasRes, docsRes, govRes, polRes] = await Promise.all([
+    const [scenRes, stateRes, agencyRes, dummyRes, personasRes, docsRes, govRes, polRes, toolsRes, mcpsRes, skillsRes, labRes] = await Promise.all([
       fetch("/api/scenarios").then((r) => r.json()),
       fetch("/api/pathways/state").then((r) => r.json()),
       fetch("/api/agencies").then((r) => r.json()),
@@ -265,6 +273,10 @@ async function loadInitialData() {
       fetch("/api/docs").then((r) => r.json()).catch(() => ({ chapters: [] })),
       fetch("/api/governance/settings").then((r) => r.json()).catch(() => ({ settings: null })),
       fetch("/api/governance/policies").then((r) => r.json()).catch(() => ({ policies: [] })),
+      fetch("/api/agents/toolbox").then((r) => r.json()).catch(() => ({ toolbox: [] })),
+      fetch("/api/agents/mcps").then((r) => r.json()).catch(() => ({ mcps: [] })),
+      fetch("/api/agents/skills").then((r) => r.json()).catch(() => ({ skills: [] })),
+      fetch("/api/lab-bridge/requests").then((r) => r.json()).catch(() => ({ requests: [] })),
     ]);
 
     AppState.scenarios = scenRes.scenarios || [];
@@ -275,6 +287,10 @@ async function loadInitialData() {
     AppState.docsChapters = docsRes.chapters || [];
     AppState.govSettings = govRes.settings;
     AppState.govPolicies = polRes.policies || [];
+    AppState.toolbox = toolsRes.toolbox || [];
+    AppState.mcps = mcpsRes.mcps || [];
+    AppState.skills = skillsRes.skills || [];
+    AppState.labRequests = labRes.requests || [];
 
     populateScenarioDropdown();
     populatePresetSequencesDropdown();
@@ -330,8 +346,12 @@ function openCustomSampleModal() {
 
 async function refreshState() {
   try {
-    const res = await fetch("/api/pathways/state");
-    AppState.state = await res.json();
+    const [stateRes, labRes] = await Promise.all([
+      fetch("/api/pathways/state").then((r) => r.json()),
+      fetch("/api/lab-bridge/requests").then((r) => r.json()).catch(() => ({ requests: [] })),
+    ]);
+    AppState.state = stateRes;
+    AppState.labRequests = labRes.requests || [];
     updateUIState();
   } catch (err) {
     console.error("Failed to refresh state:", err);
@@ -343,7 +363,6 @@ function updateUIState() {
 
   const { pathway, run, scenario, stats, data_hub } = AppState.state;
 
-  // Sync Scenario Dropdown & Specimen Badge
   const select = document.getElementById("scenarioSelect");
   if (select && scenario?.scenario_id) {
     select.value = scenario.scenario_id;
@@ -354,7 +373,6 @@ function updateUIState() {
     specBadge.textContent = scenario.name || scenario.sample?.name || "Active Specimen";
   }
 
-  // Threat classification badge
   const ssbaBadge = document.getElementById("threatClassificationBadge");
   let threatTier = run.node_artifacts?.threat_assessment?.ssba_tier;
   if (!threatTier) {
@@ -364,11 +382,10 @@ function updateUIState() {
   }
   ssbaBadge.textContent = threatTier;
 
-  // Pathway summary
   document.getElementById("pathwayNameDisplay").textContent = pathway.name;
   document.getElementById("nodesStatusSummary").textContent = `${stats.completed_nodes} / ${stats.total_nodes} Completed (${run.status.toUpperCase()})`;
 
-  // Blocker Alerts Badges
+  // Blocker alerts
   const openBlockers = (data_hub?.blockers || []).filter((b) => b.status === "OPEN");
   const blockerBadge = document.getElementById("hubBlockersBadge");
   const headerBlockerBadge = document.getElementById("blockerCountHeaderBadge");
@@ -388,12 +405,17 @@ function updateUIState() {
     if (headerBlockerBadge) headerBlockerBadge.classList.add("hidden");
   }
 
+  // Lab bridge count badge
+  const labBadge = document.getElementById("labRequestsCountBadge");
+  if (labBadge) {
+    labBadge.textContent = AppState.labRequests.length;
+  }
+
   // Agency report count (only relevant)
   const reports = run.node_artifacts?.agency_reports || {};
   const relevantCount = Object.values(reports).filter((r) => r.is_relevant).length;
   document.getElementById("agencyReportCountBadge").textContent = relevantCount;
 
-  // Active Threat Label in Data Hub
   const threatLabel = document.getElementById("hubActiveThreatLabel");
   if (threatLabel) {
     threatLabel.textContent = `Incident: ${scenario?.name || "Active Event"}`;
@@ -405,8 +427,14 @@ function updateUIState() {
     renderNodeInspector(AppState.selectedNodeId);
   } else if (AppState.activeTab === "tab-datahub") {
     renderCentralDataHub();
+  } else if (AppState.activeTab === "tab-lab-bridge") {
+    renderLabBridgeView();
   } else if (AppState.activeTab === "tab-inspector") {
     renderPipelineDataInspector();
+  } else if (AppState.activeTab === "tab-tools") {
+    renderToolsView();
+  } else if (AppState.activeTab === "tab-agency-map") {
+    renderAgencyMapView();
   } else if (AppState.activeTab === "tab-agencies") {
     renderAgencyView();
   } else if (AppState.activeTab === "tab-governance") {
@@ -482,7 +510,6 @@ function renderCentralDataHub() {
   const dataHub = AppState.state?.data_hub;
   if (!dataHub) return;
 
-  // 1. Render Human-Agent Message Feed
   const feed = document.getElementById("hubMessagesFeed");
   const messages = dataHub.messages || [];
   if (!messages.length) {
@@ -526,7 +553,7 @@ function renderCentralDataHub() {
     feed.scrollTop = feed.scrollHeight;
   }
 
-  // 2. Render Blocker Alerts
+  // Blockers list
   const blockersList = document.getElementById("dataHubBlockersList");
   const blockers = dataHub.blockers || [];
   const openBlockers = blockers.filter((b) => b.status === "OPEN");
@@ -572,7 +599,7 @@ function renderCentralDataHub() {
     });
   }
 
-  // 3. Specimen Intel
+  // Specimen Intel
   const specIntel = dataHub.specimen_intel || {};
   const specEl = document.getElementById("hubSpecimenIntelContent");
   if (Object.keys(specIntel).length === 0) {
@@ -604,7 +631,7 @@ function renderCentralDataHub() {
     `;
   }
 
-  // 4. Peer-Reviewed Literature Research (PubMed)
+  // Peer-Reviewed Literature Research (PubMed)
   const litEl = document.getElementById("hubLiteratureContent");
   const papers = dataHub.literature_research || [];
   if (!papers.length) {
@@ -631,7 +658,7 @@ function renderCentralDataHub() {
       .join("");
   }
 
-  // 5. Countermeasures Content
+  // Countermeasures
   const counterEl = document.getElementById("hubCountermeasuresContent");
   const countermeasures = dataHub.countermeasures || [];
   if (!countermeasures.length) {
@@ -716,6 +743,414 @@ async function handleResolveBlocker(e) {
   }
 }
 
+// ---------------- Physical Laboratory & Assay Coordination Bridge ----------------
+
+async function renderLabBridgeView() {
+  const container = document.getElementById("labBridgeRequestsList");
+  if (!container) return;
+
+  try {
+    const res = await fetch("/api/lab-bridge/requests");
+    const data = await res.json();
+    AppState.labRequests = data.requests || [];
+  } catch (err) {
+    console.error("Failed to fetch lab requests:", err);
+  }
+
+  const requests = AppState.labRequests || [];
+  if (!requests.length) {
+    container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-xl p-12 text-center text-slate-500 italic">No physical laboratory assay requests dispatched yet. Click 'Propose Physical Assay' above to initiate an accredited reference test.</div>`;
+    return;
+  }
+
+  container.innerHTML = requests
+    .map((r) => {
+      let statusBadge = "bg-slate-800 text-slate-400 border-slate-700";
+      if (r.status === "PROPOSED_BY_AGENT") statusBadge = "bg-amber-500/10 text-amber-300 border-amber-500/30";
+      if (r.status === "AUTHORIZED_BY_DUTY_OFFICER") statusBadge = "bg-blue-500/10 text-blue-300 border-blue-500/30";
+      if (r.status === "DISPATCHED_TO_FACILITY" || r.status === "IN_PROGRESS_AT_LAB") statusBadge = "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 animate-pulse";
+      if (r.status === "RESULTS_RECEIVED" || r.status === "VALIDATED_IN_PIPELINE") statusBadge = "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
+
+      let priorityColor = "text-slate-400";
+      if (r.priority === "CRITICAL") priorityColor = "text-rose-400 font-bold";
+      if (r.priority === "HIGH") priorityColor = "text-amber-400 font-bold";
+
+      const hasResults = Object.keys(r.results_payload || {}).length > 0;
+
+      return `
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4 shadow-lg transition-all hover:border-slate-700">
+        <div class="flex items-start justify-between">
+          <div class="space-y-1">
+            <div class="flex items-center space-x-2">
+              <span class="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold tracking-wider uppercase border ${statusBadge}">
+                ${r.status.replace(/_/g, " ")}
+              </span>
+              <span class="text-xs font-mono ${priorityColor}">Priority: ${r.priority}</span>
+              <span class="text-xs font-mono text-slate-500">• ${r.request_id}</span>
+            </div>
+            <h3 class="text-base font-bold text-white tracking-tight">${r.title}</h3>
+            <div class="text-xs text-cyan-300 flex items-center space-x-2">
+              <i class="fa-solid fa-hospital-user text-xs"></i>
+              <span><strong>Facility:</strong> ${r.target_facility}</span>
+              <span class="text-slate-600">•</span>
+              <span class="text-slate-400">Containment: ${r.biosafety_level}</span>
+            </div>
+          </div>
+          <div class="text-right space-y-1">
+            <div class="text-[11px] font-mono text-slate-400">Turnaround: ~${r.estimated_turnaround_hours}h</div>
+            <div class="text-[10px] text-slate-500">Origin Node: ${r.originating_node_id}</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-slate-950 p-4 rounded-lg border border-slate-800/80">
+          <div class="space-y-1">
+            <span class="text-slate-400 font-bold text-[10px] uppercase tracking-wider block">Critical Question to Resolve:</span>
+            <p class="text-slate-200 leading-relaxed">${r.critical_question}</p>
+          </div>
+          <div class="space-y-1">
+            <span class="text-slate-400 font-bold text-[10px] uppercase tracking-wider block">Hypothesis to Test:</span>
+            <p class="text-slate-300 leading-relaxed">${r.hypothesis_to_test}</p>
+          </div>
+        </div>
+
+        <div class="text-xs text-slate-400 flex items-center justify-between pt-1">
+          <div><strong>Specimen Requirements:</strong> ${r.specimen_requirements}</div>
+          ${r.authorized_by ? `<div class="text-slate-500 font-mono text-[10px]">Authorized by: ${r.authorized_by}</div>` : ""}
+        </div>
+
+        ${
+          hasResults
+            ? `
+          <div class="bg-emerald-950/30 border border-emerald-500/40 rounded-lg p-4 space-y-2 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-emerald-300 flex items-center">
+                <i class="fa-solid fa-circle-check text-emerald-400 mr-2"></i>
+                Empirical Physical Assay Results Received
+              </span>
+              <span class="text-[10px] font-mono text-emerald-400/80">${r.results_received_at || "Recent"}</span>
+            </div>
+            <pre class="bg-slate-950 p-2.5 rounded border border-emerald-900/60 font-mono text-[11px] text-emerald-300 overflow-x-auto">${JSON.stringify(r.results_payload, null, 2)}</pre>
+            ${r.impact_on_pipeline ? `<div class="text-slate-200 text-xs font-sans"><strong>Impact on Response:</strong> ${r.impact_on_pipeline}</div>` : ""}
+          </div>
+        `
+            : ""
+        }
+
+        <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-800">
+          ${
+            r.status === "PROPOSED_BY_AGENT" || r.status === "AUTHORIZED_BY_DUTY_OFFICER"
+              ? `
+            <button data-req-id="${r.request_id}" class="btn-dispatch-assay px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-semibold transition flex items-center space-x-1.5 shadow">
+              <i class="fa-solid fa-truck-fast"></i>
+              <span>Authorize &amp; Dispatch to ${r.target_facility.split(" ")[0]}</span>
+            </button>
+          `
+              : ""
+          }
+          ${
+            r.status === "DISPATCHED_TO_FACILITY" || r.status === "IN_PROGRESS_AT_LAB"
+              ? `
+            <button data-req-id="${r.request_id}" data-req-title="${r.title}" class="btn-record-results px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-semibold transition flex items-center space-x-1.5 shadow">
+              <i class="fa-solid fa-microscope"></i>
+              <span>Record Empirical Lab Results</span>
+            </button>
+          `
+              : ""
+          }
+        </div>
+      </div>
+    `;
+    })
+    .join("");
+
+  document.querySelectorAll(".btn-dispatch-assay").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.reqId;
+      await fetch(`/api/lab-bridge/requests/${id}/dispatch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ authorized_by: "Incident Controller" }),
+      });
+      await refreshState();
+      renderLabBridgeView();
+    });
+  });
+
+  document.querySelectorAll(".btn-record-results").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      openRecordResultsModal(btn.dataset.reqId, btn.dataset.reqTitle);
+    });
+  });
+}
+
+async function handleProposeAssaySubmit(e) {
+  e.preventDefault();
+  const title = document.getElementById("assayTitleInput").value;
+  const category = document.getElementById("assayCategorySelect").value;
+  const facility = document.getElementById("assayFacilitySelect").value;
+  const critical_question = document.getElementById("assayCriticalQuestion").value;
+  const hypothesis = document.getElementById("assayHypothesis").value;
+  const specimen = document.getElementById("assaySpecimenReq").value;
+  const hours = parseInt(document.getElementById("assayHoursInput").value, 10);
+  const priority = document.getElementById("assayPrioritySelect").value;
+
+  try {
+    const res = await fetch("/api/lab-bridge/requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title,
+        assay_category: category,
+        target_facility: facility,
+        originating_node_id: "node_custom_inquiry",
+        requesting_agent_role: "Chief Health Intelligence Officer",
+        hypothesis_to_test: hypothesis,
+        critical_question: critical_question,
+        specimen_requirements: specimen,
+        estimated_turnaround_hours: hours,
+        priority: priority,
+      }),
+    });
+
+    if (res.ok) {
+      document.getElementById("proposeAssayModal").classList.add("hidden");
+      document.getElementById("proposeAssayForm").reset();
+      await refreshState();
+      renderLabBridgeView();
+    }
+  } catch (err) {
+    console.error("Propose assay failed:", err);
+  }
+}
+
+function openRecordResultsModal(reqId, reqTitle) {
+  document.getElementById("recordResultsRequestId").value = reqId;
+  document.getElementById("recordResultsTitleDisplay").textContent = reqTitle;
+  document.getElementById("recordResultsSummaryInput").value = '{\n  "assay_confirmation": "POSITIVE",\n  "neutralization_titer_PRNT90": "1:640",\n  "airborne_transmission_ferrets": "CONFIRMED_AEROSOL"\n}';
+  document.getElementById("recordResultsImpactInput").value = "Empirical confirmation satisfies legal threshold under National Health Security Act 2007; escalates National Medical Stockpile distribution.";
+  document.getElementById("recordAssayResultsModal").classList.remove("hidden");
+}
+
+async function handleRecordAssayResultsSubmit(e) {
+  e.preventDefault();
+  const reqId = document.getElementById("recordResultsRequestId").value;
+  const specialist = document.getElementById("recordResultsSpecialist").value;
+  const rawJson = document.getElementById("recordResultsSummaryInput").value;
+  const impact = document.getElementById("recordResultsImpactInput").value;
+
+  let parsedPayload = {};
+  try {
+    parsedPayload = JSON.parse(rawJson);
+  } catch {
+    parsedPayload = { raw_summary: rawJson };
+  }
+
+  try {
+    const res = await fetch(`/api/lab-bridge/requests/${reqId}/results`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        results_payload: parsedPayload,
+        impact_notes: impact,
+        tested_by_specialist: specialist,
+      }),
+    });
+
+    if (res.ok) {
+      document.getElementById("recordAssayResultsModal").classList.add("hidden");
+      await refreshState();
+      renderLabBridgeView();
+    }
+  } catch (err) {
+    console.error("Record results error:", err);
+  }
+}
+
+// ---------------- Software Toolbox & MCP Servers View ----------------
+
+async function renderToolsView() {
+  if (!AppState.toolbox.length) {
+    const res = await fetch("/api/agents/toolbox").then((r) => r.json());
+    AppState.toolbox = res.toolbox || [];
+  }
+  if (!AppState.mcps.length) {
+    const res = await fetch("/api/agents/mcps").then((r) => r.json());
+    AppState.mcps = res.mcps || [];
+  }
+  if (!AppState.skills.length) {
+    const res = await fetch("/api/agents/skills").then((r) => r.json());
+    AppState.skills = res.skills || [];
+  }
+
+  // Render Software Tools
+  const toolsGrid = document.getElementById("toolsListGrid");
+  if (toolsGrid && AppState.toolbox.length) {
+    toolsGrid.innerHTML = AppState.toolbox
+      .map(
+        (t) => `
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-md flex flex-col justify-between">
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">${t.category}</span>
+            <span class="text-[10px] text-slate-500 font-mono">v${t.version}</span>
+          </div>
+          <h4 class="font-bold text-slate-100 text-xs">${t.name}</h4>
+          <p class="text-slate-400 text-[11px] leading-relaxed">${t.description}</p>
+        </div>
+        <div class="pt-2 border-t border-slate-800 space-y-2">
+          <div class="text-[10px] text-slate-500 font-mono truncate">I/O: ${t.input_format} → ${t.output_format}</div>
+          <button data-tool-name="${t.name}" class="btn-run-tool-diag w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold rounded text-[11px] border border-slate-700 transition flex items-center justify-center space-x-1">
+            <i class="fa-solid fa-play text-[10px]"></i>
+            <span>Run Tool Diagnostic</span>
+          </button>
+        </div>
+      </div>
+    `
+      )
+      .join("");
+
+    document.querySelectorAll(".btn-run-tool-diag").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        alert(`Tool Diagnostic for '${btn.dataset.toolName}': ONLINE (Exit code 0, dependencies verified).`);
+      });
+    });
+  }
+
+  // Render MCP Servers
+  const mcpGrid = document.getElementById("mcpServersGrid");
+  if (mcpGrid && AppState.mcps.length) {
+    mcpGrid.innerHTML = AppState.mcps
+      .map(
+        (m) => `
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-md">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="font-bold text-slate-100 text-xs font-mono">${m.server_id}</span>
+          </div>
+          <div class="flex space-x-1">
+            ${m.capabilities.map((c) => `<span class="px-1.5 py-0.2 rounded text-[9px] font-mono bg-purple-500/10 text-purple-300 border border-purple-500/20 uppercase">${c}</span>`).join("")}
+          </div>
+        </div>
+        <h4 class="font-bold text-slate-200 text-xs">${m.name}</h4>
+        <p class="text-slate-400 text-[11px]">${m.description}</p>
+        <div class="bg-slate-950 p-2 rounded border border-slate-800 font-mono text-[10px] text-cyan-300 truncate">
+          ${m.command} ${m.args.join(" ")}
+        </div>
+      </div>
+    `
+      )
+      .join("");
+  }
+
+  // Render Skills
+  const skillsList = document.getElementById("skillsRepositoryList");
+  if (skillsList && AppState.skills.length) {
+    skillsList.innerHTML = AppState.skills
+      .map(
+        (s) => `
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-2.5 shadow-md">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">${s.skill_id}</span>
+          <span class="text-[11px] text-slate-400">Authority: <strong>${s.authority}</strong></span>
+        </div>
+        <h4 class="font-bold text-slate-100 text-xs">${s.name}</h4>
+        <div class="text-[10px] text-cyan-400 font-mono">Statutory Basis: ${s.statutory_basis}</div>
+        <p class="text-slate-300 text-[11px]">${s.description}</p>
+        <div class="bg-slate-950 p-3 rounded border border-slate-800 font-mono text-[10px] text-slate-300 whitespace-pre-line leading-relaxed">
+          ${s.operational_playbook}
+        </div>
+      </div>
+    `
+      )
+      .join("");
+  }
+}
+
+// ---------------- Government Departments & Agency Map View ----------------
+
+async function renderAgencyMapView() {
+  const container = document.getElementById("agencyMapPortfoliosContainer");
+  if (!container || !AppState.agencies.length) return;
+
+  const portfolios = {
+    "Health & Aged Care Portfolio": {
+      icon: "fa-heart-pulse",
+      color: "text-rose-400",
+      agencies: AppState.agencies.filter((a) => a.portfolio.includes("Health")),
+    },
+    "Science, Energy & Nuclear Safeguards": {
+      icon: "fa-atom",
+      color: "text-purple-400",
+      agencies: AppState.agencies.filter((a) => a.portfolio.includes("Science") || a.portfolio.includes("Energy") || a.portfolio.includes("Climate")),
+    },
+    "National Security, Emergency Management & Defence": {
+      icon: "fa-shield-halved",
+      color: "text-cyan-400",
+      agencies: AppState.agencies.filter((a) => a.portfolio.includes("Home Affairs") || a.portfolio.includes("Emergency") || a.portfolio.includes("Defence")),
+    },
+    "Agriculture, Biosecurity & Foreign Affairs": {
+      icon: "fa-wheat-awn",
+      color: "text-amber-400",
+      agencies: AppState.agencies.filter((a) => a.portfolio.includes("Agriculture") || a.portfolio.includes("Foreign Affairs")),
+    },
+  };
+
+  container.innerHTML = Object.entries(portfolios)
+    .map(([portfolioName, pData]) => {
+      return `
+      <div class="space-y-4">
+        <div class="flex items-center space-x-2 border-b border-slate-800 pb-2">
+          <i class="fa-solid ${pData.icon} ${pData.color} text-sm"></i>
+          <h3 class="font-bold text-slate-100 text-sm">${portfolioName}</h3>
+          <span class="text-slate-500 font-mono text-xs">(${pData.agencies.length} Authorities)</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          ${pData.agencies
+            .map(
+              (a) => `
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-md flex flex-col justify-between">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-sm text-cyan-400 font-mono">${a.id}</span>
+                  <a href="${a.official_website || '#'}" target="_blank" class="text-[10px] text-slate-400 hover:text-white flex items-center" title="Official Agency Portal">
+                    <span>Portal</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[8px] ml-1"></i>
+                  </a>
+                </div>
+                <h4 class="font-bold text-slate-100 text-xs">${a.full_name}</h4>
+                <p class="text-slate-400 text-[11px] leading-relaxed line-clamp-3">${a.mandate_summary}</p>
+                <div class="pt-1">
+                  <a href="${a.legislation_url || 'https://www.legislation.gov.au'}" target="_blank" class="text-[10px] font-mono text-amber-400/90 hover:underline inline-flex items-center">
+                    <i class="fa-solid fa-scale-balanced mr-1 text-[9px]"></i>
+                    <span>${a.statutory_authority}</span>
+                  </a>
+                </div>
+              </div>
+              <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
+                <button data-agency-id="${a.id}" class="btn-jump-agency-brief text-xs text-cyan-400 hover:text-cyan-300 font-medium flex items-center space-x-1">
+                  <span>View Situation Brief</span>
+                  <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </button>
+              </div>
+            </div>
+          `
+            )
+            .join("")}
+        </div>
+      </div>
+    `;
+    })
+    .join("");
+
+  document.querySelectorAll(".btn-jump-agency-brief").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      AppState.selectedAgencyId = btn.dataset.agencyId;
+      switchTab("tab-agencies");
+    });
+  });
+}
+
 // ---------------- Pipeline Data Inspector ----------------
 
 function renderPipelineDataInspector() {
@@ -723,7 +1158,6 @@ function renderPipelineDataInspector() {
   const artifacts = AppState.state?.run?.node_artifacts || {};
   const rawPayload = sample.raw_payload || "";
 
-  // 1. Tool A: Sequence Inspector
   if (AppState.activeInspectorSubtab === "tool-sequence") {
     const cleanSeq = rawPayload.replace(/^>.*\n/g, "").replace(/\s+/g, "");
     const totalLen = cleanSeq.length || 1;
@@ -756,10 +1190,7 @@ function renderPipelineDataInspector() {
     `;
 
     renderFormattedSequence(cleanSeq);
-  }
-
-  // 2. Tool B: 3D Target Inspector
-  else if (AppState.activeInspectorSubtab === "tool-structure") {
+  } else if (AppState.activeInspectorSubtab === "tool-structure") {
     const targets = artifacts.protein_targets || [];
     const primary = targets[0] || { name: "Surface Glycoprotein Trimer", pocket_volume_angstrom3: 1420, druggability_score: 0.94, plddt_confidence: 96.2 };
     
@@ -768,10 +1199,7 @@ function renderPipelineDataInspector() {
     document.getElementById("pocketVolumeValue").textContent = `${primary.pocket_volume_angstrom3 || 1420} Å³`;
     document.getElementById("druggabilityScoreValue").textContent = `${primary.druggability_score || 0.94} / 1.0`;
     document.getElementById("plddtScoreValue").textContent = `${primary.plddt_confidence || 96.2}%`;
-  }
-
-  // 3. Tool C: SMILES & Chemistry Inspector
-  else if (AppState.activeInspectorSubtab === "tool-chemical") {
+  } else if (AppState.activeInspectorSubtab === "tool-chemical") {
     const drugs = artifacts.drug_candidates || [];
     const lead = drugs[0] || { name: "Oseltamivir Carboxylate", binding_affinity_kcal_mol: -8.6, tga_artg_status: "ARTG Registered (AUST R 76342)" };
 
@@ -837,7 +1265,6 @@ async function renderGovernanceView() {
 
   const s = AppState.govSettings;
   if (s) {
-    // Populate compute form
     if (document.getElementById("govComputeProvider")) {
       document.getElementById("govComputeProvider").value = s.compute?.provider || "local_gpu_cluster";
       document.getElementById("govGpuType").value = s.compute?.gpu_type || "NVIDIA H100 (80GB SXM5)";
@@ -848,7 +1275,6 @@ async function renderGovernanceView() {
     }
   }
 
-  // Render Policies
   const polGrid = document.getElementById("govPoliciesGrid");
   if (polGrid && AppState.govPolicies.length) {
     polGrid.innerHTML = AppState.govPolicies
@@ -921,7 +1347,7 @@ async function handleSaveApiKeysConfig(e) {
   alert("API keys and cloud credentials securely saved to encrypted vault.");
 }
 
-// ---------------- Agency Briefings View (Targeted Relevance) ----------------
+// ---------------- Agency Briefings View ----------------
 
 async function renderAgencyView() {
   const sidebar = document.getElementById("agencySidebarList");
@@ -981,14 +1407,12 @@ async function renderAgencyView() {
     return btn;
   };
 
-  // Section 1: Relevant Authorities
   const header1 = document.createElement("div");
   header1.className = "text-[10px] font-bold text-cyan-400 uppercase tracking-wider px-1 pt-1 pb-1 flex items-center justify-between";
   header1.innerHTML = `<span>Statutory Priority Authorities (${relevantAgencies.length})</span>`;
   sidebar.appendChild(header1);
   relevantAgencies.forEach((a) => sidebar.appendChild(renderAgencyButton(a)));
 
-  // Section 2: Standby Authorities
   if (standbyAgencies.length > 0) {
     const header2 = document.createElement("div");
     header2.className = "text-[10px] font-bold text-slate-500 uppercase tracking-wider px-1 pt-3 pb-1 border-t border-slate-800 mt-2 flex items-center justify-between";
@@ -997,7 +1421,6 @@ async function renderAgencyView() {
     standbyAgencies.forEach((a) => sidebar.appendChild(renderAgencyButton(a)));
   }
 
-  // Render Agency Detail Card
   try {
     const repRes = await fetch(`/api/agencies/${AppState.selectedAgencyId}/report`);
     const rep = await repRes.json();
@@ -1251,7 +1674,6 @@ function renderDag() {
     </defs>
   `;
 
-  // Draw Edges
   edges.forEach((edge) => {
     const src = nodeMap.get(edge.source);
     const tgt = nodeMap.get(edge.target);
@@ -1298,7 +1720,6 @@ function renderDag() {
     }
   });
 
-  // Draw Nodes
   nodes.forEach((node) => {
     const categoryInfo = CATEGORY_STYLES[node.category] || CATEGORY_STYLES.custom;
     const isSelected = AppState.selectedNodeId === node.id;
@@ -1311,7 +1732,6 @@ function renderDag() {
     g.setAttribute("transform", `translate(${node.position_x}, ${node.position_y})`);
     g.dataset.nodeId = node.id;
 
-    // Node Box
     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     rect.setAttribute("class", "node-box");
     rect.setAttribute("width", "190");
@@ -1326,7 +1746,6 @@ function renderDag() {
     }
     g.appendChild(rect);
 
-    // Left category color strip
     const strip = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     strip.setAttribute("width", "5");
     strip.setAttribute("height", "90");
@@ -1334,7 +1753,6 @@ function renderDag() {
     strip.setAttribute("fill", categoryInfo.color);
     g.appendChild(strip);
 
-    // Status Indicator Dot / Badge
     let statusColor = "#64748b";
     let statusText = node.status.toUpperCase();
     if (node.status === "completed") statusColor = "#10b981";
@@ -1342,7 +1760,6 @@ function renderDag() {
     if (node.status === "paused") statusColor = "#f59e0b";
     if (node.status === "failed") statusColor = "#f43f5e";
 
-    // Category Text
     const catText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     catText.setAttribute("x", "16");
     catText.setAttribute("y", "20");
@@ -1353,7 +1770,6 @@ function renderDag() {
     catText.textContent = node.category.replace("_", " ");
     g.appendChild(catText);
 
-    // Status Badge text
     const statusLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
     statusLabel.setAttribute("x", "175");
     statusLabel.setAttribute("y", "20");
@@ -1364,7 +1780,6 @@ function renderDag() {
     statusLabel.textContent = statusText;
     g.appendChild(statusLabel);
 
-    // Node Title / Label
     const labelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     labelText.setAttribute("x", "16");
     labelText.setAttribute("y", "44");
@@ -1374,7 +1789,6 @@ function renderDag() {
     labelText.textContent = truncateString(node.label, 20);
     g.appendChild(labelText);
 
-    // Subtitle / Harness Lead Designation
     const leadName = node.agent_team_config?.node_lead?.name || "Harness Lead";
     const teamText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     teamText.setAttribute("x", "16");
@@ -1385,7 +1799,6 @@ function renderDag() {
     teamText.textContent = truncateString(leadName, 22);
     g.appendChild(teamText);
 
-    // Latency or Gatekeeper status bottom
     const bottomText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     bottomText.setAttribute("x", "16");
     bottomText.setAttribute("y", "78");
@@ -1401,7 +1814,6 @@ function renderDag() {
     }
     g.appendChild(bottomText);
 
-    // Output Port Connect Handle
     const portHandle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     portHandle.setAttribute("cx", "190");
     portHandle.setAttribute("cy", "45");
@@ -1661,7 +2073,6 @@ function renderNodeInspector(nodeId) {
     </div>
   `;
 
-  // Attach button events
   document.getElementById("btnConfigureNodeSquad")?.addEventListener("click", () => {
     openConfigureSquadModal(node.id);
   });
