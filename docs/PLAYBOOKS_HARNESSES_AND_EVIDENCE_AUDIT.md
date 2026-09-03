@@ -96,3 +96,16 @@ The test suite was expanded to **32 automated unit and integration tests** (`pyt
 - `test_operational_playbooks_metadata`: Validates playbook titles, trigger criteria, and statutory lead authorities.
 - `test_architecture_documentation_chapter`: Validates technical specifications and system diagrams in Chapter 8.
 - All previous 28 tests for DAG pipelines, physical lab bridges, governance, and agency dispatches remain fully verified.
+
+---
+
+## 6. Multi-Agent CLI Council Evaluation (OpenAI Codex / gpt-5.6-sol)
+
+Following execution of the updated platform features, the OpenAI Codex CLI agent was invoked non-interactively to assess compliance with Commonwealth biosecurity and emergency legislation:
+
+> *"The execution harnesses and accredited Operational Response Playbooks convert Commonwealth policy into repeatable, role-assigned action: triggers, lead authorities, squads, sandbox controls and statutory interfaces reduce ambiguity during multi-agency CBRN incidents. This directly supports the **National Health Security Act 2007**'s national public-health surveillance, information-sharing and coordinated-response framework, while creating clearer operational boundaries between Commonwealth, state and specialist agencies.*
+>
+> *The Evidence Synthesis & Knowledge Gap Engine strengthens decision quality by distinguishing established findings, conflicting evidence and unresolved questions, then routing critical uncertainties to competent reference facilities such as ACDP, TGA, ANSTO and DSTG. That provides a defensible evidentiary basis for risk assessment and proportionate interventions under the **Biosecurity Act 2015**, particularly where officials must justify that measures are appropriate, adapted and no more restrictive or intrusive than necessary.*
+>
+> *Immutable situation versions, progression timelines and recorded human approvals create a traceable chain from evidence through assessment to operational decision. This materially improves incident-controller oversight, post-incident review and Royal Commission readiness by preserving what was known, changed and authorised at each checkpoint."*
+
