@@ -1,0 +1,100 @@
+/* Custom styles and animations for PandemicPrepDash */
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #020617;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Tab transitions */
+.tab-panel.hidden {
+  display: none !important;
+}
+
+/* SVG Node and Edge styling */
+.dag-node {
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.dag-node:hover {
+  filter: brightness(1.15);
+}
+
+.dag-node.selected rect {
+  stroke: #38bdf8 !important;
+  stroke-width: 2.5px !important;
+  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4));
+}
+
+.dag-edge {
+  fill: none;
+  stroke: #334155;
+  stroke-width: 2px;
+  transition: stroke 0.3s ease;
+}
+
+.dag-edge.active {
+  stroke: #38bdf8;
+  stroke-dasharray: 6;
+  animation: dash 1.5s linear infinite;
+}
+
+@keyframes dash {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Node pulse animations */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+.node-running-ring {
+  animation: pulse-ring 2s infinite ease-in-out;
+  transform-origin: center;
+}
+
+/* Classification Badge Colors */
+.badge-unclassified {
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.badge-sensitive {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-secret {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
