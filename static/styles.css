@@ -6,14 +6,14 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #020617;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #334155;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #475569;
 }
 
 /* Tab transitions */
@@ -28,20 +28,33 @@
 }
 
 .dag-node:hover {
-  filter: brightness(1.15);
+  filter: brightness(1.1);
 }
 
-.dag-node.selected rect {
+.dag-node.selected rect.node-box {
   stroke: #38bdf8 !important;
   stroke-width: 2.5px !important;
-  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4));
+  filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.45));
+}
+
+.dag-node.connect-source rect.node-box {
+  stroke: #06b6d4 !important;
+  stroke-width: 3px !important;
+  stroke-dasharray: 4;
+  animation: dash 1s linear infinite;
 }
 
 .dag-edge {
   fill: none;
-  stroke: #334155;
+  stroke: #475569;
   stroke-width: 2px;
-  transition: stroke 0.3s ease;
+  cursor: pointer;
+  transition: stroke 0.2s ease, stroke-width 0.2s ease;
+}
+
+.dag-edge:hover {
+  stroke: #f43f5e !important;
+  stroke-width: 3.5px !important;
 }
 
 .dag-edge.active {
@@ -57,6 +70,18 @@
   to {
     stroke-dashoffset: 0;
   }
+}
+
+/* Node Connect Handle */
+.node-connect-handle {
+  cursor: crosshair;
+  transition: r 0.2s ease, fill 0.2s ease, stroke 0.2s ease;
+}
+
+.node-connect-handle:hover {
+  r: 10;
+  fill: #06b6d4 !important;
+  filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.8));
 }
 
 /* Node pulse animations */
@@ -97,4 +122,102 @@
   background: rgba(239, 68, 68, 0.15);
   color: #f87171;
   border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* ========================================================== */
+/* LIGHT MODE STYLES                                          */
+/* ========================================================== */
+
+html.theme-light {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.theme-light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html.theme-light header {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+html.theme-light nav {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light main {
+  background-color: #f8fafc !important;
+}
+
+html.theme-light #dagViewport {
+  background-color: #f8fafc !important;
+  background-image: radial-gradient(#cbd5e1 1px, transparent 1px) !important;
+}
+
+html.theme-light aside,
+html.theme-light #nodeInspector,
+html.theme-light #agencySidebarList,
+html.theme-light #agencyBriefingCard,
+html.theme-light .bg-slate-900 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light .bg-slate-950 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light .bg-slate-800 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+html.theme-light .border-slate-800,
+html.theme-light .border-slate-700 {
+  border-color: #e2e8f0 !important;
+}
+
+html.theme-light .text-white,
+html.theme-light .text-slate-100 {
+  color: #0f172a !important;
+}
+
+html.theme-light .text-slate-200,
+html.theme-light .text-slate-300 {
+  color: #1e293b !important;
+}
+
+html.theme-light .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.theme-light .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.theme-light .dag-edge {
+  stroke: #94a3b8;
+}
+
+html.theme-light .dag-edge:hover {
+  stroke: #e11d48 !important;
+}
+
+html.theme-light .hover\:bg-slate-700:hover,
+html.theme-light .hover\:bg-slate-800:hover {
+  background-color: #e2e8f0 !important;
+}
+
+html.theme-light input,
+html.theme-light select,
+html.theme-light textarea {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
 }

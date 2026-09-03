@@ -9,27 +9,75 @@ const AppState = {
   selectedAgencyId: "ACDC",
   agencies: [],
   activeTab: "tab-pathway",
+  theme: localStorage.getItem("theme") || "dark",
+  connecting: {
+    active: false,
+    sourceId: null,
+    sourceLabel: null,
+  },
 };
 
 const CATEGORY_STYLES = {
-  ingestion: { color: "#06b6d4", bg: "#083344", icon: "fa-vial" },
-  characterization: { color: "#3b82f6", bg: "#172554", icon: "fa-dna" },
-  structural_biology: { color: "#a855f7", bg: "#3b0764", icon: "fa-atom" },
-  therapeutics: { color: "#10b981", bg: "#022c22", icon: "fa-pills" },
-  vaccinology: { color: "#f59e0b", bg: "#451a03", icon: "fa-shield-virus" },
-  biosecurity: { color: "#f43f5e", bg: "#4c0519", icon: "fa-biohazard" },
-  agency_reporting: { color: "#6366f1", bg: "#1e1b4b", icon: "fa-landmark" },
-  custom: { color: "#94a3b8", bg: "#1e293b", icon: "fa-gear" },
+  ingestion: { color: "#06b6d4", bg: "#083344", lightBg: "#ecfeff", icon: "fa-vial" },
+  characterization: { color: "#3b82f6", bg: "#172554", lightBg: "#eff6ff", icon: "fa-dna" },
+  structural_biology: { color: "#a855f7", bg: "#3b0764", lightBg: "#faf5ff", icon: "fa-atom" },
+  therapeutics: { color: "#10b981", bg: "#022c22", lightBg: "#f0fdf4", icon: "fa-pills" },
+  vaccinology: { color: "#f59e0b", bg: "#451a03", lightBg: "#fffbeb", icon: "fa-shield-virus" },
+  biosecurity: { color: "#f43f5e", bg: "#4c0519", lightBg: "#fff1f2", icon: "fa-biohazard" },
+  agency_reporting: { color: "#6366f1", bg: "#1e1b4b", lightBg: "#eef2ff", icon: "fa-landmark" },
+  custom: { color: "#94a3b8", bg: "#1e293b", lightBg: "#f8fafc", icon: "fa-gear" },
 };
 
 // Initialize Application
 document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
   setupTabs();
   setupEventListeners();
   loadInitialData();
 });
 
-// Setup Tab Navigation
+// ---------------- Theme Management (Light / Dark) ----------------
+
+function initTheme() {
+  const icon = document.getElementById("themeIcon");
+  if (AppState.theme === "light") {
+    document.documentElement.classList.add("theme-light");
+    if (icon) {
+      icon.classList.remove("fa-sun");
+      icon.classList.add("fa-moon");
+    }
+  } else {
+    document.documentElement.classList.remove("theme-light");
+    if (icon) {
+      icon.classList.remove("fa-moon");
+      icon.classList.add("fa-sun");
+    }
+  }
+}
+
+function toggleTheme() {
+  const icon = document.getElementById("themeIcon");
+  if (AppState.theme === "dark") {
+    AppState.theme = "light";
+    document.documentElement.classList.add("theme-light");
+    if (icon) {
+      icon.classList.remove("fa-sun");
+      icon.classList.add("fa-moon");
+    }
+  } else {
+    AppState.theme = "dark";
+    document.documentElement.classList.remove("theme-light");
+    if (icon) {
+      icon.classList.remove("fa-moon");
+      icon.classList.add("fa-sun");
+    }
+  }
+  localStorage.setItem("theme", AppState.theme);
+  renderDag();
+}
+
+// ---------------- Setup Tab Navigation ----------------
+
 function setupTabs() {
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -62,8 +110,12 @@ function setupTabs() {
   });
 }
 
-// Setup Event Listeners
+// ---------------- Setup Event Listeners ----------------
+
 function setupEventListeners() {
+  // Theme Toggle
+  document.getElementById("themeToggleBtn").addEventListener("click", toggleTheme);
+
   // Scenario select
   const scenSelect = document.getElementById("scenarioSelect");
   scenSelect.addEventListener("change", (e) => {
@@ -75,19 +127,38 @@ function setupEventListeners() {
   document.getElementById("btnRunAll").addEventListener("click", executeRunAll);
   document.getElementById("btnReset").addEventListener("click", resetExecution);
 
-  // Template switch
+  // Pathway Controls
   document.getElementById("btnSwitchPathway").addEventListener("click", () => {
     const currentType = AppState.state?.pathway?.threat_type;
     const newKey = currentType === "chemical_nerve_agent" ? "pathway_default_biological" : "pathway_default_chemical";
     switchPathwayTemplate(newKey);
   });
 
-  // Modal Triggers
+  // Modals Triggers
+  document.getElementById("btnConnectModal").addEventListener("click", openConnectModal);
   document.getElementById("btnAddNodeModal").addEventListener("click", () => {
     document.getElementById("addNodeModal").classList.remove("hidden");
   });
   document.getElementById("btnCustomSampleModal").addEventListener("click", () => {
     document.getElementById("customSampleModal").classList.remove("hidden");
+  });
+  document.getElementById("btnHelpModal").addEventListener("click", () => {
+    document.getElementById("helpGuideModal").classList.remove("hidden");
+  });
+
+  // Connection Mode Cancel Button
+  document.getElementById("btnCancelConnect").addEventListener("click", cancelConnectionMode);
+
+  // Escape key cancels connection mode or closes modals
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      if (AppState.connecting.active) {
+        cancelConnectionMode();
+      }
+      document.querySelectorAll(".fixed.z-50").forEach((modal) => {
+        modal.classList.add("hidden");
+      });
+    }
   });
 
   // Modal Closers
@@ -95,10 +166,13 @@ function setupEventListeners() {
     btn.addEventListener("click", () => {
       document.getElementById("addNodeModal").classList.add("hidden");
       document.getElementById("customSampleModal").classList.add("hidden");
+      document.getElementById("connectNodesModal").classList.add("hidden");
+      document.getElementById("helpGuideModal").classList.add("hidden");
     });
   });
 
   // Form Submissions
+  document.getElementById("connectNodesForm").addEventListener("submit", handleConnectNodesSubmit);
   document.getElementById("addNodeForm").addEventListener("submit", handleAddNode);
   document.getElementById("customSampleForm").addEventListener("submit", handleCustomSample);
 
@@ -106,7 +180,8 @@ function setupEventListeners() {
   document.getElementById("btnDispatchAllReports").addEventListener("click", dispatchAllBriefings);
 }
 
-// API Calls and Data Loaders
+// ---------------- API Calls and Data Loaders ----------------
+
 async function loadInitialData() {
   try {
     const [scenRes, stateRes, agencyRes] = await Promise.all([
@@ -153,7 +228,7 @@ async function refreshState() {
 function updateUIState() {
   if (!AppState.state) return;
 
-  const { pathway, run, scenario, stats } = AppState.state;
+  const { pathway, run, stats } = AppState.state;
 
   // Header badges
   const ssbaBadge = document.getElementById("threatClassificationBadge");
@@ -182,7 +257,8 @@ function updateUIState() {
   }
 }
 
-// Execution Controls
+// ---------------- Execution Controls ----------------
+
 async function executeStep() {
   try {
     const res = await fetch("/api/execution/step", { method: "POST" });
@@ -198,7 +274,7 @@ async function executeStep() {
 
 async function executeRunAll() {
   try {
-    const res = await fetch("/api/execution/run", {
+    await fetch("/api/execution/run", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ auto_approve: true }),
@@ -242,7 +318,127 @@ async function switchPathwayTemplate(pathwayKey) {
   }
 }
 
-// Form Handlers
+// ---------------- Connection Management ----------------
+
+function startConnectionMode(sourceId, sourceLabel) {
+  AppState.connecting = {
+    active: true,
+    sourceId: sourceId,
+    sourceLabel: sourceLabel,
+  };
+  const banner = document.getElementById("connectModeBanner");
+  const label = document.getElementById("connectSourceLabel");
+  label.textContent = sourceLabel;
+  banner.classList.remove("hidden");
+  renderDag();
+}
+
+function cancelConnectionMode() {
+  AppState.connecting = { active: false, sourceId: null, sourceLabel: null };
+  const banner = document.getElementById("connectModeBanner");
+  banner.classList.add("hidden");
+  renderDag();
+}
+
+async function completeConnection(targetId) {
+  if (!AppState.connecting.active) return;
+  const sourceId = AppState.connecting.sourceId;
+
+  if (sourceId === targetId) {
+    alert("Cannot connect a node to itself.");
+    cancelConnectionMode();
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/pathways/edges", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        source: sourceId,
+        target: targetId,
+        label: "Data Flow",
+      }),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json();
+      alert(`Connection failed: ${errData.detail || "Circular loop or invalid dependency"}`);
+    } else {
+      await refreshState();
+    }
+  } catch (err) {
+    console.error("Failed to add edge:", err);
+  } finally {
+    cancelConnectionMode();
+  }
+}
+
+function openConnectModal(defaultSourceId = null) {
+  const modal = document.getElementById("connectNodesModal");
+  const srcSelect = document.getElementById("connectSourceSelect");
+  const tgtSelect = document.getElementById("connectTargetSelect");
+  const errMsg = document.getElementById("connectErrorMsg");
+  errMsg.classList.add("hidden");
+
+  const nodes = AppState.state?.pathway?.nodes || [];
+  srcSelect.innerHTML = "";
+  tgtSelect.innerHTML = "";
+
+  nodes.forEach((n) => {
+    const opt1 = document.createElement("option");
+    opt1.value = n.id;
+    opt1.textContent = `${n.label} (${n.category})`;
+    if (defaultSourceId && n.id === defaultSourceId) opt1.selected = true;
+    srcSelect.appendChild(opt1);
+
+    const opt2 = document.createElement("option");
+    opt2.value = n.id;
+    opt2.textContent = `${n.label} (${n.category})`;
+    tgtSelect.appendChild(opt2);
+  });
+
+  modal.classList.remove("hidden");
+}
+
+async function handleConnectNodesSubmit(e) {
+  e.preventDefault();
+  const source = document.getElementById("connectSourceSelect").value;
+  const target = document.getElementById("connectTargetSelect").value;
+  const label = document.getElementById("connectEdgeLabel").value;
+  const errMsg = document.getElementById("connectErrorMsg");
+
+  if (source === target) {
+    errMsg.textContent = "Cannot connect a node to itself!";
+    errMsg.classList.remove("hidden");
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/pathways/edges", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ source, target, label: label || null }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      errMsg.textContent = err.detail || "Failed to create edge (may create a cycle)";
+      errMsg.classList.remove("hidden");
+      return;
+    }
+
+    document.getElementById("connectNodesModal").classList.add("hidden");
+    document.getElementById("connectNodesForm").reset();
+    await refreshState();
+  } catch (err) {
+    errMsg.textContent = "Error connecting nodes: " + err;
+    errMsg.classList.remove("hidden");
+  }
+}
+
+// ---------------- Form Handlers ----------------
+
 async function handleAddNode(e) {
   e.preventDefault();
   const label = document.getElementById("newNodeLabel").value;
@@ -261,8 +457,8 @@ async function handleAddNode(e) {
         description,
         agent_team_id,
         requires_human_approval,
-        position_x: 600 + Math.random() * 100,
-        position_y: 200 + Math.random() * 100,
+        position_x: 600 + Math.random() * 80,
+        position_y: 200 + Math.random() * 80,
       }),
     });
     document.getElementById("addNodeModal").classList.add("hidden");
@@ -281,7 +477,7 @@ async function handleCustomSample(e) {
   const raw_payload = document.getElementById("customSamplePayload").value;
 
   try {
-    const res = await fetch("/api/scenarios/custom", {
+    await fetch("/api/scenarios/custom", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -291,7 +487,6 @@ async function handleCustomSample(e) {
         raw_payload,
       }),
     });
-    const data = await res.json();
     document.getElementById("customSampleModal").classList.add("hidden");
     document.getElementById("customSampleForm").reset();
 
@@ -311,13 +506,14 @@ function renderDag() {
   const svg = document.getElementById("dagSvg");
   if (!svg || !AppState.state) return;
 
+  const isLight = AppState.theme === "light";
   const { nodes = [], edges = [] } = AppState.state.pathway;
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
 
   svg.innerHTML = `
     <defs>
       <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-        <polygon points="0 0, 10 3.5, 0 7" fill="#475569" />
+        <polygon points="0 0, 10 3.5, 0 7" fill="${isLight ? "#94a3b8" : "#475569"}" />
       </marker>
       <marker id="arrowhead-active" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
         <polygon points="0 0, 10 3.5, 0 7" fill="#38bdf8" />
@@ -347,6 +543,17 @@ function renderDag() {
     path.setAttribute("class", `dag-edge ${isEdgeActive ? "active" : ""}`);
     if (isCompleted) path.style.stroke = "#059669";
     path.setAttribute("marker-end", isEdgeActive ? "url(#arrowhead-active)" : "url(#arrowhead)");
+    path.setAttribute("title", `Click to delete connection: ${src.label} -> ${tgt.label}`);
+
+    // Click edge to delete
+    path.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (confirm(`Remove connection between '${src.label}' and '${tgt.label}'?`)) {
+        await fetch(`/api/pathways/edges/${edge.id}`, { method: "DELETE" });
+        await refreshState();
+      }
+    });
+
     svg.appendChild(path);
 
     // Edge label if present
@@ -356,7 +563,7 @@ function renderDag() {
       const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
       text.setAttribute("x", midX);
       text.setAttribute("y", midY);
-      text.setAttribute("fill", "#64748b");
+      text.setAttribute("fill", isLight ? "#64748b" : "#94a3b8");
       text.setAttribute("font-size", "9px");
       text.setAttribute("text-anchor", "middle");
       text.textContent = edge.label;
@@ -368,21 +575,28 @@ function renderDag() {
   nodes.forEach((node) => {
     const categoryInfo = CATEGORY_STYLES[node.category] || CATEGORY_STYLES.custom;
     const isSelected = AppState.selectedNodeId === node.id;
+    const isConnectingSource = AppState.connecting.active && AppState.connecting.sourceId === node.id;
 
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    g.setAttribute("class", `dag-node ${isSelected ? "selected" : ""}`);
+    let nodeClasses = `dag-node ${isSelected ? "selected" : ""}`;
+    if (isConnectingSource) nodeClasses += " connect-source";
+    g.setAttribute("class", nodeClasses);
     g.setAttribute("transform", `translate(${node.position_x}, ${node.position_y})`);
     g.dataset.nodeId = node.id;
 
     // Node Box
     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("class", "node-box");
     rect.setAttribute("width", "190");
     rect.setAttribute("height", "90");
     rect.setAttribute("rx", "10");
-    rect.setAttribute("fill", "#0f172a");
+    rect.setAttribute("fill", isLight ? "#ffffff" : "#0f172a");
     rect.setAttribute("stroke", categoryInfo.color);
     rect.setAttribute("stroke-width", "1.5");
-    rect.setAttribute("stroke-opacity", "0.6");
+    rect.setAttribute("stroke-opacity", isLight ? "0.8" : "0.6");
+    if (isLight) {
+      rect.setAttribute("filter", "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05))");
+    }
     g.appendChild(rect);
 
     // Left category color strip
@@ -394,10 +608,10 @@ function renderDag() {
     g.appendChild(strip);
 
     // Status Indicator Dot / Badge
-    let statusColor = "#64748b";
+    let statusColor = isLight ? "#64748b" : "#64748b";
     let statusText = node.status.toUpperCase();
     if (node.status === "completed") statusColor = "#10b981";
-    if (node.status === "running") statusColor = "#38bdf8";
+    if (node.status === "running") statusColor = "#0284c7";
     if (node.status === "paused") statusColor = "#f59e0b";
     if (node.status === "failed") statusColor = "#f43f5e";
 
@@ -427,45 +641,78 @@ function renderDag() {
     const labelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     labelText.setAttribute("x", "16");
     labelText.setAttribute("y", "44");
-    labelText.setAttribute("fill", "#f8fafc");
+    labelText.setAttribute("fill", isLight ? "#0f172a" : "#f8fafc");
     labelText.setAttribute("font-size", "12px");
     labelText.setAttribute("font-weight", "600");
-    labelText.textContent = truncateString(node.label, 22);
+    labelText.textContent = truncateString(node.label, 20);
     g.appendChild(labelText);
 
     // Subtitle / Agent Team
     const teamText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     teamText.setAttribute("x", "16");
     teamText.setAttribute("y", "62");
-    teamText.setAttribute("fill", "#94a3b8");
+    teamText.setAttribute("fill", isLight ? "#475569" : "#94a3b8");
     teamText.setAttribute("font-size", "10px");
-    teamText.textContent = truncateString(node.agent_team_id.replace("_", " "), 24);
+    teamText.textContent = truncateString(node.agent_team_id.replace("_", " "), 22);
     g.appendChild(teamText);
 
     // Latency or Gatekeeper status bottom
     const bottomText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     bottomText.setAttribute("x", "16");
     bottomText.setAttribute("y", "78");
-    bottomText.setAttribute("fill", "#64748b");
+    bottomText.setAttribute("fill", isLight ? "#64748b" : "#64748b");
     bottomText.setAttribute("font-size", "9px");
     if (node.status === "completed" && node.latency_ms) {
       bottomText.textContent = `⚡ ${node.latency_ms} ms`;
     } else if (node.requires_human_approval) {
       bottomText.textContent = `🛡️ Human Gatekeeper`;
-      bottomText.setAttribute("fill", "#f59e0b");
+      bottomText.setAttribute("fill", "#d97706");
     } else {
       bottomText.textContent = `ID: ${node.id}`;
     }
     g.appendChild(bottomText);
 
-    // Click handler
+    // Output Port Connect Handle (Right circle)
+    const portHandle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    portHandle.setAttribute("cx", "190");
+    portHandle.setAttribute("cy", "45");
+    portHandle.setAttribute("r", "7");
+    portHandle.setAttribute("fill", "#06b6d4");
+    portHandle.setAttribute("stroke", isLight ? "#ffffff" : "#0f172a");
+    portHandle.setAttribute("stroke-width", "2");
+    portHandle.setAttribute("class", "node-connect-handle");
+    portHandle.setAttribute("title", "Click to connect from this node to another node");
+
+    portHandle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      startConnectionMode(node.id, node.label);
+    });
+    g.appendChild(portHandle);
+
+    // Plus sign on port handle
+    const portPlus = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    portPlus.setAttribute("x", "190");
+    portPlus.setAttribute("y", "48");
+    portPlus.setAttribute("fill", "#ffffff");
+    portPlus.setAttribute("font-size", "9px");
+    portPlus.setAttribute("font-weight", "bold");
+    portPlus.setAttribute("text-anchor", "middle");
+    portPlus.setAttribute("pointer-events", "none");
+    portPlus.textContent = "+";
+    g.appendChild(portPlus);
+
+    // Main Node Click Handler
     g.addEventListener("click", () => {
-      AppState.selectedNodeId = node.id;
-      renderDag();
-      renderNodeInspector(node.id);
+      if (AppState.connecting.active) {
+        completeConnection(node.id);
+      } else {
+        AppState.selectedNodeId = node.id;
+        renderDag();
+        renderNodeInspector(node.id);
+      }
     });
 
-    // Simple Drag to Reposition
+    // Drag to Reposition
     makeDraggable(g, node);
 
     svg.appendChild(g);
@@ -483,6 +730,8 @@ function makeDraggable(element, node) {
   let startX, startY;
 
   element.addEventListener("mousedown", (e) => {
+    // If click was on port handle, don't drag
+    if (e.target.classList.contains("node-connect-handle")) return;
     isDragging = true;
     startX = e.clientX - node.position_x;
     startY = e.clientY - node.position_y;
@@ -500,7 +749,6 @@ function makeDraggable(element, node) {
     if (isDragging) {
       isDragging = false;
       element.style.cursor = "pointer";
-      // Persist node position to backend
       try {
         await fetch(`/api/pathways/nodes/${node.id}`, {
           method: "PUT",
@@ -524,13 +772,14 @@ function renderNodeInspector(nodeId) {
   const badge = document.getElementById("inspectorStatusBadge");
 
   if (!nodeId || !AppState.state) {
-    container.innerHTML = `<div class="text-slate-500 italic text-center py-12">Click on any node in the pathway to inspect agent configurations, execution outputs, and approval status.</div>`;
+    container.innerHTML = `<div class="text-slate-500 italic text-center py-12">Click on any node in the pathway to inspect agent configurations, execution outputs, connections, and approval status.</div>`;
     badge.textContent = "SELECT NODE";
     badge.className = "text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400";
     return;
   }
 
-  const node = AppState.state.pathway.nodes.find((n) => n.id === nodeId);
+  const { nodes = [], edges = [] } = AppState.state.pathway;
+  const node = nodes.find((n) => n.id === nodeId);
   if (!node) return;
 
   badge.textContent = node.status.toUpperCase();
@@ -538,6 +787,7 @@ function renderNodeInspector(nodeId) {
   if (node.status === "completed") badgeColor = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
   if (node.status === "running") badgeColor = "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30";
   if (node.status === "paused") badgeColor = "bg-amber-500/20 text-amber-400 border border-amber-500/30";
+  if (node.status === "failed") badgeColor = "bg-rose-500/20 text-rose-400 border border-rose-500/30";
   badge.className = `text-[10px] font-mono uppercase px-2 py-0.5 rounded ${badgeColor}`;
 
   let approvalActionHtml = "";
@@ -555,6 +805,10 @@ function renderNodeInspector(nodeId) {
       </div>
     `;
   }
+
+  // Calculate Inbound & Outbound Connections
+  const inboundEdges = edges.filter((e) => e.target === node.id);
+  const outboundEdges = edges.filter((e) => e.source === node.id);
 
   container.innerHTML = `
     <div class="space-y-4">
@@ -583,9 +837,56 @@ function renderNodeInspector(nodeId) {
 
       ${approvalActionHtml}
 
+      <!-- Connections Management -->
+      <div class="space-y-2 pt-2 border-t border-slate-800">
+        <div class="flex items-center justify-between">
+          <span class="text-slate-500 uppercase font-semibold text-[10px]">Pathway Connections</span>
+          <button id="btnInspectorQuickConnect" class="text-[11px] text-cyan-400 hover:text-cyan-300 flex items-center space-x-1">
+            <i class="fa-solid fa-link"></i>
+            <span>+ Connect</span>
+          </button>
+        </div>
+
+        <div class="space-y-1.5 text-[11px]">
+          <div class="text-slate-400 text-[10px] font-semibold">Incoming Inputs:</div>
+          ${
+            inboundEdges.length === 0
+              ? `<div class="text-slate-500 italic text-[10px]">None (Initial Root Node)</div>`
+              : inboundEdges
+                  .map((e) => {
+                    const src = nodes.find((n) => n.id === e.source);
+                    return `
+              <div class="flex items-center justify-between bg-slate-950 px-2.5 py-1 rounded border border-slate-800">
+                <span class="text-slate-300 truncate font-mono text-[10px]">← ${src?.label || e.source}</span>
+                <button data-edge-id="${e.id}" class="btn-disconnect-edge text-rose-400 hover:text-rose-300 text-[10px] ml-2">Disconnect</button>
+              </div>
+            `;
+                  })
+                  .join("")
+          }
+
+          <div class="text-slate-400 text-[10px] font-semibold pt-1">Outgoing Dependencies:</div>
+          ${
+            outboundEdges.length === 0
+              ? `<div class="text-slate-500 italic text-[10px]">None (Terminal Output Node)</div>`
+              : outboundEdges
+                  .map((e) => {
+                    const tgt = nodes.find((n) => n.id === e.target);
+                    return `
+              <div class="flex items-center justify-between bg-slate-950 px-2.5 py-1 rounded border border-slate-800">
+                <span class="text-slate-300 truncate font-mono text-[10px]">→ ${tgt?.label || e.target}</span>
+                <button data-edge-id="${e.id}" class="btn-disconnect-edge text-rose-400 hover:text-rose-300 text-[10px] ml-2">Disconnect</button>
+              </div>
+            `;
+                  })
+                  .join("")
+          }
+        </div>
+      </div>
+
       <div>
         <span class="text-slate-500 uppercase font-semibold text-[10px]">Outputs & Generated Artifacts</span>
-        <pre class="mt-1 bg-slate-950 p-2.5 rounded border border-slate-800 font-mono text-[10px] text-cyan-300 overflow-x-auto max-h-48">${
+        <pre class="mt-1 bg-slate-950 p-2.5 rounded border border-slate-800 font-mono text-[10px] text-cyan-300 overflow-x-auto max-h-40">${
           JSON.stringify(node.outputs, null, 2) || "{}"
         }</pre>
       </div>
@@ -594,6 +895,10 @@ function renderNodeInspector(nodeId) {
         <button id="btnDeleteNode" class="text-rose-400 hover:text-rose-300 transition flex items-center space-x-1">
           <i class="fa-solid fa-trash-can"></i>
           <span>Delete Node</span>
+        </button>
+        <button id="btnStartConnectFromThis" class="text-cyan-400 hover:text-cyan-300 transition flex items-center space-x-1">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span>Link Output</span>
         </button>
       </div>
     </div>
@@ -618,6 +923,28 @@ function renderNodeInspector(nodeId) {
       }
     });
   }
+
+  const btnLink = document.getElementById("btnStartConnectFromThis");
+  if (btnLink) {
+    btnLink.addEventListener("click", () => {
+      startConnectionMode(node.id, node.label);
+    });
+  }
+
+  const btnQuickConnect = document.getElementById("btnInspectorQuickConnect");
+  if (btnQuickConnect) {
+    btnQuickConnect.addEventListener("click", () => {
+      openConnectModal(node.id);
+    });
+  }
+
+  document.querySelectorAll(".btn-disconnect-edge").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const edgeId = btn.dataset.edgeId;
+      await fetch(`/api/pathways/edges/${edgeId}`, { method: "DELETE" });
+      await refreshState();
+    });
+  });
 }
 
 // ---------------- Agency Briefings View ----------------
