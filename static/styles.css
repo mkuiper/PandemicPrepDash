@@ -221,3 +221,44 @@ html.theme-light textarea {
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
 }
+
+/* Sequence Viewer Base Colors */
+.seq-base {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  display: inline-block;
+  padding: 0 1px;
+}
+.seq-base-a { color: #10b981; } /* Green */
+.seq-base-c { color: #38bdf8; } /* Cyan */
+.seq-base-g { color: #f59e0b; } /* Amber */
+.seq-base-t, .seq-base-u { color: #f43f5e; } /* Rose */
+.seq-base-n { color: #94a3b8; } /* Gray */
+
+/* Message Board Bubbles */
+.msg-bubble-agent {
+  background-color: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+.msg-bubble-human {
+  background-color: rgba(6, 78, 59, 0.4);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+.msg-bubble-system {
+  background-color: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+html.theme-light .msg-bubble-agent {
+  background-color: #f0f9ff !important;
+  border-color: #bae6fd !important;
+}
+html.theme-light .msg-bubble-human {
+  background-color: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+}
+html.theme-light .msg-bubble-system {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+

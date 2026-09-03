@@ -1,7 +1,7 @@
 """
-Central Information Hub (Blackboard) & Blocker Alert System.
-Collates all intelligence artifacts from autonomous node squads and manages
-operational blockers flagged to the Central Orchestrator.
+Central Information Hub (Blackboard), Blocker Alert System & Human-Agent Message Board.
+Collates all intelligence artifacts from autonomous node squads, manages operational blockers,
+and hosts a collaborative message board for human experts and node agents.
 """
 
 from typing import List, Dict, Any, Optional
@@ -44,6 +44,25 @@ class ResearchPaper(BaseModel):
     summary: str
     key_findings: List[str] = Field(default_factory=list)
     source_url: str
+
+
+class MessageSenderType(str, Enum):
+    AGENT = "AGENT"
+    HUMAN_EXPERT = "HUMAN_EXPERT"
+    SYSTEM = "SYSTEM"
+
+
+class HubMessage(BaseModel):
+    message_id: str = Field(default_factory=lambda: f"msg_{uuid.uuid4().hex[:8]}")
+    sender_type: MessageSenderType = MessageSenderType.AGENT
+    sender_name: str
+    sender_role: str
+    target_node_id: Optional[str] = None  # e.g. "@node_genomic_characterization" or "@all"
+    content: str
+    tags: List[str] = Field(default_factory=list)
+    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+    is_urgent: bool = False
+    reply_to_id: Optional[str] = None
 
 
 class ThreatResearcher:
@@ -140,7 +159,7 @@ class ThreatResearcher:
         try:
             encoded_query = urllib.parse.quote(query)
             search_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term={encoded_query}&retmax={max_results}&retmode=json"
-            req = urllib.request.Request(search_url, headers={"User-Agent": "PandemicPrepDash-CBRN/1.0"})
+            req = urllib.request.Request(search_url, headers={"User-Agent": "PandemicPrepDash-Platform/1.0"})
             with urllib.request.urlopen(req, timeout=3.0) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
                 id_list = data.get("esearchresult", {}).get("idlist", [])
@@ -148,7 +167,7 @@ class ThreatResearcher:
             if id_list:
                 ids_str = ",".join(id_list)
                 summary_url = f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id={ids_str}&retmode=json"
-                req_sum = urllib.request.Request(summary_url, headers={"User-Agent": "PandemicPrepDash-CBRN/1.0"})
+                req_sum = urllib.request.Request(summary_url, headers={"User-Agent": "PandemicPrepDash-Platform/1.0"})
                 with urllib.request.urlopen(req_sum, timeout=3.0) as sum_resp:
                     sum_data = json.loads(sum_resp.read().decode("utf-8"))
                     results = sum_data.get("result", {})
@@ -193,9 +212,9 @@ class ThreatResearcher:
 
 
 class CentralDataHub(BaseModel):
-    """Central Information Hub collating all incoming pathway artifacts and blocker alerts."""
+    """Central Information Hub collating all incoming pathway artifacts, blocker alerts, and human-agent message board."""
 
-    incident_name: str = "Unspecified CBRN Incident"
+    incident_name: str = "Unspecified Incident"
     threat_type: str = "biological_virus"
     specimen_intel: Dict[str, Any] = Field(default_factory=dict)
     literature_research: List[ResearchPaper] = Field(default_factory=list)
@@ -205,6 +224,29 @@ class CentralDataHub(BaseModel):
     statutory_compliance: Dict[str, Any] = Field(default_factory=dict)
     blockers: List[BlockerAlert] = Field(default_factory=list)
     recent_events: List[Dict[str, Any]] = Field(default_factory=list)
+    messages: List[HubMessage] = Field(default_factory=list)
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        if not self.messages:
+            self._seed_initial_messages()
+
+    def _seed_initial_messages(self):
+        """Initial welcome and operational directives on the human-agent control board."""
+        self.messages.append(
+            HubMessage(
+                message_id=f"msg_sys_{uuid.uuid4().hex[:6]}",
+                sender_type=MessageSenderType.SYSTEM,
+                sender_name="Central Control Orchestrator",
+                sender_role="Operational Coordination",
+                target_node_id="@all",
+                content=(
+                    f"Central Hub initialized for '{self.incident_name}'. "
+                    f"Node harnesses are active and monitoring this board. Human duty officers may post questions, clarifications, or directives here."
+                ),
+                tags=["SYSTEM_INIT", "OPS_READY"],
+            )
+        )
 
     def add_blocker(self, blocker: BlockerAlert):
         self.blockers.append(blocker)
@@ -215,6 +257,19 @@ class CentralDataHub(BaseModel):
             "severity": blocker.severity.value,
             "timestamp": datetime.utcnow().isoformat() + "Z",
         })
+        # Automatically notify the message board of the new blocker
+        self.messages.append(
+            HubMessage(
+                message_id=f"msg_blk_{uuid.uuid4().hex[:6]}",
+                sender_type=MessageSenderType.AGENT,
+                sender_name=blocker.raised_by_agent,
+                sender_role="Squad Alert",
+                target_node_id=blocker.node_id,
+                content=f"⚠️ BLOCKER RAISED: {blocker.title}. Required Action: {blocker.required_action}",
+                tags=["BLOCKER", blocker.severity.value],
+                is_urgent=(blocker.severity == BlockerSeverity.CRITICAL),
+            )
+        )
 
     def resolve_blocker(self, alert_id: str, notes: str) -> bool:
         for b in self.blockers:
@@ -227,5 +282,25 @@ class CentralDataHub(BaseModel):
                     "notes": notes,
                     "timestamp": datetime.utcnow().isoformat() + "Z",
                 })
+                self.messages.append(
+                    HubMessage(
+                        message_id=f"msg_res_{uuid.uuid4().hex[:6]}",
+                        sender_type=MessageSenderType.HUMAN_EXPERT,
+                        sender_name="Human Duty Officer",
+                        sender_role="Incident Controller",
+                        target_node_id=b.node_id,
+                        content=f"✅ BLOCKER RESOLVED: '{b.title}'. Authorization notes: {notes}",
+                        tags=["RESOLUTION", "AUTHORIZED"],
+                    )
+                )
                 return True
         return False
+
+    def post_message(self, message: HubMessage):
+        self.messages.append(message)
+        self.recent_events.append({
+            "type": "MESSAGE_POSTED",
+            "sender": message.sender_name,
+            "target": message.target_node_id,
+            "timestamp": message.timestamp,
+        })

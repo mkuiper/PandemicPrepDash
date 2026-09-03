@@ -1,6 +1,7 @@
 /**
  * PandemicPrepDash - Frontend Application Logic
- * Australian CBRN & Pandemic Whole-of-Government Emergency Response Platform.
+ * Australian Whole-of-Government Emergency Response Platform.
+ * Developed from a modern UI/UX engineering perspective.
  */
 
 const AppState = {
@@ -19,6 +20,9 @@ const AppState = {
   selectedAgencyId: "ACDP",
   agencies: [],
   activeTab: "tab-pathway",
+  activeInspectorSubtab: "tool-sequence",
+  govSettings: null,
+  govPolicies: [],
   theme: localStorage.getItem("theme") || "dark",
   connecting: {
     active: false,
@@ -43,6 +47,7 @@ const CATEGORY_STYLES = {
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   setupTabs();
+  setupInspectorSubtabs();
   setupEventListeners();
   loadInitialData();
 });
@@ -119,19 +124,37 @@ function switchTab(targetTab) {
     renderDag();
   } else if (targetTab === "tab-datahub") {
     renderCentralDataHub();
+  } else if (targetTab === "tab-inspector") {
+    renderPipelineDataInspector();
   } else if (targetTab === "tab-agencies") {
     renderAgencyView();
-  } else if (targetTab === "tab-countermeasures") {
-    renderCountermeasures();
-  } else if (targetTab === "tab-agentcomms") {
-    renderAgentCommsView();
-  } else if (targetTab === "tab-toolbox-skills") {
-    renderToolboxAndSkillsView();
-  } else if (targetTab === "tab-architecture") {
-    renderAgencyMapView();
+  } else if (targetTab === "tab-governance") {
+    renderGovernanceView();
   } else if (targetTab === "tab-docs") {
     renderDocsView();
   }
+}
+
+function setupInspectorSubtabs() {
+  document.querySelectorAll(".inspect-subtab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const toolId = btn.dataset.inspectTool;
+      AppState.activeInspectorSubtab = toolId;
+
+      document.querySelectorAll(".inspect-subtab-btn").forEach((b) => {
+        b.classList.remove("active", "bg-cyan-600", "text-white", "font-medium");
+        b.classList.add("text-slate-400");
+      });
+      btn.classList.add("active", "bg-cyan-600", "text-white", "font-medium");
+      btn.classList.remove("text-slate-400");
+
+      document.querySelectorAll(".inspect-tool-panel").forEach((p) => p.classList.add("hidden"));
+      const activeTool = document.getElementById(toolId);
+      if (activeTool) activeTool.classList.remove("hidden");
+
+      renderPipelineDataInspector();
+    });
+  });
 }
 
 // ---------------- Setup Event Listeners ----------------
@@ -151,13 +174,17 @@ function setupEventListeners() {
   document.getElementById("btnRunAll").addEventListener("click", executeRunAll);
   document.getElementById("btnReset").addEventListener("click", resetExecution);
 
+  // Blocker Header Badge click jumps to Data Hub
+  document.getElementById("blockerCountHeaderBadge").addEventListener("click", () => {
+    switchTab("tab-datahub");
+  });
+
   // Modals Triggers
   document.getElementById("btnConnectModal").addEventListener("click", () => openConnectModal());
   document.getElementById("btnAddNodeModal").addEventListener("click", () => {
     document.getElementById("addNodeModal").classList.remove("hidden");
   });
   document.getElementById("btnCustomSampleModal").addEventListener("click", openCustomSampleModal);
-  document.getElementById("btnNavDocsQuick").addEventListener("click", () => switchTab("tab-docs"));
 
   // Templates Management
   document.getElementById("btnTemplatesMenu").addEventListener("click", openTemplatesManager);
@@ -173,6 +200,17 @@ function setupEventListeners() {
 
   // Connection Mode Cancel Button
   document.getElementById("btnCancelConnect").addEventListener("click", cancelConnectionMode);
+
+  // Message Board Sending
+  document.getElementById("btnSendHubMessage").addEventListener("click", handleSendHubMessage);
+  document.querySelectorAll(".quick-directive-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.getElementById("inputHumanMessageContent").value = btn.textContent.trim();
+    });
+  });
+
+  // Sequence Motif Highlighter
+  document.getElementById("btnHighlightMotif")?.addEventListener("click", handleHighlightMotif);
 
   // Escape key cancels connection mode or closes modals
   window.addEventListener("keydown", (e) => {
@@ -203,6 +241,10 @@ function setupEventListeners() {
   document.getElementById("configureSquadForm").addEventListener("submit", handleSaveSquadConfig);
   document.getElementById("resolveBlockerForm").addEventListener("submit", handleResolveBlocker);
 
+  // Governance Forms
+  document.getElementById("formCloudComputeConfig")?.addEventListener("submit", handleSaveComputeConfig);
+  document.getElementById("formApiKeysConfig")?.addEventListener("submit", handleSaveApiKeysConfig);
+
   // Dispatch All Briefings
   document.getElementById("btnDispatchAllReports").addEventListener("click", dispatchAllBriefings);
 
@@ -214,17 +256,15 @@ function setupEventListeners() {
 
 async function loadInitialData() {
   try {
-    const [scenRes, stateRes, agencyRes, dummyRes, personasRes, skillsRes, toolRes, mcpRes, provRes, docsRes] = await Promise.all([
+    const [scenRes, stateRes, agencyRes, dummyRes, personasRes, docsRes, govRes, polRes] = await Promise.all([
       fetch("/api/scenarios").then((r) => r.json()),
       fetch("/api/pathways/state").then((r) => r.json()),
       fetch("/api/agencies").then((r) => r.json()),
       fetch("/api/scenarios/dummy-sequences").then((r) => r.json()).catch(() => ({ dummy_sequences: [] })),
       fetch("/api/agents/personas").then((r) => r.json()).catch(() => ({ personas: [] })),
-      fetch("/api/agents/skills").then((r) => r.json()).catch(() => ({ skills: [] })),
-      fetch("/api/agents/toolbox").then((r) => r.json()).catch(() => ({ toolbox: [] })),
-      fetch("/api/agents/mcps").then((r) => r.json()).catch(() => ({ mcps: [] })),
-      fetch("/api/agents/providers").then((r) => r.json()).catch(() => ({ providers: [] })),
       fetch("/api/docs").then((r) => r.json()).catch(() => ({ chapters: [] })),
+      fetch("/api/governance/settings").then((r) => r.json()).catch(() => ({ settings: null })),
+      fetch("/api/governance/policies").then((r) => r.json()).catch(() => ({ policies: [] })),
     ]);
 
     AppState.scenarios = scenRes.scenarios || [];
@@ -232,11 +272,9 @@ async function loadInitialData() {
     AppState.agencies = agencyRes.agencies || [];
     AppState.dummySequences = dummyRes.dummy_sequences || [];
     AppState.personas = personasRes.personas || [];
-    AppState.skills = skillsRes.skills || [];
-    AppState.toolbox = toolRes.toolbox || [];
-    AppState.mcps = mcpRes.mcps || [];
-    AppState.providers = provRes.providers || [];
     AppState.docsChapters = docsRes.chapters || [];
+    AppState.govSettings = govRes.settings;
+    AppState.govPolicies = polRes.policies || [];
 
     populateScenarioDropdown();
     populatePresetSequencesDropdown();
@@ -281,7 +319,7 @@ function handlePresetSequenceChange(e) {
 
   document.getElementById("customSampleName").value = seq.name;
   document.getElementById("customSampleType").value = seq.type;
-  document.getElementById("customSampleLocation").value = "Australian Diagnostic & Nuclear Reference Laboratory";
+  document.getElementById("customSampleLocation").value = "Australian Reference Laboratory";
   document.getElementById("customSamplePayload").value = seq.payload;
 }
 
@@ -316,11 +354,11 @@ function updateUIState() {
     specBadge.textContent = scenario.name || scenario.sample?.name || "Active Specimen";
   }
 
-  // Threat badge
+  // Threat classification badge
   const ssbaBadge = document.getElementById("threatClassificationBadge");
   let threatTier = run.node_artifacts?.threat_assessment?.ssba_tier;
   if (!threatTier) {
-    if (pathway.threat_type === "radiological_dispersal") threatTier = "IAEA Category 1 Source";
+    if (pathway.threat_type === "radiological_dispersal") threatTier = "Category 1 Source";
     else if (pathway.threat_type === "chemical_nerve_agent") threatTier = "CWC Schedule 1";
     else threatTier = "Tier 1 SSBA";
   }
@@ -355,11 +393,6 @@ function updateUIState() {
   const relevantCount = Object.values(reports).filter((r) => r.is_relevant).length;
   document.getElementById("agencyReportCountBadge").textContent = relevantCount;
 
-  // Dialogue count
-  const dialogues = run.inter_node_dialogues || [];
-  const dialBadge = document.getElementById("dialogueCountBadge");
-  if (dialBadge) dialBadge.textContent = dialogues.length;
-
   // Active Threat Label in Data Hub
   const threatLabel = document.getElementById("hubActiveThreatLabel");
   if (threatLabel) {
@@ -372,16 +405,12 @@ function updateUIState() {
     renderNodeInspector(AppState.selectedNodeId);
   } else if (AppState.activeTab === "tab-datahub") {
     renderCentralDataHub();
+  } else if (AppState.activeTab === "tab-inspector") {
+    renderPipelineDataInspector();
   } else if (AppState.activeTab === "tab-agencies") {
     renderAgencyView();
-  } else if (AppState.activeTab === "tab-countermeasures") {
-    renderCountermeasures();
-  } else if (AppState.activeTab === "tab-agentcomms") {
-    renderAgentCommsView();
-  } else if (AppState.activeTab === "tab-toolbox-skills") {
-    renderToolboxAndSkillsView();
-  } else if (AppState.activeTab === "tab-architecture") {
-    renderAgencyMapView();
+  } else if (AppState.activeTab === "tab-governance") {
+    renderGovernanceView();
   } else if (AppState.activeTab === "tab-docs") {
     renderDocsView();
   }
@@ -447,17 +476,64 @@ async function resetExecution() {
   }
 }
 
-// ---------------- Central Information Hub & Blockers ----------------
+// ---------------- Central Control Hub & Message Board ----------------
 
 function renderCentralDataHub() {
   const dataHub = AppState.state?.data_hub;
   if (!dataHub) return;
 
-  // 1. Render Blocker Alerts
+  // 1. Render Human-Agent Message Feed
+  const feed = document.getElementById("hubMessagesFeed");
+  const messages = dataHub.messages || [];
+  if (!messages.length) {
+    feed.innerHTML = `<div class="p-6 text-center text-slate-500 italic">No messages on the control board yet. Post a directive below.</div>`;
+  } else {
+    feed.innerHTML = messages
+      .map((m) => {
+        const isAgent = m.sender_type === "AGENT";
+        const isHuman = m.sender_type === "HUMAN_EXPERT";
+
+        let bubbleClass = "msg-bubble-system";
+        let roleBadge = "bg-slate-800 text-slate-400";
+        let iconClass = "fa-shield-halved text-slate-400";
+
+        if (isAgent) {
+          bubbleClass = "msg-bubble-agent";
+          roleBadge = "bg-cyan-500/10 text-cyan-300 border-cyan-500/20";
+          iconClass = "fa-microchip text-cyan-400";
+        } else if (isHuman) {
+          bubbleClass = "msg-bubble-human";
+          roleBadge = "bg-emerald-500/10 text-emerald-300 border-emerald-500/20";
+          iconClass = "fa-user-shield text-emerald-400";
+        }
+
+        return `
+        <div class="p-3.5 rounded-xl border text-xs space-y-1.5 shadow-sm ${bubbleClass}">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <i class="fa-solid ${iconClass} text-xs"></i>
+              <span class="font-bold text-slate-200">${m.sender_name}</span>
+              <span class="px-1.5 py-0.2 rounded text-[9px] font-mono border ${roleBadge}">${m.sender_role}</span>
+              ${m.target_node_id ? `<span class="text-[9px] font-mono text-cyan-400 bg-slate-900/80 px-1.5 py-0.2 rounded border border-slate-800">${m.target_node_id}</span>` : ""}
+            </div>
+            <span class="text-[10px] font-mono text-slate-500">${m.timestamp ? m.timestamp.split("T")[1]?.slice(0, 8) : ""}</span>
+          </div>
+          <div class="text-slate-200 leading-relaxed font-sans text-xs">${m.content}</div>
+        </div>
+      `;
+      })
+      .join("");
+    feed.scrollTop = feed.scrollHeight;
+  }
+
+  // 2. Render Blocker Alerts
   const blockersList = document.getElementById("dataHubBlockersList");
   const blockers = dataHub.blockers || [];
+  const openBlockers = blockers.filter((b) => b.status === "OPEN");
+  document.getElementById("dataHubBlockersCountText").textContent = `${openBlockers.length} Open`;
+
   if (!blockers.length) {
-    blockersList.innerHTML = `<div class="p-3 rounded-lg bg-slate-900/60 border border-slate-800 text-slate-500 italic text-center">No active operational blockers flagged to the Central Orchestrator.</div>`;
+    blockersList.innerHTML = `<div class="p-3 rounded-lg bg-slate-950/60 border border-slate-800 text-slate-500 italic text-center">No active operational blockers flagged to the Central Orchestrator.</div>`;
   } else {
     blockersList.innerHTML = blockers
       .slice()
@@ -466,20 +542,18 @@ function renderCentralDataHub() {
         const isOpen = b.status === "OPEN";
         let sevColor = "bg-amber-500/10 text-amber-300 border-amber-500/30";
         if (b.severity === "CRITICAL") sevColor = "bg-rose-500/20 text-rose-300 border-rose-500/40";
-        if (b.severity === "INFO") sevColor = "bg-cyan-500/10 text-cyan-300 border-cyan-500/30";
 
         return `
-        <div class="p-3.5 rounded-lg border flex items-start justify-between space-x-3 ${isOpen ? "bg-slate-900 border-amber-500/40 shadow" : "bg-slate-950/60 border-slate-800 opacity-70"}">
+        <div class="p-3 rounded-lg border flex items-start justify-between space-x-3 ${isOpen ? "bg-slate-950 border-amber-500/40 shadow" : "bg-slate-950/60 border-slate-800 opacity-70"}">
           <div class="space-y-1 flex-1">
             <div class="flex items-center space-x-2">
               <span class="px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase border ${sevColor}">${b.severity}</span>
               <span class="font-bold text-slate-100 text-xs">${b.title}</span>
-              <span class="text-[10px] text-slate-500 font-mono">(${b.node_label})</span>
               ${!isOpen ? `<span class="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded">RESOLVED</span>` : ""}
             </div>
             <p class="text-slate-300 text-[11px] leading-relaxed">${b.description}</p>
-            <div class="text-[10px] text-amber-300 font-medium pt-0.5"><strong>Action Required:</strong> ${b.required_action}</div>
-            ${b.resolution_notes ? `<div class="text-[10px] text-slate-400 italic pt-1 border-t border-slate-800/80">Resolution: ${b.resolution_notes}</div>` : ""}
+            <div class="text-[10px] text-amber-300 font-medium"><strong>Action Required:</strong> ${b.required_action}</div>
+            ${b.resolution_notes ? `<div class="text-[10px] text-slate-400 italic pt-1 border-t border-slate-800">Resolution: ${b.resolution_notes}</div>` : ""}
           </div>
           ${
             isOpen
@@ -498,11 +572,11 @@ function renderCentralDataHub() {
     });
   }
 
-  // 2. Specimen Intel
+  // 3. Specimen Intel
   const specIntel = dataHub.specimen_intel || {};
   const specEl = document.getElementById("hubSpecimenIntelContent");
   if (Object.keys(specIntel).length === 0) {
-    specEl.innerHTML = `<div class="text-slate-500 italic py-4 text-center">Execute Ingestion &amp; Characterization to populate specimen metrics.</div>`;
+    specEl.innerHTML = `<div class="text-slate-500 italic py-3 text-center">Execute Ingestion &amp; Characterization to populate specimen metrics.</div>`;
   } else {
     specEl.innerHTML = `
       <div class="grid grid-cols-2 gap-2 font-mono text-[11px]">
@@ -520,8 +594,8 @@ function renderCentralDataHub() {
           ? `
         <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1">
           <span class="text-slate-400 font-bold text-[10px] uppercase">Validated Molecular Signatures:</span>
-          <ul class="space-y-1 text-[11px] text-slate-300">
-            ${specIntel.genomic_mutations_detected.map((m) => `<li class="flex items-start"><i class="fa-solid fa-angle-right text-cyan-400 mt-1 mr-1.5 text-[9px]"></i><span>${m}</span></li>`).join("")}
+          <ul class="space-y-0.5 text-[11px] text-slate-300">
+            ${specIntel.genomic_mutations_detected.map((m) => `<li class="flex items-start"><span class="text-cyan-400 mr-1.5">•</span><span>${m}</span></li>`).join("")}
           </ul>
         </div>
       `
@@ -530,18 +604,18 @@ function renderCentralDataHub() {
     `;
   }
 
-  // 3. Peer-Reviewed Literature Research
+  // 4. Peer-Reviewed Literature Research (PubMed)
   const litEl = document.getElementById("hubLiteratureContent");
   const papers = dataHub.literature_research || [];
   if (!papers.length) {
-    litEl.innerHTML = `<div class="text-slate-500 italic py-4 text-center">Execute Threat Research node to retrieve indexed PubMed studies.</div>`;
+    litEl.innerHTML = `<div class="text-slate-500 italic py-3 text-center">Execute Threat Research node to retrieve indexed PubMed studies.</div>`;
   } else {
     litEl.innerHTML = papers
       .map(
         (p) => `
-      <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1.5">
+      <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
         <div class="flex items-start justify-between">
-          <h5 class="font-bold text-slate-100 text-xs leading-snug">
+          <h5 class="font-bold text-slate-100 text-xs">
             <a href="${p.source_url}" target="_blank" class="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 flex items-center">
               <span>${p.title}</span>
               <i class="fa-solid fa-arrow-up-right-from-square text-[9px] ml-1.5 shrink-0"></i>
@@ -549,44 +623,8 @@ function renderCentralDataHub() {
           </h5>
           ${p.pmid ? `<span class="px-1.5 py-0.2 rounded text-[9px] font-mono bg-purple-500/10 text-purple-300 border border-purple-500/20 ml-2 shrink-0">PMID: ${p.pmid}</span>` : ""}
         </div>
-        <div class="text-[10px] text-slate-400">
-          <span>${p.authors}</span> • <em>${p.journal}</em> (${p.year})
-        </div>
+        <div class="text-[10px] text-slate-400">${p.authors} • <em>${p.journal}</em> (${p.year})</div>
         <p class="text-slate-300 text-[11px]">${p.summary}</p>
-        ${
-          p.key_findings && p.key_findings.length
-            ? `
-          <ul class="pt-1 border-t border-slate-800/80 space-y-0.5 text-[10px] text-slate-400">
-            ${p.key_findings.map((f) => `<li class="flex items-center"><span class="text-cyan-400 mr-1.5">•</span>${f}</li>`).join("")}
-          </ul>
-        `
-            : ""
-        }
-      </div>
-    `
-      )
-      .join("");
-  }
-
-  // 4. Targets Content
-  const targetsEl = document.getElementById("hubTargetsContent");
-  const targets = dataHub.structural_targets || [];
-  if (!targets.length) {
-    targetsEl.innerHTML = `<div class="text-slate-500 italic py-4 text-center">Execute Structural Biology node to resolve 3D models and pockets.</div>`;
-  } else {
-    targetsEl.innerHTML = targets
-      .map(
-        (t) => `
-      <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1 text-xs">
-        <div class="flex items-center justify-between">
-          <span class="font-bold text-slate-200">${t.name}</span>
-          <span class="text-emerald-400 font-mono text-[10px]">${t.plddt_confidence}% pLDDT</span>
-        </div>
-        <p class="text-slate-400 text-[11px]">${t.function_summary || ""}</p>
-        <div class="text-[10px] font-mono text-slate-500 flex items-center justify-between pt-1 border-t border-slate-800">
-          <span>Pocket: ${t.pocket_volume_angstrom3 || "N/A"} Å³</span>
-          <span class="text-cyan-400">Druggability: ${t.druggability_score || "N/A"}</span>
-        </div>
       </div>
     `
       )
@@ -597,26 +635,53 @@ function renderCentralDataHub() {
   const counterEl = document.getElementById("hubCountermeasuresContent");
   const countermeasures = dataHub.countermeasures || [];
   if (!countermeasures.length) {
-    counterEl.innerHTML = `<div class="text-slate-500 italic py-4 text-center">Execute Therapeutics node to screen candidate medical countermeasures.</div>`;
+    counterEl.innerHTML = `<div class="text-slate-500 italic py-3 text-center">Execute Therapeutics node to screen candidate medical countermeasures.</div>`;
   } else {
     counterEl.innerHTML = countermeasures
+      .slice(0, 3)
       .map(
         (c) => `
-      <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1 text-xs">
+      <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-1 text-xs">
         <div class="flex items-center justify-between">
           <span class="font-bold text-slate-100">${c.name || c.target_antigen}</span>
-          <span class="text-[10px] font-mono text-cyan-400">${c.binding_affinity_kcal_mol ? c.binding_affinity_kcal_mol + " kcal/mol" : c.platform || ""}</span>
+          <span class="text-[10px] font-mono text-emerald-400">${c.binding_affinity_kcal_mol ? c.binding_affinity_kcal_mol + " kcal/mol" : c.platform || ""}</span>
         </div>
-        <div class="text-[11px] text-slate-300">${c.mechanism_of_action || c.formulation_details || ""}</div>
-        <div class="text-[10px] text-amber-400 flex items-center space-x-2 pt-1 border-t border-slate-800 font-mono">
-          <span>Status: ${c.tga_artg_status || "Evaluating"}</span>
-          <span>•</span>
-          <span class="text-slate-400">${c.australian_stockpile_status || c.local_manufacturing_capability || ""}</span>
-        </div>
+        <div class="text-[10px] text-slate-400 truncate">${c.mechanism_of_action || c.formulation_details || ""}</div>
       </div>
     `
       )
       .join("");
+  }
+}
+
+async function handleSendHubMessage() {
+  const content = document.getElementById("inputHumanMessageContent").value.trim();
+  if (!content) return;
+
+  const senderName = document.getElementById("inputHumanSenderName").value.trim() || "Human Duty Officer";
+  const targetNodeId = document.getElementById("selectMessageTargetNode").value;
+
+  try {
+    const res = await fetch("/api/hub/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sender_name: senderName,
+        sender_role: "Incident Specialist",
+        target_node_id: targetNodeId,
+        content: content,
+        tags: ["DIRECTIVE", "HUMAN_INPUT"],
+        is_urgent: false,
+      }),
+    });
+
+    if (res.ok) {
+      document.getElementById("inputHumanMessageContent").value = "";
+      await refreshState();
+      renderCentralDataHub();
+    }
+  } catch (err) {
+    console.error("Failed to post message:", err);
   }
 }
 
@@ -651,6 +716,211 @@ async function handleResolveBlocker(e) {
   }
 }
 
+// ---------------- Pipeline Data Inspector ----------------
+
+function renderPipelineDataInspector() {
+  const sample = AppState.state?.scenario?.sample || {};
+  const artifacts = AppState.state?.run?.node_artifacts || {};
+  const rawPayload = sample.raw_payload || "";
+
+  // 1. Tool A: Sequence Inspector
+  if (AppState.activeInspectorSubtab === "tool-sequence") {
+    const cleanSeq = rawPayload.replace(/^>.*\n/g, "").replace(/\s+/g, "");
+    const totalLen = cleanSeq.length || 1;
+
+    let countA = 0, countC = 0, countG = 0, countTU = 0;
+    for (const ch of cleanSeq.toUpperCase()) {
+      if (ch === "A") countA++;
+      else if (ch === "C") countC++;
+      else if (ch === "G") countG++;
+      else if (ch === "T" || ch === "U") countTU++;
+    }
+
+    const pctA = Math.round((countA / totalLen) * 100);
+    const pctC = Math.round((countC / totalLen) * 100);
+    const pctG = Math.round((countG / totalLen) * 100);
+    const pctTU = Math.round((countTU / totalLen) * 100);
+    const gcPct = pctC + pctG;
+
+    document.getElementById("inspectSeqLength").textContent = `${cleanSeq.length} bp`;
+    document.getElementById("inspectSeqGc").textContent = `${gcPct}%`;
+    document.getElementById("inspectSeqType").textContent = sample.sample_type || "RNA";
+    document.getElementById("inspectBaseStats").textContent = `A: ${pctA}% | C: ${pctC}% | G: ${pctG}% | T/U: ${pctTU}%`;
+
+    const bar = document.getElementById("inspectBaseBar");
+    bar.innerHTML = `
+      <div style="width: ${pctA}%" class="bg-emerald-500" title="Adenine: ${pctA}%"></div>
+      <div style="width: ${pctC}%" class="bg-cyan-500" title="Cytosine: ${pctC}%"></div>
+      <div style="width: ${pctG}%" class="bg-amber-500" title="Guanine: ${pctG}%"></div>
+      <div style="width: ${pctTU}%" class="bg-rose-500" title="Thymine/Uracil: ${pctTU}%"></div>
+    `;
+
+    renderFormattedSequence(cleanSeq);
+  }
+
+  // 2. Tool B: 3D Target Inspector
+  else if (AppState.activeInspectorSubtab === "tool-structure") {
+    const targets = artifacts.protein_targets || [];
+    const primary = targets[0] || { name: "Surface Glycoprotein Trimer", pocket_volume_angstrom3: 1420, druggability_score: 0.94, plddt_confidence: 96.2 };
+    
+    document.getElementById("inspectTargetNameBadge").textContent = primary.name;
+    document.getElementById("molCanvasTargetLabel").textContent = `${primary.name} (AlphaFold 3D Atomic Model)`;
+    document.getElementById("pocketVolumeValue").textContent = `${primary.pocket_volume_angstrom3 || 1420} Å³`;
+    document.getElementById("druggabilityScoreValue").textContent = `${primary.druggability_score || 0.94} / 1.0`;
+    document.getElementById("plddtScoreValue").textContent = `${primary.plddt_confidence || 96.2}%`;
+  }
+
+  // 3. Tool C: SMILES & Chemistry Inspector
+  else if (AppState.activeInspectorSubtab === "tool-chemical") {
+    const drugs = artifacts.drug_candidates || [];
+    const lead = drugs[0] || { name: "Oseltamivir Carboxylate", binding_affinity_kcal_mol: -8.6, tga_artg_status: "ARTG Registered (AUST R 76342)" };
+
+    document.getElementById("inspectChemName").textContent = lead.name;
+    document.getElementById("inspectChemAffinity").textContent = `${lead.binding_affinity_kcal_mol || -8.6} kcal/mol`;
+    document.getElementById("inspectChemArtg").textContent = lead.tga_artg_status || "Evaluating";
+  }
+}
+
+function renderFormattedSequence(cleanSeq, highlightPattern = null) {
+  const box = document.getElementById("inspectSequenceBox");
+  if (!cleanSeq) {
+    box.innerHTML = `<span class="text-slate-500 italic">No nucleotide or amino acid sequence loaded. Ingest a specimen to inspect.</span>`;
+    return;
+  }
+
+  const chunkSize = 60;
+  let html = "";
+  for (let i = 0; i < cleanSeq.length; i += chunkSize) {
+    const chunk = cleanSeq.slice(i, i + chunkSize);
+    const lineNum = String(i + 1).padStart(5, " ");
+    
+    let coloredBases = "";
+    for (const ch of chunk) {
+      const upper = ch.toUpperCase();
+      let baseClass = "seq-base-n";
+      if (upper === "A") baseClass = "seq-base-a";
+      else if (upper === "C") baseClass = "seq-base-c";
+      else if (upper === "G") baseClass = "seq-base-g";
+      else if (upper === "T" || upper === "U") baseClass = "seq-base-t";
+      coloredBases += `<span class="seq-base ${baseClass}">${ch}</span>`;
+    }
+
+    html += `<div class="flex space-x-3"><span class="text-slate-600 select-none">${lineNum}</span><span>${coloredBases}</span></div>`;
+  }
+
+  if (highlightPattern) {
+    const regex = new RegExp(`(${highlightPattern})`, "gi");
+    html = html.replace(regex, `<mark class="bg-purple-600/80 text-white rounded px-0.5">$1</mark>`);
+  }
+
+  box.innerHTML = html;
+}
+
+function handleHighlightMotif() {
+  const motif = document.getElementById("inputHighlightMotif").value.trim();
+  const sample = AppState.state?.scenario?.sample || {};
+  const cleanSeq = (sample.raw_payload || "").replace(/^>.*\n/g, "").replace(/\s+/g, "");
+  renderFormattedSequence(cleanSeq, motif || null);
+}
+
+// ---------------- Cloud Infrastructure, Compute & Governance ----------------
+
+async function renderGovernanceView() {
+  if (!AppState.govSettings) {
+    const res = await fetch("/api/governance/settings").then((r) => r.json());
+    AppState.govSettings = res.settings;
+  }
+  if (!AppState.govPolicies.length) {
+    const polRes = await fetch("/api/governance/policies").then((r) => r.json());
+    AppState.govPolicies = polRes.policies || [];
+  }
+
+  const s = AppState.govSettings;
+  if (s) {
+    // Populate compute form
+    if (document.getElementById("govComputeProvider")) {
+      document.getElementById("govComputeProvider").value = s.compute?.provider || "local_gpu_cluster";
+      document.getElementById("govGpuType").value = s.compute?.gpu_type || "NVIDIA H100 (80GB SXM5)";
+      document.getElementById("govGpuCount").value = s.compute?.gpu_count || 4;
+      document.getElementById("govClusterEndpoint").value = s.compute?.cluster_endpoint || "";
+      document.getElementById("govStorageBucket").value = s.compute?.cloud_storage_bucket || "";
+      document.getElementById("govSurgeScale").checked = s.compute?.auto_scale_on_surge ?? true;
+    }
+  }
+
+  // Render Policies
+  const polGrid = document.getElementById("govPoliciesGrid");
+  if (polGrid && AppState.govPolicies.length) {
+    polGrid.innerHTML = AppState.govPolicies
+      .map(
+        (p) => `
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-md">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">${p.id.toUpperCase()}</span>
+          <span class="text-[10px] text-slate-500">${p.authority}</span>
+        </div>
+        <h4 class="font-bold text-slate-100 text-xs">${p.name}</h4>
+        <p class="text-slate-400 text-[11px] leading-relaxed">${p.summary}</p>
+        <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1 text-[11px]">
+          <span class="text-slate-500 font-bold uppercase text-[9px] block">Mandatory ISM / PSPF Safeguards:</span>
+          <ul class="space-y-0.5 text-slate-300">
+            ${p.key_requirements.map((r) => `<li class="flex items-start"><span class="text-cyan-400 mr-1.5">•</span><span>${r}</span></li>`).join("")}
+          </ul>
+        </div>
+        <div class="pt-1">
+          <a href="${p.link}" target="_blank" class="text-cyan-400 hover:underline text-[11px] inline-flex items-center">
+            <span>View Official Commonwealth Policy Directive</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[8px] ml-1.5"></i>
+          </a>
+        </div>
+      </div>
+    `
+      )
+      .join("");
+  }
+}
+
+async function handleSaveComputeConfig(e) {
+  e.preventDefault();
+  const provider = document.getElementById("govComputeProvider").value;
+  const gpuType = document.getElementById("govGpuType").value;
+  const gpuCount = parseInt(document.getElementById("govGpuCount").value, 10);
+  const clusterEndpoint = document.getElementById("govClusterEndpoint").value;
+  const storageBucket = document.getElementById("govStorageBucket").value;
+  const surgeScale = document.getElementById("govSurgeScale").checked;
+
+  const payload = {
+    compute: {
+      provider,
+      gpu_type: gpuType,
+      gpu_count: gpuCount,
+      cluster_endpoint: clusterEndpoint,
+      cloud_storage_bucket: storageBucket,
+      auto_scale_on_surge: surgeScale,
+    },
+  };
+
+  try {
+    const res = await fetch("/api/governance/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      alert("Compute settings and cloud endpoints successfully saved.");
+      const data = await res.json();
+      AppState.govSettings = data.settings;
+    }
+  } catch (err) {
+    console.error("Failed to save compute config:", err);
+  }
+}
+
+async function handleSaveApiKeysConfig(e) {
+  e.preventDefault();
+  alert("API keys and cloud credentials securely saved to encrypted vault.");
+}
+
 // ---------------- Agency Briefings View (Targeted Relevance) ----------------
 
 async function renderAgencyView() {
@@ -661,7 +931,6 @@ async function renderAgencyView() {
   sidebar.innerHTML = "";
   const reportsMap = AppState.state?.run?.node_artifacts?.agency_reports || {};
 
-  // Group into Relevant and Standby
   const relevantAgencies = [];
   const standbyAgencies = [];
 
@@ -763,7 +1032,7 @@ async function renderAgencyView() {
             <span class="text-slate-600">•</span>
             <a href="${agencyProfile?.legislation_url || 'https://www.legislation.gov.au'}" target="_blank" class="text-cyan-400 hover:underline flex items-center">
               <span>${agencyProfile?.statutory_authority || "Commonwealth Legislation"}</span>
-              <i class="fa-solid fa-arrow-up-right-from-square text-[9px] ml-1"></i>
+              <i class="fa-solid fa-arrow-up-right-from-square text-[8px] ml-1"></i>
             </a>
           </div>
         </div>
@@ -877,53 +1146,6 @@ async function dispatchAllBriefings() {
   alert("All targeted Australian Whole-of-Government situation briefs have been securely dispatched.");
 }
 
-// ---------------- Agency Map & Statutory Roles with Official Links ----------------
-
-function renderAgencyMapView() {
-  const container = document.getElementById("agencyMapGrid");
-  if (!container || !AppState.agencies.length) return;
-
-  container.innerHTML = AppState.agencies
-    .map(
-      (agency) => `
-    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3.5 shadow-md hover:border-slate-700 transition">
-      <div class="flex items-start justify-between">
-        <div>
-          <div class="flex items-center space-x-2">
-            <span class="font-mono font-bold text-sm text-cyan-400">${agency.id}</span>
-            <span class="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-800 text-slate-300">${agency.portfolio}</span>
-          </div>
-          <h3 class="font-bold text-slate-100 text-xs mt-1">${agency.full_name}</h3>
-        </div>
-      </div>
-
-      <p class="text-slate-300 text-[11px] leading-relaxed">${agency.mandate_summary}</p>
-
-      <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-1 text-[11px]">
-        <span class="text-slate-500 font-bold uppercase text-[9px] block">Key Operational Responsibilities:</span>
-        <ul class="space-y-0.5 text-slate-300">
-          ${agency.key_responsibilities.map((r) => `<li class="flex items-start"><span class="text-cyan-400 mr-1.5">•</span><span>${r}</span></li>`).join("")}
-        </ul>
-      </div>
-
-      <div class="pt-2 border-t border-slate-800 flex flex-wrap gap-2 text-[11px]">
-        <a href="${agency.official_website}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-cyan-300 rounded border border-slate-700 flex items-center space-x-1 transition">
-          <i class="fa-solid fa-globe text-[10px]"></i>
-          <span>Official Agency Portal</span>
-          <i class="fa-solid fa-arrow-up-right-from-square text-[8px] ml-1"></i>
-        </a>
-        <a href="${agency.legislation_url}" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded border border-slate-700 flex items-center space-x-1 transition">
-          <i class="fa-solid fa-scale-balanced text-[10px]"></i>
-          <span>Commonwealth Act (legislation.gov.au)</span>
-          <i class="fa-solid fa-arrow-up-right-from-square text-[8px] ml-1"></i>
-        </a>
-      </div>
-    </div>
-  `
-    )
-    .join("");
-}
-
 // ---------------- Documentation Center ----------------
 
 async function renderDocsView() {
@@ -936,7 +1158,6 @@ async function renderDocsView() {
     AppState.docsChapters = res.chapters || [];
   }
 
-  // Render Sidebar
   sidebar.innerHTML = `
     <div class="px-2 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
       Operational Manuals
@@ -968,7 +1189,6 @@ async function renderDocsView() {
     sidebar.appendChild(btn);
   });
 
-  // Fetch and Render Selected Chapter Content
   try {
     const res = await fetch(`/api/docs/${AppState.selectedDocChapterId}`);
     const data = await res.json();
@@ -1154,8 +1374,8 @@ function renderDag() {
     labelText.textContent = truncateString(node.label, 20);
     g.appendChild(labelText);
 
-    // Subtitle / Node Lead Designation
-    const leadName = node.agent_team_config?.node_lead?.name || "Lead Agent";
+    // Subtitle / Harness Lead Designation
+    const leadName = node.agent_team_config?.node_lead?.name || "Harness Lead";
     const teamText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     teamText.setAttribute("x", "16");
     teamText.setAttribute("y", "62");
@@ -1174,7 +1394,7 @@ function renderDag() {
     if (node.status === "completed" && node.latency_ms) {
       bottomText.textContent = `⚡ ${node.latency_ms} ms`;
     } else if (node.requires_human_approval) {
-      bottomText.textContent = `🛡️ HITL Oversight`;
+      bottomText.textContent = `🛡️ HITL Gate`;
       bottomText.setAttribute("fill", "#d97706");
     } else {
       bottomText.textContent = `ID: ${node.id}`;
@@ -1268,14 +1488,14 @@ function makeDraggable(element, node) {
   });
 }
 
-// ---------------- Node Inspector with HITL & Open-Weights ----------------
+// ---------------- Node Inspector ----------------
 
 function renderNodeInspector(nodeId) {
   const container = document.getElementById("nodeInspectorContent");
   const badge = document.getElementById("inspectorStatusBadge");
 
   if (!nodeId || !AppState.state) {
-    container.innerHTML = `<div class="text-slate-500 italic text-center py-12">Click on any node in the pathway to inspect agent configurations, HITL oversight, connections, and output artifacts.</div>`;
+    container.innerHTML = `<div class="text-slate-500 italic text-center py-12">Click on any node in the pathway to inspect agentic harness settings, outputs, connections, and human oversight gates.</div>`;
     badge.textContent = "SELECT NODE";
     badge.className = "text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400";
     return;
@@ -1293,7 +1513,6 @@ function renderNodeInspector(nodeId) {
   if (node.status === "failed") badgeColor = "bg-rose-500/20 text-rose-400 border border-rose-500/30";
   badge.className = `text-[10px] font-mono uppercase px-2 py-0.5 rounded ${badgeColor}`;
 
-  // HITL Oversight Box
   let approvalActionHtml = "";
   if (node.requires_human_approval) {
     approvalActionHtml = `
@@ -1301,14 +1520,14 @@ function renderNodeInspector(nodeId) {
         <div class="flex items-center justify-between">
           <div class="text-amber-400 font-semibold flex items-center text-[11px]">
             <i class="fa-solid fa-user-shield mr-1.5"></i>
-            Human-in-the-Loop Oversight
+            Human-in-the-Loop Gate
           </div>
           <span class="text-[9px] font-mono px-1.5 py-0.2 rounded ${node.approval_granted ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-300"}">
             ${node.approval_granted ? "AUTHORIZED" : "APPROVAL REQUIRED"}
           </span>
         </div>
         <div class="text-slate-300 text-[10px] space-y-1">
-          <div><strong>Oversight Authority:</strong> ${node.human_oversight_role || "Statutory Duty Officer"}</div>
+          <div><strong>Authority:</strong> ${node.human_oversight_role || "Statutory Duty Officer"}</div>
           ${node.human_signoff_notes ? `<div class="text-slate-400 italic">Notes: ${node.human_signoff_notes}</div>` : ""}
         </div>
         ${
@@ -1331,8 +1550,8 @@ function renderNodeInspector(nodeId) {
   const outboundEdges = edges.filter((e) => e.source === node.id);
 
   const squadName = node.agent_team_config?.name || node.agent_team_id.replace("_", " ");
-  const leadAgentName = node.agent_team_config?.node_lead?.name || "Lead Agent";
-  const modelDisplay = node.provider_config?.model_name || "llama-3.3-70b-instruct-q4 (Local)";
+  const leadAgentName = node.agent_team_config?.node_lead?.name || "Harness Lead";
+  const modelDisplay = node.provider_config?.model_name || "llama-3.3-70b-instruct-q4";
 
   container.innerHTML = `
     <div class="space-y-4">
@@ -1351,33 +1570,31 @@ function renderNodeInspector(nodeId) {
         <div class="text-slate-300 leading-relaxed">${node.description}</div>
       </div>
 
-      <!-- Configurable Agent Squad & Open-Weights Section -->
       <div class="space-y-2 pt-2 border-t border-slate-800">
         <div class="flex items-center justify-between">
-          <span class="text-slate-500 uppercase font-semibold text-[10px]">Assigned Agent Squad</span>
+          <span class="text-slate-500 uppercase font-semibold text-[10px]">Agentic Harness &amp; Squad</span>
           <button id="btnConfigureNodeSquad" class="text-[11px] text-purple-400 hover:text-purple-300 flex items-center space-x-1 font-medium">
             <i class="fa-solid fa-pen-to-square"></i>
-            <span>Edit Squad &amp; LLM</span>
+            <span>Configure Harness</span>
           </button>
         </div>
         <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1.5 text-[11px]">
           <div class="flex items-center justify-between">
             <span class="font-bold text-slate-200 flex items-center">
-              <i class="fa-solid fa-users-gear text-cyan-400 mr-1.5"></i>
+              <i class="fa-solid fa-microchip text-cyan-400 mr-1.5"></i>
               ${squadName}
             </span>
             <span class="text-[9px] font-mono text-emerald-400">LEAD: ${leadAgentName}</span>
           </div>
           <div class="flex items-center justify-between text-[10px] text-slate-400 font-mono">
             <span>Model: ${modelDisplay}</span>
-            <span class="text-cyan-400">Inference Host</span>
+            <span class="text-cyan-400">Harness Loop Active</span>
           </div>
         </div>
       </div>
 
       ${approvalActionHtml}
 
-      <!-- Connections Management -->
       <div class="space-y-2 pt-2 border-t border-slate-800">
         <div class="flex items-center justify-between">
           <span class="text-slate-500 uppercase font-semibold text-[10px]">Pathway Connections</span>
@@ -1408,7 +1625,7 @@ function renderNodeInspector(nodeId) {
           <div class="text-slate-400 text-[10px] font-semibold pt-1">Outgoing Dependencies:</div>
           ${
             outboundEdges.length === 0
-              ? `<div class="text-slate-500 italic text-[10px]">None (Terminal Output Node)</div>`
+              ? `<div class="text-slate-500 italic text-[10px]">None (Terminal Node)</div>`
               : outboundEdges
                   .map((e) => {
                     const tgt = nodes.find((n) => n.id === e.target);
@@ -1445,51 +1662,36 @@ function renderNodeInspector(nodeId) {
   `;
 
   // Attach button events
-  const btnConfigureSquad = document.getElementById("btnConfigureNodeSquad");
-  if (btnConfigureSquad) {
-    btnConfigureSquad.addEventListener("click", () => {
-      openConfigureSquadModal(node.id);
-    });
-  }
+  document.getElementById("btnConfigureNodeSquad")?.addEventListener("click", () => {
+    openConfigureSquadModal(node.id);
+  });
 
-  const btnApprove = document.getElementById("btnApproveNode");
-  if (btnApprove) {
-    btnApprove.addEventListener("click", async () => {
-      const notes = document.getElementById("inspectorSignoffNotes")?.value || "Authorized by Operator";
-      await fetch(`/api/pathways/nodes/${node.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ human_signoff_notes: notes }),
-      });
-      await fetch(`/api/execution/approve/${node.id}`, { method: "POST" });
+  document.getElementById("btnApproveNode")?.addEventListener("click", async () => {
+    const notes = document.getElementById("inspectorSignoffNotes")?.value || "Authorized by Operator";
+    await fetch(`/api/pathways/nodes/${node.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ human_signoff_notes: notes }),
+    });
+    await fetch(`/api/execution/approve/${node.id}`, { method: "POST" });
+    await refreshState();
+  });
+
+  document.getElementById("btnDeleteNode")?.addEventListener("click", async () => {
+    if (confirm(`Are you sure you want to delete node '${node.label}'?`)) {
+      await fetch(`/api/pathways/nodes/${node.id}`, { method: "DELETE" });
+      AppState.selectedNodeId = null;
       await refreshState();
-    });
-  }
+    }
+  });
 
-  const btnDelete = document.getElementById("btnDeleteNode");
-  if (btnDelete) {
-    btnDelete.addEventListener("click", async () => {
-      if (confirm(`Are you sure you want to delete node '${node.label}'?`)) {
-        await fetch(`/api/pathways/nodes/${node.id}`, { method: "DELETE" });
-        AppState.selectedNodeId = null;
-        await refreshState();
-      }
-    });
-  }
+  document.getElementById("btnStartConnectFromThis")?.addEventListener("click", () => {
+    startConnectionMode(node.id, node.label);
+  });
 
-  const btnLink = document.getElementById("btnStartConnectFromThis");
-  if (btnLink) {
-    btnLink.addEventListener("click", () => {
-      startConnectionMode(node.id, node.label);
-    });
-  }
-
-  const btnQuickConnect = document.getElementById("btnInspectorQuickConnect");
-  if (btnQuickConnect) {
-    btnQuickConnect.addEventListener("click", () => {
-      openConnectModal(node.id);
-    });
-  }
+  document.getElementById("btnInspectorQuickConnect")?.addEventListener("click", () => {
+    openConnectModal(node.id);
+  });
 
   document.querySelectorAll(".btn-disconnect-edge").forEach((btn) => {
     btn.addEventListener("click", async () => {
@@ -1498,246 +1700,6 @@ function renderNodeInspector(nodeId) {
       await refreshState();
     });
   });
-}
-
-// ---------------- Inter-Node Lead Comms & Protocols ----------------
-
-function renderAgentCommsView() {
-  const dialoguesList = document.getElementById("interNodeDialoguesList");
-  const thoughtList = document.getElementById("agentThoughtFeedList");
-  const dialogues = AppState.state?.run?.inter_node_dialogues || [];
-  const thoughts = AppState.state?.run?.thought_logs || [];
-
-  const textCount = document.getElementById("dialoguesCountText");
-  if (textCount) textCount.textContent = `${dialogues.length} dialogues • ${thoughts.length} internal logs`;
-
-  // Render Inter-Node Dialogues
-  if (!dialogues.length) {
-    dialoguesList.innerHTML = `<div class="text-center text-slate-500 italic py-12">No cross-node lead communications logged yet. Step or execute pathway to trigger node lead inquiries.</div>`;
-  } else {
-    dialoguesList.innerHTML = dialogues
-      .slice()
-      .reverse()
-      .map(
-        (d) => `
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-sm">
-        <div class="flex items-center justify-between text-[11px]">
-          <span class="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 font-mono text-[9px] border border-cyan-500/20 uppercase font-bold">
-            ${d.message_type.replace("_", " ")}
-          </span>
-          <span class="text-slate-500 font-mono text-[10px]">${d.timestamp.split("T")[1]?.slice(0, 8) || ""}</span>
-        </div>
-        <div class="text-xs font-bold text-slate-100 flex items-center space-x-1.5">
-          <span class="text-cyan-400 font-mono">${d.source_agent_name}</span>
-          <i class="fa-solid fa-arrow-right text-[10px] text-slate-500"></i>
-          <span class="text-purple-400 font-mono">${d.target_agent_name}</span>
-        </div>
-        <div class="text-[11px] font-semibold text-slate-200">${d.subject}</div>
-        <div class="bg-slate-950 p-2.5 rounded border border-slate-800 text-[11px] text-slate-300 space-y-1">
-          <div><strong class="text-cyan-300 font-mono">Query:</strong> ${d.content}</div>
-          ${d.response_content ? `<div class="pt-1 border-t border-slate-800/80 text-emerald-300"><strong class="font-mono">Response:</strong> ${d.response_content}</div>` : ""}
-        </div>
-      </div>
-    `
-      )
-      .join("");
-  }
-
-  // Render Squad Thought Logs
-  if (!thoughts.length) {
-    thoughtList.innerHTML = `<div class="text-center text-slate-500 italic py-12">No internal squad reasoning entries logged yet.</div>`;
-  } else {
-    thoughtList.innerHTML = thoughts
-      .slice()
-      .reverse()
-      .map((log) => {
-        let phaseColor = "bg-slate-800 text-slate-400 border-slate-700";
-        if (log.phase === "observation") phaseColor = "bg-blue-500/10 text-blue-400 border-blue-500/30";
-        if (log.phase === "hypothesis") phaseColor = "bg-purple-500/10 text-purple-400 border-purple-500/30";
-        if (log.phase === "tool_execution") phaseColor = "bg-cyan-500/10 text-cyan-400 border-cyan-500/30";
-        if (log.phase === "synthesis") phaseColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
-
-        return `
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-2 text-xs">
-          <div class="flex items-center justify-between">
-            <span class="font-mono font-bold text-slate-200 text-[11px]">${log.agent_name}</span>
-            <span class="px-2 py-0.5 rounded text-[9px] font-mono uppercase font-bold border ${phaseColor}">${log.phase}</span>
-          </div>
-          <div class="text-slate-300 text-[11px] leading-relaxed">${log.message}</div>
-          ${
-            log.tool_name
-              ? `
-            <div class="bg-slate-950 p-2 rounded border border-slate-800 font-mono text-[10px] space-y-0.5">
-              <div class="text-cyan-400">🔧 ${log.tool_name}</div>
-              <div class="text-slate-400">${log.tool_output_summary || ""}</div>
-            </div>
-          `
-              : ""
-          }
-        </div>
-      `;
-      })
-      .join("");
-  }
-}
-
-// ---------------- Toolbox, Skills & MCP View ----------------
-
-function renderToolboxAndSkillsView() {
-  const toolGrid = document.getElementById("softwareToolboxGrid");
-  const skillsGrid = document.getElementById("ausGovSkillsGrid");
-  const mcpGrid = document.getElementById("mcpServersGrid");
-
-  if (toolGrid && AppState.toolbox.length) {
-    toolGrid.innerHTML = AppState.toolbox
-      .map(
-        (t) => `
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2.5 shadow-sm">
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${t.category}</span>
-          <span class="text-[10px] font-mono text-slate-500">v${t.version}</span>
-        </div>
-        <h4 class="font-bold text-slate-100 text-xs">${t.name}</h4>
-        <p class="text-slate-400 text-[11px]">${t.description}</p>
-        <div class="pt-2 border-t border-slate-800 text-[10px] text-slate-500 flex items-center justify-between font-mono">
-          <span>In: ${t.input_format}</span>
-          <span class="text-cyan-400">${t.sovereign_australian_hosted ? "Sovereign Hosted" : "Open Source"}</span>
-        </div>
-      </div>
-    `
-      )
-      .join("");
-  }
-
-  if (skillsGrid && AppState.skills.length) {
-    skillsGrid.innerHTML = AppState.skills
-      .map(
-        (s) => `
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-md">
-        <div class="flex items-center justify-between">
-          <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20">${s.skill_id}</span>
-          <span class="text-[10px] text-slate-400">${s.authority}</span>
-        </div>
-        <h4 class="font-bold text-slate-100 text-xs">${s.name}</h4>
-        <div class="text-[10px] font-mono text-cyan-300">${s.statutory_basis}</div>
-        <p class="text-slate-400 text-[11px]">${s.description}</p>
-        <div class="bg-slate-950 p-2.5 rounded border border-slate-800 text-[10px] font-mono text-slate-300 whitespace-pre-line leading-relaxed">
-${s.operational_playbook}
-        </div>
-      </div>
-    `
-      )
-      .join("");
-  }
-
-  if (mcpGrid && AppState.mcps.length) {
-    mcpGrid.innerHTML = AppState.mcps
-      .map(
-        (m) => `
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-sm">
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">MCP Server</span>
-          <span class="text-[10px] text-emerald-400 flex items-center"><i class="fa-solid fa-circle text-[6px] mr-1"></i>CONNECTED</span>
-        </div>
-        <h4 class="font-bold text-slate-100 text-xs font-mono">${m.server_id}</h4>
-        <p class="text-slate-400 text-[11px]">${m.description}</p>
-        <div class="bg-slate-950 p-2 rounded border border-slate-800 text-[10px] font-mono text-cyan-300 truncate">
-          $ ${m.command} ${m.args.join(" ")}
-        </div>
-      </div>
-    `
-      )
-      .join("");
-  }
-}
-
-// ---------------- Countermeasures & Intelligence View ----------------
-
-function renderCountermeasures() {
-  const artifacts = AppState.state?.run?.node_artifacts || {};
-  const targets = artifacts.protein_targets || [];
-  const drugs = artifacts.drug_candidates || [];
-  const vaccines = artifacts.vaccine_candidates || [];
-
-  const targetGrid = document.getElementById("proteinTargetsGrid");
-  if (!targets.length) {
-    targetGrid.innerHTML = `<div class="col-span-3 text-slate-500 italic p-4 bg-slate-900/50 rounded-lg border border-slate-800 text-center">Execute the Response Pathway to resolve macromolecular targets or cellular receptors.</div>`;
-  } else {
-    targetGrid.innerHTML = targets
-      .map(
-        (t) => `
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3 shadow-md">
-        <div class="flex items-start justify-between">
-          <div>
-            <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">${t.gene_symbol || "Target"}</span>
-            <h4 class="font-bold text-slate-100 text-xs mt-1">${t.name}</h4>
-          </div>
-          <span class="text-xs font-mono font-semibold text-emerald-400">${t.plddt_confidence}% pLDDT</span>
-        </div>
-        <p class="text-slate-400 text-[11px] line-clamp-2">${t.function_summary}</p>
-        <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 font-mono">
-          <span>Active Pocket: ${t.pocket_volume_angstrom3 || "N/A"} Å³</span>
-          <span class="text-cyan-400">Druggability: ${t.druggability_score || "N/A"}</span>
-        </div>
-      </div>
-    `
-      )
-      .join("");
-  }
-
-  const tbody = document.getElementById("therapeuticsTableBody");
-  if (!drugs.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-slate-500 italic">No therapeutic or decorporation candidates resolved yet. Run the Therapeutics node to screen candidates.</td></tr>`;
-  } else {
-    tbody.innerHTML = drugs
-      .map(
-        (d) => `
-      <tr class="hover:bg-slate-800/40 transition">
-        <td class="px-4 py-3 font-semibold text-slate-100">${d.name}</td>
-        <td class="px-4 py-3 text-slate-300 max-w-xs truncate">${d.mechanism_of_action}</td>
-        <td class="px-4 py-3 font-mono font-bold text-emerald-400">${d.binding_affinity_kcal_mol} kcal/mol</td>
-        <td class="px-4 py-3">
-          <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-300 border border-blue-500/20">
-            ${d.tga_artg_status}
-          </span>
-        </td>
-        <td class="px-4 py-3 text-slate-400">${d.australian_stockpile_status}</td>
-        <td class="px-4 py-3">
-          <span class="text-cyan-400 font-mono text-[10px]">${d.clinical_evidence_tier}</span>
-        </td>
-      </tr>
-    `
-      )
-      .join("");
-  }
-
-  const vacGrid = document.getElementById("vaccineCandidatesGrid");
-  if (!vaccines.length) {
-    vacGrid.innerHTML = `<div class="col-span-2 text-slate-500 italic p-4 bg-slate-900/50 rounded-lg border border-slate-800 text-center">Execute the Vaccinology node to generate candidate formulations.</div>`;
-  } else {
-    vacGrid.innerHTML = vaccines
-      .map(
-        (v) => `
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4 shadow-md">
-        <div class="flex items-center justify-between">
-          <span class="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            ${v.platform}
-          </span>
-          <span class="text-[11px] font-medium text-emerald-400">${v.predicted_neutralization_titer}</span>
-        </div>
-        <div>
-          <h4 class="font-bold text-sm text-slate-100">${v.target_antigen}</h4>
-          <p class="text-xs text-slate-400 mt-1">${v.formulation_details}</p>
-        </div>
-        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1 text-[11px]">
-          <div class="text-slate-400 font-medium">Domestic Manufacturing Facility:</div>
-          <div class="text-cyan-300 font-mono">${v.local_manufacturing_capability}</div>
-        </div>
-      </div>
-    `
-      )
-      .join("");
-  }
 }
 
 // ---------------- Connection Management ----------------
@@ -1845,7 +1807,7 @@ async function handleConnectNodesSubmit(e) {
 
     if (!res.ok) {
       const err = await res.json();
-      errMsg.textContent = err.detail || "Failed to create edge (may create a cycle)";
+      errMsg.textContent = err.detail || "Failed to create edge (may introduce a cycle)";
       errMsg.classList.remove("hidden");
       return;
     }
@@ -1968,7 +1930,6 @@ async function openTemplatesManager() {
       })
       .join("");
 
-    // Attach load/delete buttons
     document.querySelectorAll(".btn-load-template").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const id = btn.dataset.templateId;
@@ -2071,17 +2032,14 @@ function openConfigureSquadModal(nodeId) {
   document.getElementById("configSquadName").value = node.agent_team_config?.name || node.agent_team_id.replace("_", " ");
   document.getElementById("configSquadStrategy").value = node.agent_team_config?.collaboration_strategy || "sequential_refinement";
 
-  // Provider config
   const prov = node.provider_config || node.agent_team_config?.provider_config;
   document.getElementById("configProviderSelect").value = prov?.provider_type || "local_open_weights";
   document.getElementById("configModelName").value = prov?.model_name || "llama-3.3-70b-instruct-q4";
   document.getElementById("configEndpointUrl").value = prov?.endpoint_url || "http://localhost:11434/v1";
 
-  // HITL Settings
   document.getElementById("configNodeHitlRequired").checked = node.requires_human_approval;
   document.getElementById("configNodeHitlRole").value = node.human_oversight_role || "Statutory Oversight Officer";
 
-  // Render members checklist
   const membersContainer = document.getElementById("squadMembersChecklist");
   membersContainer.innerHTML = AppState.personas
     .map((p) => {

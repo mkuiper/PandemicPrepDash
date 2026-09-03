@@ -237,3 +237,68 @@ def test_skills_toolbox_and_mcp_api():
     assert len(providers) >= 3
     assert any(p["id"] == "local_open_weights" for p in providers)
     assert any(p["id"] == "sovereign_australian_cloud" for p in providers)
+
+
+def test_human_agent_collaborative_message_board():
+    # 1. Retrieve messages
+    res = client.get("/api/hub/messages")
+    assert res.status_code == 200
+    msgs = res.json()["messages"]
+    assert len(msgs) >= 1  # Contains initialized welcome
+    assert any(m["sender_type"] == "SYSTEM" for m in msgs)
+
+    # 2. Post human expert message
+    post_res = client.post("/api/hub/messages", json={
+        "sender_name": "Dr. Sarah Chen, Epidemiologist",
+        "sender_role": "Incident Specialist",
+        "target_node_id": "@node_biosecurity_assessment",
+        "content": "Please verify if this sample has any markers of dual-use gain-of-function.",
+        "tags": ["HUMAN_INPUT", "GOF_CHECK"],
+    })
+    assert post_res.status_code == 200
+    new_msg = post_res.json()["message"]
+    assert new_msg["sender_name"] == "Dr. Sarah Chen, Epidemiologist"
+    assert new_msg["target_node_id"] == "@node_biosecurity_assessment"
+    assert new_msg["sender_type"] == "HUMAN_EXPERT"
+
+    # 3. Check message in list
+    res_after = client.get("/api/hub/messages")
+    msgs_after = res_after.json()["messages"]
+    assert any(m["content"] == "Please verify if this sample has any markers of dual-use gain-of-function." for m in msgs_after)
+
+
+def test_governance_and_cloud_compute_api():
+    # 1. Get governance settings
+    res = client.get("/api/governance/settings")
+    assert res.status_code == 200
+    settings = res.json()["settings"]
+    assert "compute" in settings
+    assert "compliance" in settings
+    assert settings["compliance"]["pspf_aligned"] is True
+    assert "Australia" in settings["compliance"]["data_residency"]
+
+    # 2. Update compute settings
+    res_update = client.post("/api/governance/settings", json={
+        "compute": {
+            "provider": "aws_healthomics",
+            "gpu_type": "NVIDIA H100 (80GB SXM5)",
+            "gpu_count": 8,
+            "cluster_endpoint": "https://healthomics.ap-southeast-2.amazonaws.com",
+            "cloud_storage_bucket": "s3://aus-healthomics-emergency-vault/",
+            "auto_scale_on_surge": True,
+        }
+    })
+    assert res_update.status_code == 200
+    updated_settings = res_update.json()["settings"]
+    assert updated_settings["compute"]["provider"] == "aws_healthomics"
+    assert updated_settings["compute"]["gpu_count"] == 8
+
+    # 3. Get Australian Government policies
+    res_pol = client.get("/api/governance/policies")
+    assert res_pol.status_code == 200
+    policies = res_pol.json()["policies"]
+    assert len(policies) >= 4
+    assert any("PSPF" in p["name"] for p in policies)
+    assert any("ISM" in p["name"] for p in policies)
+    assert any("SSBA" in p["name"] for p in policies)
+

@@ -333,3 +333,55 @@ def test_radiological_cesium137_pathway_and_agencies():
     assert any("sheltering" in act.lower() or "radioprotective" in act.lower() for act in arpansa_rep["action_items_required"])
 
 
+def test_agentic_harness_execution_and_message_broadcast():
+    """Verify that node execution runs through NodeAgenticHarness and broadcasts to the message board."""
+    from pandemic_prep_dash.core.registry import create_default_biological_pathway
+    from pandemic_prep_dash.core.engine import PathwayExecutionEngine
+    from pandemic_prep_dash.core.data_hub import HubMessage, MessageSenderType
+
+    pathway = create_default_biological_pathway()
+    engine = PathwayExecutionEngine(pathway, "scen_h5n1_avian_flu")
+
+    # 1. Post a human directive targeted at literature research node
+    engine.data_hub.post_message(
+        HubMessage(
+            message_id="msg_test_human_01",
+            sender_type=MessageSenderType.HUMAN_EXPERT,
+            sender_name="Chief Science Advisor",
+            sender_role="Scientific Oversight",
+            target_node_id="node_literature_research",
+            content="Focus literature search on mammal adaptation mutations in clade 2.3.4.4b.",
+        )
+    )
+
+    # 2. Execute Step 1 (Ingestion)
+    res1 = engine.execute_next_step()
+    assert res1["status"] == "step_completed"
+
+    # Ingestion node harness should have posted a summary to the message board
+    board_messages = [m for m in engine.data_hub.messages if m.target_node_id == "node_sample_ingestion"]
+    assert len(board_messages) >= 1
+    assert "Ingestion verified specimen" in board_messages[0].content
+
+    # 3. Execute Step 2 (Literature Research)
+    res2 = engine.execute_next_step()
+    assert res2["status"] == "step_completed"
+
+    # Check that literature research harness ingested the human directive into thought logs
+    harness_thoughts = [
+        t for t in engine.run.thought_logs
+        if t.node_id == "node_literature_research" and "Harness ingested human expert directive" in t.message
+    ]
+    assert len(harness_thoughts) >= 1
+    assert "mammal adaptation" in harness_thoughts[0].message
+
+    # Research node harness should also have posted its summary to the message board
+    research_agent_messages = [
+        m for m in engine.data_hub.messages
+        if m.target_node_id == "node_literature_research" and m.sender_type == MessageSenderType.AGENT
+    ]
+    assert len(research_agent_messages) >= 1
+    assert "peer-reviewed citations" in research_agent_messages[0].content
+
+
+

@@ -19,6 +19,7 @@ from ..models.pathway import (
 from ..scenarios import get_scenario, list_scenarios
 from .node_executor import NodeExecutor
 from .data_hub import CentralDataHub, BlockerAlert, BlockerSeverity, ResearchPaper
+from .harness import NodeAgenticHarness
 
 
 class PathwayExecutionEngine:
@@ -182,8 +183,8 @@ class PathwayExecutionEngine:
             }
 
         self.run.current_node_id = target_node.id
-        updated_node, thought_logs, new_artifacts, new_dialogues, new_blocker = NodeExecutor.execute_node(
-            node=target_node,
+        harness = NodeAgenticHarness(node=target_node, data_hub=self.data_hub)
+        updated_node, thought_logs, new_artifacts, new_dialogues, new_blocker = harness.run(
             blackboard=self.run.node_artifacts,
             scenario_data=self.scenario_data,
         )
