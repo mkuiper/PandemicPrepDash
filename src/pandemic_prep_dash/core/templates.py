@@ -7,6 +7,7 @@ from typing import Dict, Any, List, Optional
 from pathlib import Path
 import json
 import uuid
+import re
 
 from ..models.pathway import Pathway, PathwayNode, PathwayEdge, NodeCategory, NodeStatus
 from ..models.bio_chem import ThreatType
@@ -331,6 +332,8 @@ class TemplateManager:
 
     @classmethod
     def get_template(cls, template_id: str) -> Pathway:
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", template_id):
+            raise KeyError("Invalid template ID")
         # Check built-in
         builtins = cls.get_builtin_templates()
         if template_id in builtins:
@@ -367,6 +370,8 @@ class TemplateManager:
 
     @classmethod
     def delete_template(cls, template_id: str) -> bool:
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", template_id):
+            return False
         target_file = TEMPLATES_DIR / f"{template_id}.json"
         if target_file.exists():
             target_file.unlink()

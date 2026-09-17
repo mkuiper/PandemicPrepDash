@@ -1,8 +1,15 @@
 /**
- * PandemicPrepDash - Frontend Application Logic
+ * Incident Response Dashboard - Frontend Application Logic
  * Australian Whole-of-Government Emergency Response Platform.
  * Developed with full multi-agent cooperative, real-world lab bridge, and modern UI/UX engineering.
  */
+
+// Escape text before inserting it into HTML templates (including attribute values).
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[char]);
+}
 
 const AppState = {
   state: null,
@@ -489,8 +496,10 @@ async function selectScenario(scenarioId) {
 async function executeStep() {
   try {
     const res = await fetch("/api/execution/step", { method: "POST" });
+    if (!res.ok) throw new Error(await res.text());
     const data = await res.json();
     await refreshState();
+    if (data.result.status === "failed" || data.result.status === "blocked") alert(data.result.message);
     if (data.result.status === "approval_required") {
       alert(`Human-in-the-Loop authorization required for node: ${data.result.node_label}`);
     }
@@ -501,13 +510,21 @@ async function executeStep() {
 
 async function executeRunAll() {
   try {
-    await fetch("/api/execution/run", {
+    const res = await fetch("/api/execution/run", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ auto_approve: true }),
+      body: JSON.stringify({ auto_approve: false }),
     });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
     await refreshState();
+    if (data.result.status === "approval_required") {
+      alert(`Authorization required for: ${data.result.node_label}`);
+    } else if (data.result.status === "failed" || data.result.status === "blocked") {
+      alert(data.result.message);
+    }
   } catch (err) {
+    alert(`Execution failed: ${err.message}`);
     console.error("Run all failed:", err);
   }
 }
@@ -557,13 +574,13 @@ function renderCentralDataHub() {
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-2">
               <i class="fa-solid ${iconClass} text-xs"></i>
-              <span class="font-bold text-slate-200">${m.sender_name}</span>
-              <span class="px-1.5 py-0.2 rounded text-[9px] font-mono border ${roleBadge}">${m.sender_role}</span>
-              ${m.target_node_id ? `<span class="text-[9px] font-mono text-cyan-400 bg-slate-900/80 px-1.5 py-0.2 rounded border border-slate-800">${m.target_node_id}</span>` : ""}
+              <span class="font-bold text-slate-200">${escapeHtml(m.sender_name)}</span>
+              <span class="px-1.5 py-0.2 rounded text-[9px] font-mono border ${roleBadge}">${escapeHtml(m.sender_role)}</span>
+              ${m.target_node_id ? `<span class="text-[9px] font-mono text-cyan-400 bg-slate-900/80 px-1.5 py-0.2 rounded border border-slate-800">${escapeHtml(m.target_node_id)}</span>` : ""}
             </div>
             <span class="text-[10px] font-mono text-slate-500">${m.timestamp ? m.timestamp.split("T")[1]?.slice(0, 8) : ""}</span>
           </div>
-          <div class="text-slate-200 leading-relaxed font-sans text-xs">${m.content}</div>
+          <div class="text-slate-200 leading-relaxed font-sans text-xs">${escapeHtml(m.content)}</div>
         </div>
       `;
       })
@@ -1246,7 +1263,7 @@ async function renderToolsView() {
 
     document.querySelectorAll(".btn-run-tool-diag").forEach((btn) => {
       btn.addEventListener("click", () => {
-        alert(`Tool Diagnostic for '${btn.dataset.toolName}': ONLINE (Exit code 0, dependencies verified).`);
+        alert(`Tool Diagnostic for '${btn.dataset.toolName}': SIMULATED — no diagnostic was executed.`);
       });
     });
   }
@@ -1568,7 +1585,7 @@ async function handleSaveComputeConfig(e) {
       body: JSON.stringify(payload),
     });
     if (res.ok) {
-      alert("Compute settings and cloud endpoints successfully saved.");
+      alert("Demo compute settings saved for this session. No infrastructure was provisioned.");
       const data = await res.json();
       AppState.govSettings = data.settings;
     }
@@ -1579,7 +1596,7 @@ async function handleSaveComputeConfig(e) {
 
 async function handleSaveApiKeysConfig(e) {
   e.preventDefault();
-  alert("API keys and cloud credentials securely saved to encrypted vault.");
+  alert("Demonstration only: credentials are not stored and no encrypted vault is connected.");
 }
 
 // ---------------- Agency Briefings View ----------------
@@ -1873,7 +1890,7 @@ async function renderDocsView() {
 
 function formatMarkdownToHtml(md) {
   if (!md) return "";
-  let html = md
+  let html = escapeHtml(md)
     .replace(/^# (.*$)/gim, '<h1 class="text-xl font-bold text-white tracking-tight mb-2 pb-2 border-b border-slate-800">$1</h1>')
     .replace(/^### (.*$)/gim, '<h3 class="text-sm font-bold text-cyan-300 mt-4 mb-1">$1</h3>')
     .replace(/^## (.*$)/gim, '<h2 class="text-base font-bold text-white mt-4 mb-2">$1</h2>')
@@ -1881,7 +1898,7 @@ function formatMarkdownToHtml(md) {
     .replace(/^\d+\. (.*$)/gim, '<li class="ml-4 list-decimal mb-1 font-medium text-slate-300">$1</li>')
     .replace(/\*\*(.*?)\*\*/gim, '<strong class="text-white font-semibold">$1</strong>')
     .replace(/\*(.*?)\*/gim, '<em class="text-slate-300">$1</em>')
-    .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank" class="text-cyan-400 hover:underline inline-flex items-center">$1<i class="fa-solid fa-arrow-up-right-from-square text-[8px] ml-1"></i></a>')
+    .replace(/\[(.*?)\]\((https?:\/\/[^\s]+)\)/gim, '<a href="$2" target="_blank" class="text-cyan-400 hover:underline inline-flex items-center">$1<i class="fa-solid fa-arrow-up-right-from-square text-[8px] ml-1"></i></a>')
     .replace(/```([\s\S]*?)```/gim, '<pre class="bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono text-[11px] text-cyan-300 overflow-x-auto my-2">$1</pre>')
     .replace(/`(.*?)`/gim, '<code class="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800 text-cyan-300 font-mono text-[10px]">$1</code>')
     .replace(/\n\n/gim, '<p class="mb-2 leading-relaxed text-slate-300">')

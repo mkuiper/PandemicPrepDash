@@ -1,5 +1,5 @@
 """
-PandemicPrepDash - FastAPI Application Entrypoint.
+Incident Response Dashboard - FastAPI Application Entrypoint.
 """
 
 from fastapi import FastAPI
@@ -13,8 +13,8 @@ from .api import api_router
 from .core.state_manager import StateManager
 
 app = FastAPI(
-    title="PandemicPrepDash",
-    description="Whole-of-Australian-Government CBRN & Pandemic Preparedness Dashboard with Agentic Workflows",
+    title="Incident Response Dashboard",
+    description="Demonstration of incident coordination, response pathways and decision tracking",
     version="0.1.0",
 )
 
@@ -33,9 +33,9 @@ app.include_router(api_router)
 def health_check():
     return {
         "status": "healthy",
-        "service": "PandemicPrepDash",
+        "service": "Incident Response Dashboard",
         "version": "0.1.0",
-        "framework": "Whole-of-Australian-Government Bio/Chem CBRN Preparedness Engine",
+        "framework": "Incident response workflow demonstration",
     }
 
 
@@ -46,10 +46,10 @@ if static_dir.exists():
 
 
 def main():
-    host = os.getenv("HOST", "0.0.0.0")
+    host = os.getenv("HOST", "127.0.0.1")
     port = int(os.getenv("PORT", "8000"))
-    print(f"Starting PandemicPrepDash on http://{host}:{port}")
-    uvicorn.run("pandemic_prep_dash.main:app", host=host, port=port, reload=True)
+    print(f"Starting Incident Response Dashboard on http://{host}:{port}")
+    uvicorn.run("pandemic_prep_dash.main:app", host=host, port=port, reload=False)
 
 
 if __name__ == "__main__":

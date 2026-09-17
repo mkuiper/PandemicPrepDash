@@ -5,10 +5,9 @@ Maintains an immutable timeline of incident progression for human oversight.
 
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-import hashlib
 import json
 
-from ..models.version_control import SituationSnapshot, CheckpointTriggerType
+from ..models.version_control import SituationSnapshot
 
 
 class VersionControlManager:
@@ -16,58 +15,18 @@ class VersionControlManager:
 
     _TIMELINE: List[SituationSnapshot] = []
 
+    _RUN_ID: Optional[str] = None
+
     @classmethod
-    def initialize_scenario_timeline(cls, scenario_name: str, total_nodes: int = 8):
-        """Pre-seeds an initial baseline and progression checkpoints."""
-        cls._TIMELINE.clear()
-
-        s0 = SituationSnapshot(
-            version_id="v1.0",
-            version_number=1,
-            checkpoint_name=f"Incident Ingestion Baseline: {scenario_name}",
-            trigger_event="INITIAL_INGESTION",
-            created_at="2026-09-03T08:00:00Z",
-            created_by="National Situation Centre (NSC) Duty Officer",
-            completed_nodes_count=0,
-            total_nodes_count=total_nodes,
-            open_blockers_count=0,
-            dispatched_assays_count=0,
-            change_summary="Specimen payload registered. Initial DAG response pathway initialized.",
-        )
-
-        s1 = SituationSnapshot(
-            version_id="v1.1",
-            version_number=2,
-            checkpoint_name="Pathogen Identification & Mutation Screening",
-            trigger_event="NODE_STEP_COMPLETED",
-            created_at="2026-09-03T09:30:00Z",
-            created_by="Genomics Squad Lead",
-            completed_nodes_count=2,
-            total_nodes_count=total_nodes,
-            open_blockers_count=1,
-            dispatched_assays_count=0,
-            change_summary="Identified H5N1 Clade 2.3.4.4b with PB2 E627K. Blocker alert raised for mammalian airborne risk.",
-        )
-
-        s2 = SituationSnapshot(
-            version_id="v1.2",
-            version_number=3,
-            checkpoint_name="Structural Modeling & Empirical Assay Dispatch",
-            trigger_event="LAB_ASSAY_DISPATCHED",
-            created_at="2026-09-03T11:15:00Z",
-            created_by="Chief Health Officer / ACDP Director",
-            completed_nodes_count=4,
-            total_nodes_count=total_nodes,
-            open_blockers_count=1,
-            dispatched_assays_count=2,
-            change_summary="AlphaFold 3D target coordinates generated. Ferret airborne transmission study dispatched to ACDP Geelong PC4.",
-        )
-
-        cls._TIMELINE.extend([s0, s1, s2])
+    def bind_run(cls, run_id: str):
+        """Keep checkpoints scoped to the active demo run."""
+        if cls._RUN_ID != run_id:
+            cls._TIMELINE = []
+            cls._RUN_ID = run_id
 
     @classmethod
     def list_snapshots(cls) -> List[SituationSnapshot]:
-        return list(cls._TIMELINE)
+        return [s.model_copy(deep=True) for s in cls._TIMELINE]
 
     @classmethod
     def capture_snapshot(
@@ -97,14 +56,14 @@ class VersionControlManager:
             open_blockers_count=open_blockers_count,
             dispatched_assays_count=dispatched_assays_count,
             change_summary=change_summary,
-            node_artifacts_preview=artifacts_preview or {},
+            node_artifacts_preview=json.loads(json.dumps(artifacts_preview or {})),
         )
         cls._TIMELINE.append(snapshot)
-        return snapshot
+        return snapshot.model_copy(deep=True)
 
     @classmethod
     def get_snapshot(cls, version_id: str) -> Optional[SituationSnapshot]:
         for s in cls._TIMELINE:
             if s.version_id == version_id:
-                return s
+                return s.model_copy(deep=True)
         return None

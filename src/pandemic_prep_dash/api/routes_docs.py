@@ -18,7 +18,7 @@ DOCS_CHAPTERS = [
         "content": """
 # Operational Overview & Whole-of-Government CONOPS
 
-The **PandemicPrepDash** platform is designed to provide Australia with an adaptive, auditable, and whole-of-government emergency response pipeline for emerging biological, chemical, and radiological (CBRN) threats.
+The **Incident Response Dashboard** platform is designed to provide Australia with an adaptive, auditable, and whole-of-government emergency response pipeline for emerging biological, chemical, and radiological (CBRN) threats.
 
 ### Core Operational Principles
 1. **Dynamic Directed Acyclic Graph (DAG) Response Pathways:** Rather than a rigid linear workflow, response operations are represented as a configurable DAG. Analytical nodes (e.g. sequence ingestion, structural modeling, therapeutic docking, plume modeling) execute concurrently whenever their input dependencies are resolved.
@@ -226,7 +226,7 @@ Real-world physical validation from accredited Commonwealth reference laboratori
         "content": """
 # Platform System Architecture & Agentic Harness Specifications
 
-PandemicPrepDash is architected as an auditable, sovereign, multi-agent emergency management engine designed to operate within Australian Government secure enclaves.
+Incident Response Dashboard is architected as an auditable, sovereign, multi-agent emergency management engine designed to operate within Australian Government secure enclaves.
 
 ### 1. High-Level Multi-Tier Architecture
 

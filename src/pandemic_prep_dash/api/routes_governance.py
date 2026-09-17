@@ -2,7 +2,8 @@
 Data Governance, Cloud Resources & Australian Policy API routes.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from pydantic import ValidationError
 from typing import Dict, Any, List
 from datetime import datetime
 
@@ -79,21 +80,19 @@ def get_governance_settings():
 @router.post("/settings")
 def update_governance_settings(settings_data: Dict[str, Any]):
     global CURRENT_GOVERNANCE_SETTINGS
+    current = CURRENT_GOVERNANCE_SETTINGS.model_dump()
+    for key, value in settings_data.items():
+        if isinstance(current.get(key), dict) and isinstance(value, dict):
+            current[key] = {**current[key], **value}
+        else:
+            current[key] = value
     try:
-        data_copy = dict(settings_data)
-        if "compute" in data_copy and isinstance(data_copy["compute"], dict):
-            data_copy["compute"] = CloudComputeConfig(**data_copy["compute"])
-        if "compliance" in data_copy and isinstance(data_copy["compliance"], dict):
-            data_copy["compliance"] = ComplianceFramework(**data_copy["compliance"])
-        if "api_keys" in data_copy and isinstance(data_copy["api_keys"], dict):
-            data_copy["api_keys"] = ApiKeysConfig(**data_copy["api_keys"])
-
-        updated = CURRENT_GOVERNANCE_SETTINGS.model_copy(update=data_copy)
-        updated.updated_at = datetime.utcnow().isoformat() + "Z"
-        CURRENT_GOVERNANCE_SETTINGS = updated
-        return {"status": "success", "settings": CURRENT_GOVERNANCE_SETTINGS.model_dump()}
-    except Exception as err:
-        return {"status": "error", "message": str(err)}
+        updated = GovernanceSettings.model_validate(current)
+    except ValidationError as err:
+        raise HTTPException(status_code=422, detail=str(err))
+    updated.updated_at = datetime.utcnow().isoformat() + "Z"
+    CURRENT_GOVERNANCE_SETTINGS = updated
+    return {"status": "success", "settings": updated.model_dump()}
 
 
 @router.get("/policies")

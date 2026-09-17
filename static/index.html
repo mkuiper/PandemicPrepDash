@@ -3,12 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PandemicPrepDash - Australian Emergency Response Platform</title>
+  <title>Incident Response Dashboard — Demonstration</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="h-full flex flex-col overflow-hidden font-sans antialiased selection:bg-cyan-500 selection:text-white transition-colors duration-200">
+
+  <div role="note" class="shrink-0 bg-amber-950 text-amber-200 px-6 py-2 text-xs border-b border-amber-800">Demonstration mode · Analysis, confidence scores and dispatches are simulated. No agencies or laboratories are contacted.</div>
 
   <!-- Top Command Header -->
   <header class="bg-slate-900 border-b border-slate-800 px-6 py-3 flex items-center justify-between shrink-0 shadow-md transition-colors duration-200">
@@ -19,7 +21,7 @@
       <div>
         <div class="flex items-center space-x-2.5">
           <h1 class="text-lg font-bold tracking-tight text-white flex items-center">
-            PandemicPrepDash
+            Incident Response Dashboard
           </h1>
           <span id="threatClassificationBadge" class="text-xs font-mono uppercase px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/30 flex items-center">
             <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse mr-1.5"></span>
@@ -31,7 +33,7 @@
           </span>
         </div>
         <p class="text-xs text-slate-400 flex items-center mt-0.5">
-          <span>Australian Whole-of-Government Emergency Response &amp; Surveillance Engine</span>
+          <span>Incident coordination, response pathways &amp; decision tracking</span>
         </p>
       </div>
     </div>
@@ -795,17 +797,18 @@
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4 shadow-md">
         <h3 class="text-sm font-bold text-slate-100 flex items-center">
           <i class="fa-solid fa-key text-amber-400 mr-2"></i>
-          Integration Secrets &amp; Service API Keys
+          Integration Configuration Preview (Not Connected)
         </h3>
+        <p class="text-xs text-amber-300 mb-3">Preview only. Credential storage is not implemented; these fields are disabled.</p>
         <form id="formApiKeysConfig" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-slate-400 mb-1 font-medium">NCBI E-Utilities Key (PubMed / GenBank)</label>
-              <input id="govApiKeyNcbi" type="password" value="ncbi_live_9f83a8123bc45a21" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-cyan-500">
+              <input id="govApiKeyNcbi" type="password" disabled placeholder="Not connected" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-cyan-500">
             </div>
             <div>
               <label class="block text-slate-400 mb-1 font-medium">LLM Reasoning API Key (Anthropic / OpenAI / Gemini)</label>
-              <input id="govApiKeyLlm" type="password" value="sk-llm-secure-token-78b91a" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-cyan-500">
+              <input id="govApiKeyLlm" type="password" disabled placeholder="Not connected" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-cyan-500">
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -815,7 +818,7 @@
             </div>
             <div>
               <label class="block text-slate-400 mb-1 font-medium">GISAID EpiCoV Access Token</label>
-              <input id="govApiKeyGisaid" type="password" value="gis_token_live_f54b12a" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-cyan-500">
+              <input id="govApiKeyGisaid" type="password" disabled placeholder="Not connected" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-cyan-500">
             </div>
           </div>
           <div class="flex justify-end pt-2">

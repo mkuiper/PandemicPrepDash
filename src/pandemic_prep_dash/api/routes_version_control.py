@@ -24,12 +24,8 @@ class CreateSnapshotRequest(BaseModel):
 @router.get("/snapshots")
 def list_situation_snapshots():
     """Lists the full chronological timeline of immutable situation snapshots."""
-    # Ensure initialized
-    if not VersionControlManager.list_snapshots():
-        engine = StateManager.get_engine()
-        scen_name = engine.scenario_data.get("name", "Active Scenario")
-        total_nodes = len(engine.pathway.nodes)
-        VersionControlManager.initialize_scenario_timeline(scen_name, total_nodes)
+    engine = StateManager.get_engine()
+    VersionControlManager.bind_run(engine.run.run_id)
 
     return {"snapshots": [s.model_dump() for s in VersionControlManager.list_snapshots()]}
 
@@ -38,10 +34,11 @@ def list_situation_snapshots():
 def create_situation_snapshot(body: CreateSnapshotRequest):
     """Manually creates a new immutable situation checkpoint in the incident progression."""
     engine = StateManager.get_engine()
+    VersionControlManager.bind_run(engine.run.run_id)
     completed_nodes = len(engine.run.completed_node_ids)
     total_nodes = len(engine.pathway.nodes)
     open_blockers = len([b for b in engine.data_hub.blockers if b.status == "OPEN"])
-    lab_requests = len(LabBridgeManager.list_requests())
+    lab_requests = sum(r.dispatched_at is not None for r in LabBridgeManager.list_requests())
 
     snapshot = VersionControlManager.capture_snapshot(
         checkpoint_name=body.checkpoint_name,
@@ -60,6 +57,7 @@ def create_situation_snapshot(body: CreateSnapshotRequest):
 @router.get("/snapshots/{version_id}")
 def get_situation_snapshot(version_id: str):
     """Retrieves detailed state snapshot for a specific version ID."""
+    VersionControlManager.bind_run(StateManager.get_engine().run.run_id)
     snapshot = VersionControlManager.get_snapshot(version_id)
     if not snapshot:
         raise HTTPException(status_code=404, detail=f"Snapshot '{version_id}' not found")

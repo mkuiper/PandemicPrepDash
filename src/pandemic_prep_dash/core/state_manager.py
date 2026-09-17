@@ -34,6 +34,8 @@ class StateManager:
         else:
             if pathway.threat_type == ThreatType.CHEMICAL_NERVE_AGENT:
                 scen = "scen_nerve_agent_toxin"
+            elif pathway.threat_type == ThreatType.RADIOLOGICAL_DISPERSAL:
+                scen = "scen_radiological_cesium137"
             elif "coronavirus" in pathway_key:
                 scen = "scen_novel_coronavirus"
             else:

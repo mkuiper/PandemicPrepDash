@@ -16,7 +16,7 @@ def test_health_endpoint():
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
-    assert data["service"] == "PandemicPrepDash"
+    assert data["service"] == "Incident Response Dashboard"
 
 
 def test_scenarios_endpoints():
@@ -274,7 +274,7 @@ def test_governance_and_cloud_compute_api():
     settings = res.json()["settings"]
     assert "compute" in settings
     assert "compliance" in settings
-    assert settings["compliance"]["pspf_aligned"] is True
+    assert settings["compliance"]["pspf_aligned"] is False
     assert "Australia" in settings["compliance"]["data_residency"]
 
     # 2. Update compute settings
@@ -394,12 +394,11 @@ def test_evidence_analyzer_audit_endpoint():
 
 
 def test_situation_version_control_timeline():
-    # 1. List pre-seeded snapshots
+    # 1. Fresh runs must not contain fabricated checkpoints
     res = client.get("/api/version-control/snapshots")
     assert res.status_code == 200
     snaps = res.json()["snapshots"]
-    assert len(snaps) >= 1
-    assert any("Baseline" in s["checkpoint_name"] or "Ingestion" in s["checkpoint_name"] for s in snaps)
+    assert snaps == []
 
     # 2. Create a manual checkpoint
     res_create = client.post("/api/version-control/snapshots", json={

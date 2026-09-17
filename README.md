@@ -1,137 +1,92 @@
-# PandemicPrepDash 🛡️🦘
+# Incident Response Dashboard
 
-**Adaptive Whole-of-Australian-Government CBRN & Pandemic Preparedness Dashboard with Agentic Workflow Pathways**
+A working demonstrator for incident coordination, response pathways, human review,
+and shared situational awareness. Its purpose is to gather agency feedback and
+inform the design of a larger platform.
 
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)](https://fastapi.tiangolo.com)
-[![Tests Passing](https://img.shields.io/badge/tests-11%20passed-brightgreen.svg)](https://pytest.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+The current example scenarios cover biological, chemical, and radiological
+incidents in an Australian inter-agency context. The product name is broader than
+these examples: generic incident types and agency access controls are planned,
+not implemented. The Python package and repository retain their original names
+for compatibility.
 
----
+## What works today
 
-## 1. Executive Summary
+- Editable directed acyclic response pathways, with cycle and endpoint validation.
+- Sequential execution of ready nodes, step-by-step or through an entire pathway.
+- Human approval pauses, execution status, messages, and generated demo artifacts.
+- Scenario switching, pathway template storage, and JSON import/export.
+- Agency briefing previews, Markdown export, and simulated dispatch.
+- Manual checkpoints that reflect the active run and reset with it.
 
-**PandemicPrepDash** is an incident preparedness and emergency countermeasure platform designed for the **Australian Whole-of-Government (WoAG)** health security and biosecurity ecosystem.
+Scientific analyses, agent deliberations, confidence scores, laboratory operations,
+cloud integrations, and agency dispatches are largely simulated. The literature
+component can query PubMed and falls back to example records; fallback citations
+have not been independently verified. A successful workflow run demonstrates
+software behavior, not scientific validity or agency approval. Security settings
+are illustrative and do not enforce access control or compliance.
 
-Unlike static emergency plans or linear scripts, PandemicPrepDash models incident response as an **editable, Directed Acyclic Graph (DAG) response pathway**. Each node in the pathway can be dynamically configured, connected, and assigned to specialized **agentic scientific teams** (Bioinformatics, Structural Biology, Medicinal Chemistry, Vaccinology, CBRN Biosecurity, and Government Liaison).
+## Start a demo
 
-As data arrives (e.g. a raw nucleotide sequence, chemical SMILES, mass spectrometry peaks, or syndromic records), the agent teams concurrently execute analytical tools, populate a shared intelligence blackboard, and automatically synthesize tailored briefings for statutory Australian agencies—including the **Australian Centre for Disease Control (Interim ACDC)**, **Therapeutic Goods Administration (TGA)**, **Department of Agriculture, Fisheries and Forestry (DAFF)**, **Defence Science and Technology Group (DSTG)**, **National Emergency Management Agency (NEMA)**, and **Department of Foreign Affairs and Trade (DFAT)**.
+Requires Python 3.11+; `uv` is optional and can provision a suitable Python.
 
----
-
-## 2. Key Features
-
-- 🧬 **Adaptive DAG Response Engine**: Non-linear response pathways that fork concurrently (e.g., structural biology and biosecurity running in parallel, followed by simultaneous drug repurposing and vaccine design) and converge into government briefings. Built on NetworkX with strict cycle detection.
-- 👥 **Configurable Agentic Teams**: Pre-configured multi-agent squads with specific domain personas (Dr. Elena Rostova, Dr. Marcus Vance, Dr. Priya Sharma, Dr. Liam O'Connor, Cdr. Jack Sterling, Alison Bradley PSM) logging transparent deliberation traces (`Observation` ➔ `Hypothesis` ➔ `Tool Execution` ➔ `Synthesis`).
-- 🏛️ **Whole-of-Australian-Government (WoAG) Integration**: Direct statutory alignment with the *National Health Security Act 2007*, *Biosecurity Act 2015*, *Therapeutic Goods Act 1989*, and *Gene Technology Act 2000*. Synthesizes tailored situational reports for 8 Commonwealth agencies with dispatch simulation and Markdown export.
-- 🛡️ **Human-in-the-Loop (HITL) Gatekeepers**: Crucial statutory checkpoints (e.g. Tier 1 SSBA classification, dual-use attribution) automatically pause the pipeline until an authorized human operator reviews and approves the findings.
-- 🧪 **Multi-Domain CBRN Support**: Ready for both biological and chemical hazards:
-  1. **H5N1 Avian Influenza (Clade 2.3.4.4b):** Zoonotic spillover with mammalian adaptation markers (PB2 E627K, HA Q226L), Tamiflu/Xofluza screening, and mRNA vaccine candidate formulation.
-  2. **Novel Engineered Coronavirus (Variant Tartarus):** Polybasic furin cleavage insertion, ACE2 hyper-affinity, Paxlovid/Xocova docking, and DSTG synthetic origin forensics.
-  3. **Synthetic Organophosphate Nerve Agent (Novichok Analogue):** Chemical SMILES ingestion, human acetylcholinesterase phosphorylation kinetics, and Atropine / Pralidoxime / HI-6 antidote protocols.
-  4. **Custom Specimen Ingestion:** Real-time ingestion of arbitrary DNA/RNA/Protein sequences or chemical strings via web modal.
-- 🖥️ **Interactive Command Dashboard**: Single-page web UI featuring an SVG DAG visualizer with draggable nodes, active execution status rings, node inspector, agency briefing document reader, molecular countermeasure inventory, and real-time agent thought feed.
-- 🧪 **Comprehensive Test Suite**: 100% passing pytest suite covering graph invariants, cycle prevention, gatekeeper pauses, chemical pathways, agency reporting synthesis, and REST API endpoints.
-
----
-
-## 3. Quickstart Guide
-
-### Prerequisites
-- Python 3.11+
-- `uv` (recommended) or `pip`
-
-### 3.1. Installation
 ```bash
-# Clone the repository
-git clone git@github.com:mkuiper/PandemicPrepDash.git
-cd PandemicPrepDash
-
-# Create virtual environment and install dependencies
-uv venv
-source .venv/bin/activate
-uv pip install -e ".[dev]"
+./start.sh
 ```
 
-### 3.2. Launch the Application
-```bash
-# Start the FastAPI server with web frontend
-.venv/bin/python -m pandemic_prep_dash.main
-```
-Open your browser to: **`http://localhost:8000`**
+Open **http://127.0.0.1:8000** and stop with **Ctrl+C**. The launcher works from
+any working directory, creates `.venv` if needed, and installs missing application
+dependencies with `uv` or `pip`.
 
-### 3.3. Running the Test Suite
 ```bash
-.venv/bin/pytest -v
+PORT=8080 ./start.sh          # Another port
+HOST=0.0.0.0 ./start.sh       # Access from a trusted demonstration network
+./start.sh --install         # Refresh dependencies after pyproject.toml changes
 ```
 
----
+Initial setup needs internet. The frontend also loads Tailwind CSS and icons from
+external CDNs. No model API keys are required. The server uses one worker without
+auto-reload. All browser sessions share the active incident; execution state is
+in memory and is lost on shutdown. Saved pathway templates remain in `templates/`.
+There is no authentication or agency-level authorization; use synthetic workshop data.
 
-## 4. How to Use the Demo Mode
+For an agency workshop:
 
-1. **Select a Threat Scenario:**
-   - Use the top dropdown to toggle between **H5N1 Avian Flu**, **Novel Coronavirus**, or **Synthetic Nerve Agent Toxin**.
-   - Or click **"+ Custom Specimen"** to ingest your own FASTA sequence or chemical SMILES string.
-2. **Execute the Pathway:**
-   - Click **"Step"** to watch the workflow advance one analytical stage at a time.
-   - Or click **"Execute Pathway"** to run all ready stages.
-3. **Inspect the Nodes & Agents:**
-   - Click any node on the DAG canvas to inspect its assigned agent squad, latency, and outputs.
-   - When the pipeline reaches **"CBRN Threat & SSBA Assessment"**, observe the **Human-in-the-Loop gatekeeper** pause execution until you review and click **"Authorize & Proceed"**.
-4. **Review Inter-Agency Briefings:**
-   - Navigate to the **"Whole-of-Gov Briefings"** tab.
-   - Switch between **ACDC**, **TGA**, **DAFF**, **DSTG**, **NEMA**, **DFAT**, **CSIRO**, and **OGTR** to see tailored situation reports with statutory citations, action items, and cross-dependencies.
-   - Click **"Dispatch to Agency"** or **"Export Markdown"** to download the brief.
-5. **View Molecular Countermeasures:**
-   - In the **"Targets & Countermeasures"** tab, inspect 3D protein targets (with pLDDT scores), repurposed drugs ranked by docking affinity and ARTG status, and candidate vaccine platforms.
-6. **Follow the Agent Deliberation Feed:**
-   - In the **"Agent Reasoning Feed"** tab, inspect the step-by-step thoughts and tool invocations of the scientific squads.
+1. Select a scenario and identify the decision the participants need to make.
+2. Execute the pathway; inspect evidence, messages, and node outputs.
+3. At an approval pause, review the node and explicitly authorize it to continue.
+4. Compare agency briefing previews and discuss necessary redactions and permissions.
+5. Capture a checkpoint and record feedback using the [workshop guide](docs/agency-feedback.md).
 
----
+## Tests
 
-## 5. Australian Whole-of-Government Agency Mapping
+Install the development dependencies:
 
-| Agency | Portfolio | Primary Statutory Mandate & Alert Focus |
-|---|---|---|
-| **ACDC** | Health & Aged Care | Real-time genomic surveillance, CDNA national case definitions, R0 projections, and clinical guidance. |
-| **TGA** | Health & Aged Care | Medical countermeasure evaluation, Section 19A emergency exemptions, ARTG registration, and batch testing. |
-| **DAFF** | Agriculture, Fisheries & Forestry | One-Health zoonotic spillover tracking, ACVO alerts, livestock containment buffers, and BICON border controls. |
-| **DSTG** | Defence | CBRN threat intelligence, dual-use gain-of-function screening, aerosolization risk, and attribution. |
-| **NEMA** | Home Affairs | COMDISPLAN logistics, National Medical Stockpile burn rates, transport corridors, and Cabinet briefings. |
-| **DFAT** | Foreign Affairs & Trade | WHO International Health Regulations (IHR 2005) Article 6 notification, Pacific regional health assistance. |
-| **CSIRO ACDP** | Industry, Science & Resources | High-containment PC4 pathogen isolation (Geelong) and sovereign vaccine manufacturing (Clayton). |
-| **OGTR** | Health & Aged Care | Gene Technology Act 2000 compliance, GMO viral vector licensing, and laboratory containment certification. |
+```bash
+uv pip install --python .venv/bin/python -e '.[dev]'
+# Or: .venv/bin/python -m pip install -e '.[dev]'
+.venv/bin/python -m pytest -q
+node --test tests/frontend.test.cjs
+```
 
-*For full statutory and operational details, see [docs/australian_agencies.md](docs/australian_agencies.md).*
+The JavaScript tests require a recent Node.js with the built-in test runner
+(Node 24 was used for validation). Node is not needed to run the application.
+Python tests isolate global state and template storage and replace live HTTP
+with an offline transport. They cover behavior and regression cases, including
+rejection without mutation, approval gates, failed execution, and retained results.
+JavaScript tests execute the message renderer, Markdown formatter, and Run control.
+These are not full browser, scientific validation, security certification, or load tests.
 
----
+See the [critical review](docs/critical-review.md) for findings, validation evidence,
+remaining risks, and a proposed development sequence.
 
-## 6. Architecture & Documentation Directory
+## Further documentation
 
-- [ARCHITECTURE.md](ARCHITECTURE.md): In-depth software architecture, DAG execution semantics, NetworkX solver, blackboard state machine, and agent contract.
-- [docs/australian_agencies.md](docs/australian_agencies.md): Institutional profiles, statutory acts, and cross-agency dependencies.
-- [docs/scenarios.md](docs/scenarios.md): Walkthrough of H5N1, Coronavirus, and Nerve Agent reference datasets.
-- [docs/adr/](docs/adr/): Architectural Decision Records:
-  - [ADR-001: DAG Workflow Architecture](docs/adr/ADR-001-dag-workflow-architecture.md)
-  - [ADR-002: Agentic Squad Contract](docs/adr/ADR-002-agentic-team-contract.md)
-  - [ADR-003: Multi-Agency Briefing System](docs/adr/ADR-003-multi-agency-briefing-system.md)
-  - [ADR-004: Human-in-the-Loop Security Gatekeeper](docs/adr/ADR-004-human-in-the-loop-gatekeeper.md)
+- [Agency feedback and access-design workshop](docs/agency-feedback.md)
+- [Architecture notes](ARCHITECTURE.md)
+- [Scenario notes](docs/scenarios.md)
+- [Design decisions](docs/adr/)
 
----
-
-## 7. Roadmap & Iteration Notes for Future Agents
-
-For subsequent human and AI contributors extending this codebase:
-1. **Live LLM Integration:** The `NodeExecutor` class is designed to seamlessly plug in external model providers (Gemini, Claude, OpenAI, or local Ollama) by swapping the reasoning generator in `pandemic_prep_dash/core/node_executor.py`.
-2. **External Bioinformatics CLI Connectors:** Add connectors to call local `blastn`/`blastp`, `AlphaFold2`/`ESMFold` API, and `AutoDock Vina` binaries.
-3. **Interactive 3D Molecular Viewer:** Integrate Mol* (3D Molstar viewer) into the Targets tab to display `.pdb` files for predicted protein targets directly in the browser.
-4. **WebSocket / SSE Live Streaming:** Add real-time SSE push for long-running computational jobs.
-5. **Additional Hazard Scenarios:** Add fungal pathogens (*Candida auris*), toxin proteins (Ricin / Botulinum), and industrial chemical leaks.
-
----
-
-## 8. Git Repository
-
-Repository: `git@github.com:mkuiper/PandemicPrepDash.git`
-Branch: `main`
-License: MIT
+Older architecture and domain documentation contains aspirational capability and
+policy descriptions. Treat the critical review as the current implementation
+assessment; domain and policy content requires agency review before operational use.

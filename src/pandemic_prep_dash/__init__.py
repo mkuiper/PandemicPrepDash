@@ -1,5 +1,5 @@
 """
-PandemicPrepDash - Whole-of-Government CBRN & Pandemic Preparedness Dashboard.
+Incident Response Dashboard - Whole-of-Government CBRN & Pandemic Preparedness Dashboard.
 """
 
 __version__ = "0.1.0"

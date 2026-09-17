@@ -6,6 +6,7 @@ evaluates dependencies, and synchronizes the Central Information Hub.
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 import uuid
+from copy import deepcopy
 import networkx as nx
 
 from ..models.pathway import (
@@ -28,7 +29,7 @@ class PathwayExecutionEngine:
     def __init__(self, pathway: Pathway, scenario_id: Optional[str] = None):
         self.pathway = pathway
         self.scenario_id = scenario_id or "scen_h5n1_avian_flu"
-        self.scenario_data = get_scenario(self.scenario_id)
+        self.scenario_data = deepcopy(get_scenario(self.scenario_id))
         self.run: ExecutionRun = ExecutionRun(
             run_id=f"run_{uuid.uuid4().hex[:8]}",
             pathway_id=pathway.id,
@@ -39,14 +40,21 @@ class PathwayExecutionEngine:
             incident_name=self.scenario_data.get("name", "CBRN Threat"),
             threat_type=str(self.scenario_data.get("threat_type", "biological_virus")),
         )
-        self._build_graph()
+        self.reset()
 
     def _build_graph(self) -> nx.DiGraph:
         """Constructs NetworkX representation to validate DAG and resolve dependencies."""
         G = nx.DiGraph()
+        node_ids = {node.id for node in self.pathway.nodes}
+        if len(node_ids) != len(self.pathway.nodes):
+            raise ValueError("Node IDs must be unique")
+        if len({edge.id for edge in self.pathway.edges}) != len(self.pathway.edges):
+            raise ValueError("Edge IDs must be unique")
         for node in self.pathway.nodes:
             G.add_node(node.id, data=node)
         for edge in self.pathway.edges:
+            if edge.source not in node_ids or edge.target not in node_ids:
+                raise ValueError("Both edge endpoints must exist in the pathway")
             G.add_edge(edge.source, edge.target, data=edge)
 
         if not nx.is_directed_acyclic_graph(G):
@@ -58,8 +66,9 @@ class PathwayExecutionEngine:
 
     def set_scenario(self, scenario_id: str):
         """Switches active scenario, aligns pathway template if needed, and resets execution state."""
+        scenario_data = deepcopy(get_scenario(scenario_id))
         self.scenario_id = scenario_id
-        self.scenario_data = get_scenario(scenario_id)
+        self.scenario_data = scenario_data
         threat_type = self.scenario_data.get("threat_type")
 
         # Auto-align pathway threat type if switching between chemical, radiological, and biological
@@ -147,6 +156,8 @@ class PathwayExecutionEngine:
 
     def execute_next_step(self) -> Dict[str, Any]:
         """Executes the next available node in DAG order."""
+        if self.run.status == RunStatus.FAILED:
+            return {"status": "failed", "message": "Reset the run before retrying a failed workflow."}
         if self.run.status == RunStatus.IDLE:
             self.run.status = RunStatus.RUNNING
             self.run.start_time = datetime.utcnow().isoformat() + "Z"
@@ -183,11 +194,22 @@ class PathwayExecutionEngine:
             }
 
         self.run.current_node_id = target_node.id
+        self.run.status = RunStatus.RUNNING
         harness = NodeAgenticHarness(node=target_node, data_hub=self.data_hub)
-        updated_node, thought_logs, new_artifacts, new_dialogues, new_blocker = harness.run(
-            blackboard=self.run.node_artifacts,
-            scenario_data=self.scenario_data,
-        )
+        try:
+            updated_node, thought_logs, new_artifacts, new_dialogues, new_blocker = harness.run(
+                blackboard=deepcopy(self.run.node_artifacts),
+                scenario_data=deepcopy(self.scenario_data),
+            )
+            if updated_node.status != NodeStatus.COMPLETED:
+                raise RuntimeError(updated_node.error_message or "Node execution did not complete")
+        except Exception as err:
+            target_node.status = NodeStatus.FAILED
+            target_node.outputs = {}
+            target_node.error_message = str(err)
+            self.run.status = RunStatus.FAILED
+            self.run.end_time = datetime.utcnow().isoformat() + "Z"
+            return {"status": "failed", "node_id": target_node.id, "message": str(err)}
 
         # Merge artifacts, thought logs, and auditable inter-node dialogues
         self.run.node_artifacts.update(new_artifacts)
@@ -205,7 +227,7 @@ class PathwayExecutionEngine:
         if "protein_targets" in new_artifacts:
             self.data_hub.structural_targets = new_artifacts["protein_targets"]
         if "drug_candidates" in new_artifacts or "vaccine_candidates" in new_artifacts:
-            self.data_hub.countermeasures = new_artifacts.get("drug_candidates", []) + new_artifacts.get("vaccine_candidates", [])
+            self.data_hub.countermeasures = self.run.node_artifacts.get("drug_candidates", []) + self.run.node_artifacts.get("vaccine_candidates", [])
         if "plume_model" in new_artifacts:
             self.data_hub.plume_and_environmental = new_artifacts["plume_model"]
         if "threat_assessment" in new_artifacts:
@@ -231,40 +253,19 @@ class PathwayExecutionEngine:
 
     def execute_all(self, auto_approve: bool = False) -> Dict[str, Any]:
         """Executes all remaining nodes until completion or approval pause."""
-        if self.run.status == RunStatus.IDLE:
-            self.run.status = RunStatus.RUNNING
-            self.run.start_time = datetime.utcnow().isoformat() + "Z"
-
-        max_cycles = 50
-        cycles = 0
-        while cycles < max_cycles:
-            cycles += 1
-            ready = self.get_ready_nodes()
-            if not ready:
-                break
-
-            for node in ready:
-                if node.requires_human_approval and not node.approval_granted:
-                    if auto_approve:
-                        node.approval_granted = True
-                    else:
-                        node.status = NodeStatus.PAUSED
-                        self.run.status = RunStatus.PAUSED
-                        return {
-                            "status": "approval_required",
-                            "node_id": node.id,
-                            "node_label": node.label,
-                            "message": f"Execution paused: Human verification required for '{node.label}'.",
-                        }
-
-                self.execute_next_step()
-
-        all_done = all(n.status == NodeStatus.COMPLETED for n in self.pathway.nodes)
-        return {
-            "status": "completed" if all_done else "paused",
-            "completed_nodes": len(self.run.completed_node_ids),
-            "total_nodes": len(self.pathway.nodes),
-        }
+        # Each successful iteration completes a node, so no arbitrary cycle cap is needed.
+        while True:
+            if auto_approve:
+                for node in self.pathway.nodes:
+                    if node.requires_human_approval and node.status in (NodeStatus.PENDING, NodeStatus.READY, NodeStatus.PAUSED):
+                        self.approve_node(node.id)
+            result = self.execute_next_step()
+            if result["status"] != "step_completed":
+                return {
+                    **result,
+                    "completed_nodes": len(self.run.completed_node_ids),
+                    "total_nodes": len(self.pathway.nodes),
+                }
 
     def add_node(self, node: PathwayNode) -> bool:
         """Dynamically adds a new node to the active pathway."""
@@ -285,6 +286,8 @@ class PathwayExecutionEngine:
 
     def add_edge(self, edge: PathwayEdge) -> bool:
         """Adds an edge, ensuring no cycle is introduced."""
+        if not self.get_node(edge.source) or not self.get_node(edge.target):
+            raise ValueError("Both edge endpoints must exist in the pathway")
         if any(e.id == edge.id for e in self.pathway.edges):
             return False
         # Test addition on temp graph

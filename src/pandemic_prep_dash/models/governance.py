@@ -25,12 +25,12 @@ class SecurityClassification(str, Enum):
 
 
 class ComplianceFramework(BaseModel):
-    pspf_aligned: bool = True
-    ism_controls_verified: bool = True
-    data_residency: str = "Australia (Sydney / Melbourne ap-southeast-2)"
-    ssba_custodianship_audit: bool = True
-    irap_cloud_tier: str = "PROTECTED Level Assessed"
-    privacy_act_1988_compliant: bool = True
+    pspf_aligned: bool = False
+    ism_controls_verified: bool = False
+    data_residency: str = "Australia (proposed; not enforced)"
+    ssba_custodianship_audit: bool = False
+    irap_cloud_tier: str = "Not assessed — demonstration"
+    privacy_act_1988_compliant: bool = False
 
 
 class CloudComputeConfig(BaseModel):
@@ -41,17 +41,17 @@ class CloudComputeConfig(BaseModel):
     max_concurrent_nodes: int = 8
     execution_timeout_seconds: int = 3600
     cloud_storage_bucket: str = "s3://aus-biosecurity-vault-ap-southeast-2/"
-    auto_scale_on_surge: bool = True
+    auto_scale_on_surge: bool = False
 
 
 class ApiKeysConfig(BaseModel):
-    ncbi_api_key_set: bool = True
-    ncbi_api_key_masked: str = "ncbi_live_9f8...a21"
-    llm_api_key_set: bool = True
-    llm_api_key_masked: str = "sk-llm-...78b"
-    alphafold_service_key_masked: str = "af3_svc_...d09"
+    ncbi_api_key_set: bool = False
+    ncbi_api_key_masked: str = "Not connected"
+    llm_api_key_set: bool = False
+    llm_api_key_masked: str = "Not connected"
+    alphafold_service_key_masked: str = "Not connected"
     colabfold_server_url: str = "https://colabfold.cloud.gov.au/api"
-    gisaid_access_token_masked: str = "gis_token_...f54"
+    gisaid_access_token_masked: str = "Not connected"
 
 
 class GovernanceSettings(BaseModel):
