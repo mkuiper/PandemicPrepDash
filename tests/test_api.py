@@ -153,9 +153,17 @@ def test_documentation_center_endpoints():
     assert res_docs.status_code == 200
     chapters = res_docs.json()["chapters"]
     assert len(chapters) >= 5
+    assert any(c["id"] == "glossary" for c in chapters)
     assert any(c["id"] == "conops-overview" for c in chapters)
     assert any(c["id"] == "central-data-hub" for c in chapters)
     assert any(c["id"] == "statutory-acts-matrix" for c in chapters)
+
+    glossary = client.get("/api/docs/glossary")
+    assert glossary.status_code == 200
+    text = glossary.json()["chapter"]["content"]
+    assert "directed acyclic graph" in text.lower()
+    assert "HITL" in text
+    assert "CBRN" in text
 
     # Read specific chapter
     res_ch = client.get("/api/docs/conops-overview")

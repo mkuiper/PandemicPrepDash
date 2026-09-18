@@ -10,6 +10,58 @@ router = APIRouter(prefix="/api/docs", tags=["Documentation"])
 
 DOCS_CHAPTERS = [
     {
+        "id": "glossary",
+        "title": "Glossary",
+        "icon": "fa-book-open",
+        "category": "Help",
+        "summary": "What DAG, HITL, CBRN, MCP and other labels on this dashboard mean.",
+        "content": """
+# Glossary
+
+Short definitions for labels used in **CBRN Rapid Response**. This is a workshop demonstrator: analyses and dispatches are simulated unless a source is labelled otherwise.
+
+### Pathway and execution
+
+* **DAG (directed acyclic graph)** — The response pathway: boxes (nodes) connected by one-way arrows (edges). A later step can depend on an earlier one, but the graph must not contain a loop. That is why adding an edge that would cycle is rejected.
+* **Node** — One step in the pathway (intake, research, approval, briefing, and so on). Each node has a crew, optional human gate, and outputs written to the blackboard.
+* **Edge** — A dependency from one node to another. The target is not ready until every source is complete.
+* **Playbook / pathway** — A saved DAG for a class of incident (biological, chemical, radiological, flood, industrial fire).
+* **Blackboard** — Shared incident memory. Nodes read and write artefacts (sample, identification, plume, reports) rather than emailing each other privately.
+* **HITL (human-in-the-loop)** — A pause that requires a named human (for example the Incident Controller) to approve before the pathway continues. The Run button does not skip this gate.
+* **Blocker** — An open issue raised by a node (missing evidence, statutory notice). It is a workshop flag, not a live agency ticket.
+* **Event log** — In-memory record of what this run did (selected, completed, paused, approved). It resets with the run. It is not a durable audit archive.
+* **Checkpoint** — A named summary of the current run. Useful in the workshop; not tamper-proof storage.
+
+### Agents and tools
+
+* **Role template** — A job description such as `AGENT-BIOINFO-LEAD-01` (tools, skills, MCP list).
+* **Node instance** — A copy of that role bound to one node (`node_id::persona_id`). Two nodes do not share memory or Academy history.
+* **Academy** — Simulated refresh of Skills, MCP, or Tools notes for an instance. It does not train model weights or contact live servers.
+* **MCP (Model Context Protocol)** — A way for an agent harness to call an external tool or data source. Bindings in this demo are catalogue entries, not live connections.
+* **Skill** — A packaged playbook or statutory procedure assigned to a crew (for example SSBA reporting). Refreshing it in Academy is a workshop action.
+* **Orchestrator board** — Issues the control hub can raise (blockers, unknown evidence, Academy overdue) and post onto the message board.
+
+### CBRN and agencies
+
+* **CBRN** — Chemical, biological, radiological, nuclear.
+* **SSBA** — Security Sensitive Biological Agent under the National Health Security Act 2007 (Cth).
+* **ARTG** — Australian Register of Therapeutic Goods (TGA).
+* **PC4** — Physical containment level 4 (highest laboratory containment).
+* **HYSPLIT** — A real atmospheric dispersion method. Here, plume views are **HYSPLIT-shaped planning contours**, not a live NOAA run, unless provenance says otherwise.
+* **NMS** — National Medical Stockpile.
+* **COMDISPLAN** — Australian Government Disaster Response Plan.
+* **SOCI** — Security of Critical Infrastructure Act 2018 (Cth).
+* **ACDP** — CSIRO Australian Centre for Disease Preparedness (Geelong), formerly AAHL. Not the Australian Centre for Disease Control.
+* **Second eyes** — This dashboard’s role: a shared picture and questions for the human, not command of fire, ambulance, or laboratory protocols.
+
+### Honesty labels
+
+* **Simulated** — Generated for the workshop. No agency, laboratory, or model was contacted.
+* **Unknown** — A required fact is not on the blackboard. That is a valid lead-agent answer.
+* **Demonstration mode** — The amber banner at the top. Treat confidence scores, dispatches, and scientific outputs as software behaviour, not operational truth.
+        """,
+    },
+    {
         "id": "conops-overview",
         "title": "1. Operational Overview & Whole-of-Government CONOPS",
         "icon": "fa-shield-halved",

@@ -50,7 +50,7 @@ const AppState = {
   labRequests: [],
   evidenceReport: null,
   snapshots: [],
-  selectedDocChapterId: "conops-overview",
+  selectedDocChapterId: "glossary",
   selectedNodeId: null,
   selectedAgencyId: "ACDP",
   agencies: [],
@@ -220,6 +220,10 @@ function setupEventListeners() {
 
   // Modals
   document.getElementById("btnConnectModal").addEventListener("click", () => openConnectModal());
+  document.getElementById("btnOpenGlossary")?.addEventListener("click", () => {
+    AppState.selectedDocChapterId = "glossary";
+    switchTab("tab-docs");
+  });
   document.getElementById("btnAddNodeModal").addEventListener("click", () => {
     document.getElementById("addNodeModal").classList.remove("hidden");
   });
@@ -2180,7 +2184,7 @@ async function renderDocsView() {
 
   sidebar.innerHTML = `
     <div class="px-2 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-      Operational Manuals
+      Help
     </div>
   `;
 
