@@ -59,6 +59,7 @@ const AppState = {
   govSettings: null,
   govPolicies: [],
   theme: localStorage.getItem("theme") || "dark",
+  inspectorCollapsed: localStorage.getItem("inspectorCollapsed") === "1",
   connecting: {
     active: false,
     sourceId: null,
@@ -84,8 +85,20 @@ document.addEventListener("DOMContentLoaded", () => {
   setupTabs();
   setupInspectorSubtabs();
   setupEventListeners();
+  applyInspectorCollapsed();
   loadInitialData();
 });
+
+function applyInspectorCollapsed() {
+  const aside = document.getElementById("nodeInspector");
+  const btn = document.getElementById("btnToggleNodeInspector");
+  if (!aside) return;
+  aside.classList.toggle("collapsed", !!AppState.inspectorCollapsed);
+  if (btn) {
+    btn.title = AppState.inspectorCollapsed ? "Expand node inspector" : "Collapse node inspector";
+    btn.setAttribute("aria-expanded", AppState.inspectorCollapsed ? "false" : "true");
+  }
+}
 
 // ---------------- Theme Management (Light / Dark) ----------------
 
@@ -220,9 +233,10 @@ function setupEventListeners() {
 
   // Modals
   document.getElementById("btnConnectModal").addEventListener("click", () => openConnectModal());
-  document.getElementById("btnOpenGlossary")?.addEventListener("click", () => {
-    AppState.selectedDocChapterId = "glossary";
-    switchTab("tab-docs");
+  document.getElementById("btnToggleNodeInspector")?.addEventListener("click", () => {
+    AppState.inspectorCollapsed = !AppState.inspectorCollapsed;
+    try { localStorage.setItem("inspectorCollapsed", AppState.inspectorCollapsed ? "1" : "0"); } catch (err) {}
+    applyInspectorCollapsed();
   });
   document.getElementById("btnAddNodeModal").addEventListener("click", () => {
     document.getElementById("addNodeModal").classList.remove("hidden");
@@ -1348,6 +1362,11 @@ async function handleRecordAssayResultsSubmit(e) {
 // ---------------- Software Toolbox & MCP Servers View ----------------
 
 async function renderAcademyView() {
+  if (!AppState.skills.length) {
+    const res = await fetch("/api/agents/skills").then((r) => r.json()).catch(() => ({ skills: [] }));
+    AppState.skills = res.skills || [];
+  }
+  const skillName = (id) => (AppState.skills.find((s) => s.skill_id === id) || {}).name || id;
   const [crewsRes, boardRes] = await Promise.all([
     fetch("/api/agents/crews").then((r) => r.json()),
     fetch("/api/agents/orchestrator-board").then((r) => r.json()),
@@ -1358,11 +1377,10 @@ async function renderAcademyView() {
     const crews = crewsRes.crews || [];
     list.innerHTML = crews.map((crew) => `
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="font-bold text-slate-100 text-sm">${escapeHtml(crew.node_label)}</h3>
-            <div class="text-[10px] font-mono text-slate-500">${escapeHtml(crew.node_id)} · ${escapeHtml(crew.team_name)}</div>
-          </div>
+        <div>
+          <h3 class="font-bold text-slate-100 text-sm">${escapeHtml(crew.node_label)}</h3>
+          <div class="text-[10px] font-mono text-slate-500">${escapeHtml(crew.node_id)} · ${escapeHtml(crew.team_name)}${crew.harness_engine ? ` · harness ${escapeHtml(crew.harness_engine)}` : ""}</div>
+          ${crew.team_description ? `<p class="text-[11px] text-slate-400 mt-1">${escapeHtml(crew.team_description)}</p>` : ""}
         </div>
         ${(crew.instances || []).map((inst) => `
           <div class="bg-slate-950 border border-slate-800 rounded-lg p-3 space-y-2">
@@ -1374,13 +1392,31 @@ async function renderAcademyView() {
               </div>
               <div class="text-[10px] text-slate-400">${escapeHtml(inst.role)}</div>
             </div>
-            <div class="text-[10px] text-slate-500">Template ${escapeHtml(inst.template_id)} · instance is unique to this node</div>
-            <div class="flex flex-wrap gap-1">${(inst.enabled_aus_gov_skills || []).map((s) => `<span class="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-200 text-[9px] font-mono">${escapeHtml(s)}</span>`).join("")}</div>
-            <div class="flex flex-wrap gap-1">${(inst.enabled_mcp_servers || []).map((s) => `<span class="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-200 text-[9px] font-mono">${escapeHtml(s)}</span>`).join("")}</div>
+            <div>
+              <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Purpose</div>
+              <p class="text-[11px] text-slate-200">${escapeHtml(inst.purpose || inst.specialization || "Not specified")}</p>
+            </div>
+            ${inst.system_prompt ? `<details class="text-[11px] text-slate-400"><summary class="cursor-pointer text-cyan-400/90">Standing instructions</summary><p class="mt-1 whitespace-pre-wrap">${escapeHtml(inst.system_prompt)}</p></details>` : ""}
+            <div>
+              <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Skills</div>
+              <div class="flex flex-wrap gap-1 mt-0.5">${(inst.enabled_aus_gov_skills || []).length ? inst.enabled_aus_gov_skills.map((s) => `<span class="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-200 text-[9px]" title="${escapeHtml(s)}">${escapeHtml(skillName(s))}</span>`).join("") : `<span class="text-slate-600 italic">None assigned</span>`}</div>
+            </div>
+            <div>
+              <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">Tools</div>
+              <div class="flex flex-wrap gap-1 mt-0.5">${(inst.tools || []).length ? inst.tools.map((t) => `<span class="px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-200 text-[9px] font-mono">${escapeHtml(t)}</span>`).join("") : `<span class="text-slate-600 italic">None assigned</span>`}</div>
+            </div>
+            <div>
+              <div class="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">MCP servers</div>
+              <div class="flex flex-wrap gap-1 mt-0.5">${(inst.enabled_mcp_servers || []).length ? inst.enabled_mcp_servers.map((s) => `<span class="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-200 text-[9px] font-mono">${escapeHtml(s)}</span>`).join("") : `<span class="text-slate-600 italic">None assigned</span>`}</div>
+            </div>
+            <div class="text-[10px] text-slate-500 font-mono">
+              Academy last: skills ${escapeHtml(inst.academy?.last_skills_at || "never")} · MCP ${escapeHtml(inst.academy?.last_mcp_at || "never")} · tools ${escapeHtml(inst.academy?.last_tools_at || "never")}
+            </div>
+            <div class="text-[10px] text-slate-600">Template ${escapeHtml(inst.template_id)} · this instance is unique to this node</div>
             <div class="flex space-x-1.5 pt-1">
-              <button data-instance-id="${escapeHtml(inst.instance_id)}" data-track="skills" class="btn-academy-attend px-2 py-1 bg-slate-800 hover:bg-slate-700 text-cyan-300 rounded text-[10px] border border-slate-700">Skills</button>
-              <button data-instance-id="${escapeHtml(inst.instance_id)}" data-track="mcp" class="btn-academy-attend px-2 py-1 bg-slate-800 hover:bg-slate-700 text-purple-300 rounded text-[10px] border border-slate-700">MCP</button>
-              <button data-instance-id="${escapeHtml(inst.instance_id)}" data-track="tools" class="btn-academy-attend px-2 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-300 rounded text-[10px] border border-slate-700">Tools</button>
+              <button data-instance-id="${escapeHtml(inst.instance_id)}" data-track="skills" class="btn-academy-attend px-2 py-1 bg-slate-800 hover:bg-slate-700 text-cyan-300 rounded text-[10px] border border-slate-700">Refresh skills</button>
+              <button data-instance-id="${escapeHtml(inst.instance_id)}" data-track="mcp" class="btn-academy-attend px-2 py-1 bg-slate-800 hover:bg-slate-700 text-purple-300 rounded text-[10px] border border-slate-700">Refresh MCP</button>
+              <button data-instance-id="${escapeHtml(inst.instance_id)}" data-track="tools" class="btn-academy-attend px-2 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-300 rounded text-[10px] border border-slate-700">Refresh tools</button>
             </div>
           </div>`).join("")}
       </div>`).join("") || `<div class="text-slate-500 italic">No pathway nodes.</div>`;

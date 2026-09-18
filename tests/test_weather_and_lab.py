@@ -176,6 +176,8 @@ def test_node_crews_are_distinct_instances_and_academy_is_simulated():
     assert len(ids) == len(set(ids))
     assert all("::" in i for i in ids)
     lead = crews[0]["instances"][0]
+    assert lead.get("purpose") or lead.get("specialization")
+    assert "system_prompt" in lead
     session = AcademyManager.attend(lead["instance_id"], "skills", "tester")
     assert session["provenance"] == "simulated"
     assert "weights" not in session["note"].lower()

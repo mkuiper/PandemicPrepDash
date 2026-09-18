@@ -76,6 +76,8 @@ def _persona_payload(persona) -> Dict[str, Any]:
         "template_name": persona.name,
         "role": persona.role.value if hasattr(persona.role, "value") else str(persona.role),
         "specialization": persona.specialization,
+        "purpose": persona.specialization,
+        "system_prompt": persona.system_prompt,
         "tools": list(persona.tools or []),
         "enabled_mcp_servers": list(persona.enabled_mcp_servers or []),
         "enabled_aus_gov_skills": list(persona.enabled_aus_gov_skills or []),
@@ -131,6 +133,8 @@ def list_node_crews(nodes: List[PathwayNode]) -> List[Dict[str, Any]]:
             "node_category": node.category.value if hasattr(node.category, "value") else str(node.category),
             "team_id": getattr(team, "team_id", node.agent_team_id),
             "team_name": getattr(team, "name", node.agent_team_id),
+            "team_description": getattr(team, "description", "") or "",
+            "harness_engine": str(getattr(team, "harness_engine", "") or ""),
             "instances": instances,
         })
     return crews

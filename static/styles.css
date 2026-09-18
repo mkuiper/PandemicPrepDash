@@ -21,6 +21,22 @@
   display: none !important;
 }
 
+#nodeInspector {
+  width: 24rem;
+}
+#nodeInspector.collapsed {
+  width: 2.75rem;
+}
+#nodeInspector.collapsed .inspector-expanded-only {
+  display: none !important;
+}
+#nodeInspector.collapsed #btnToggleNodeInspector {
+  margin: 0 auto;
+}
+#nodeInspector.collapsed #btnToggleNodeInspector i {
+  transform: rotate(180deg);
+}
+
 /* SVG Node and Edge styling */
 .dag-node {
   cursor: pointer;

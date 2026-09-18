@@ -153,10 +153,6 @@
         </div>
 
         <div class="flex items-center space-x-2 shrink-0">
-          <button id="btnOpenGlossary" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition flex items-center space-x-1" title="Open the glossary (DAG, HITL, CBRN, and other terms)">
-            <i class="fa-solid fa-book-open text-cyan-400"></i>
-            <span>Glossary</span>
-          </button>
           <button id="btnConnectModal" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition flex items-center space-x-1" title="Connect two nodes in the workflow">
             <i class="fa-solid fa-link text-cyan-400"></i>
             <span>Connect</span>
@@ -197,16 +193,19 @@
           <svg id="dagSvg" class="w-full h-full min-w-[1300px] min-h-[650px]"></svg>
         </div>
 
-        <aside id="nodeInspector" class="w-96 bg-slate-900 border-l border-slate-800 flex flex-col shrink-0 shadow-2xl transition-all duration-200">
-          <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-            <div class="flex items-center space-x-2">
+        <aside id="nodeInspector" class="bg-slate-900 border-l border-slate-800 flex flex-col shrink-0 shadow-2xl overflow-hidden">
+          <div class="p-3 border-b border-slate-800 flex items-center justify-between gap-2">
+            <div class="flex items-center space-x-2 min-w-0 inspector-expanded-only">
               <i class="fa-solid fa-circle-nodes text-cyan-400"></i>
-              <h3 class="font-semibold text-sm text-slate-100">Node Inspector</h3>
+              <h3 class="font-semibold text-sm text-slate-100 truncate">Node Inspector</h3>
             </div>
-            <span id="inspectorStatusBadge" class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400">PENDING</span>
+            <span id="inspectorStatusBadge" class="inspector-expanded-only text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400">PENDING</span>
+            <button id="btnToggleNodeInspector" class="p-1.5 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition" title="Collapse or expand the node inspector">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
           </div>
 
-          <div class="p-4 flex-1 overflow-y-auto space-y-4 text-xs" id="nodeInspectorContent">
+          <div class="p-4 flex-1 overflow-y-auto space-y-4 text-xs inspector-expanded-only" id="nodeInspectorContent">
             <div class="text-slate-500 italic text-center py-12">
               Click on any node in the pathway to inspect agentic harness settings, outputs, connections, and human oversight gates.
             </div>
