@@ -128,6 +128,34 @@ test('lab list and playbooks escape titles', async () => {
   assert.ok(!playbookHtml.includes('<img src=x'));
 });
 
+test('inspector does not invent CBRN artifacts on a factory fire', () => {
+  const { context, elements } = loadApp();
+  vm.runInContext(`
+    AppState.state = {
+      scenario: { threat_type: 'industrial_fire', sample: { sample_type: 'SITREP_TEXT', name: 'Fire', source_location: 'Erskine Park', raw_payload: 'SIMULATED sitrep styrene' } },
+      pathway: { threat_type: 'industrial_fire' },
+      run: { node_artifacts: { adjacent_sites: [{ name: 'Tank farm', inventory_status: 'unknown', bearing: 'SSW', occupancy: 'liquids', note: 'unconfirmed' }] }, event_log: [] },
+      data_hub: {}
+    };
+    AppState.activeInspectorSubtab = 'tool-sitrep';
+    renderPipelineDataInspector();
+  `, context);
+  assert.ok(elements.get('inspectSitrepText').textContent.includes('SIMULATED'));
+  vm.runInContext(`AppState.activeInspectorSubtab = 'tool-adjacent'; renderPipelineDataInspector();`, context);
+  const adj = elements.get('inspectAdjacentList').innerHTML;
+  assert.ok(adj.includes('Tank farm'));
+  assert.ok(!adj.includes('<img'));
+  vm.runInContext(`
+    AppState.state.scenario.threat_type = 'biological_virus';
+    AppState.state.pathway.threat_type = 'biological_virus';
+    AppState.state.run.node_artifacts = {};
+    AppState.activeInspectorSubtab = 'tool-chemical';
+    renderPipelineDataInspector();
+  `, context);
+  assert.equal(elements.get('inspectChemName').textContent, 'Not produced');
+  assert.ok(!String(elements.get('inspectChemArtg').textContent).includes('Oseltamivir'));
+});
+
 test('Execute Pathway preserves human approval gates and reports pause', async () => {
   const { context } = loadApp();
   const alerts = [];

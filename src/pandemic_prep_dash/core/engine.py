@@ -22,6 +22,7 @@ from ..scenarios import get_scenario, list_scenarios
 from .node_executor import NodeExecutor
 from .data_hub import CentralDataHub, BlockerAlert, BlockerSeverity, ResearchPaper
 from .harness import NodeAgenticHarness
+from .lead_context import build_lead_context, filter_dialogues
 
 
 class PathwayExecutionEngine:
@@ -268,6 +269,17 @@ class PathwayExecutionEngine:
             self.record_event("failed", str(err), node_id=target_node.id)
             return {"status": "failed", "node_id": target_node.id, "message": str(err)}
 
+        pathway_ids = [n.id for n in self.pathway.nodes]
+        new_dialogues = filter_dialogues(new_dialogues, pathway_ids)
+        lead_ctx = build_lead_context(
+            updated_node,
+            {**self.run.node_artifacts, **new_artifacts},
+            pathway_ids,
+            str(self.scenario_data.get("threat_type", "")),
+        )
+        if lead_ctx:
+            updated_node.outputs = {**(updated_node.outputs or {}), "lead_context": lead_ctx}
+
         # Merge artifacts, thought logs, and auditable inter-node dialogues
         self.run.node_artifacts.update(new_artifacts)
         self.run.thought_logs.extend(thought_logs)
@@ -308,6 +320,12 @@ class PathwayExecutionEngine:
             f"Completed '{target_node.label}'",
             node_id=target_node.id,
         )
+        if lead_ctx:
+            self.record_event(
+                "lead_context",
+                f"Lead context published for '{target_node.label}' ({len(lead_ctx)} questions)",
+                node_id=target_node.id,
+            )
         if self.run.status == RunStatus.COMPLETED:
             self.record_event("run_completed", "Pathway run completed")
 

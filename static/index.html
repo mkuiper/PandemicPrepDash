@@ -401,9 +401,15 @@
             <i class="fa-solid fa-microscope text-cyan-400 mr-2"></i>
             Interactive Pipeline Data Inspector:
           </span>
-          <div class="flex space-x-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-[11px]">
+          <div id="inspectorTabBar" class="flex flex-wrap space-x-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-[11px]">
             <button data-inspect-tool="tool-sequence" class="inspect-subtab-btn active px-3 py-1 rounded bg-cyan-600 text-white font-medium transition">
               <i class="fa-solid fa-dna mr-1"></i>Sequence &amp; Reads
+            </button>
+            <button data-inspect-tool="tool-sitrep" class="inspect-subtab-btn hidden px-3 py-1 rounded text-slate-400 hover:text-slate-200 transition">
+              <i class="fa-solid fa-file-lines mr-1"></i>Sitrep
+            </button>
+            <button data-inspect-tool="tool-adjacent" class="inspect-subtab-btn hidden px-3 py-1 rounded text-slate-400 hover:text-slate-200 transition">
+              <i class="fa-solid fa-map-location-dot mr-1"></i>Adjacent sites
             </button>
             <button data-inspect-tool="tool-structure" class="inspect-subtab-btn px-3 py-1 rounded text-slate-400 hover:text-slate-200 transition">
               <i class="fa-solid fa-atom mr-1"></i>3D Macromolecular Targets
@@ -413,6 +419,9 @@
             </button>
             <button data-inspect-tool="tool-plume" class="inspect-subtab-btn px-3 py-1 rounded text-slate-400 hover:text-slate-200 transition">
               <i class="fa-solid fa-wind mr-1"></i>Atmospheric Plume Map
+            </button>
+            <button data-inspect-tool="tool-events" class="inspect-subtab-btn hidden px-3 py-1 rounded text-slate-400 hover:text-slate-200 transition">
+              <i class="fa-solid fa-list-ol mr-1"></i>Event log
             </button>
           </div>
         </div>
@@ -472,6 +481,31 @@
                 Sequence data will appear here after ingestion.
               </div>
             </div>
+          </div>
+        </div>
+
+        <div id="tool-sitrep" class="inspect-tool-panel hidden space-y-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-md">
+            <h3 class="font-bold text-sm text-slate-100">Incident sitrep (text, not a sequence)</h3>
+            <p class="text-[11px] text-amber-300">Workshop fiction. Not a live CAD, BOM, or fire-service product.</p>
+            <div id="inspectSitrepMeta" class="grid grid-cols-2 gap-2 text-[11px] font-mono text-slate-300"></div>
+            <pre id="inspectSitrepText" class="bg-slate-950 p-4 rounded-lg border border-slate-800 text-xs text-slate-200 whitespace-pre-wrap max-h-80 overflow-y-auto">No sitrep loaded.</pre>
+          </div>
+        </div>
+
+        <div id="tool-adjacent" class="inspect-tool-panel hidden space-y-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-md">
+            <h3 class="font-bold text-sm text-slate-100">Adjacent occupancy lookup</h3>
+            <p class="text-[11px] text-slate-400">Start at this site, then neighbours. Unknown inventory is a first-class result.</p>
+            <div id="inspectAdjacentList" class="space-y-2 text-xs text-slate-300"></div>
+          </div>
+        </div>
+
+        <div id="tool-events" class="inspect-tool-panel hidden space-y-4">
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-md">
+            <h3 class="font-bold text-sm text-slate-100">Incident event log</h3>
+            <p class="text-[11px] text-slate-500">In-memory with this run. Not a tamper-proof archive.</p>
+            <div id="inspectEventLog" class="space-y-1 text-[11px]"></div>
           </div>
         </div>
 
@@ -591,39 +625,21 @@
               <div>
                 <h3 class="font-bold text-sm text-slate-100 flex items-center">
                   <i class="fa-solid fa-wind text-amber-400 mr-2"></i>
-                  Atmospheric Dispersion &amp; Fallout Plume Inspector
+                  <span id="inspectPlumeTitle">Atmospheric dispersion inspector</span>
                 </h3>
-                <p class="text-slate-400 text-xs">HYSPLIT Lagrangian particulate simulation with public health exclusion contours.</p>
+                <p id="inspectPlumeSubtitle" class="text-slate-400 text-xs">Planning contour from blackboard artifacts. Simulated unless provenance says otherwise.</p>
               </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div class="lg:col-span-2 bg-slate-950 p-6 rounded-xl border border-slate-800 flex items-center justify-center min-h-[300px] relative overflow-hidden">
-                <div class="relative w-72 h-72 flex items-center justify-center">
-                  <div class="absolute inset-0 rounded-full border border-amber-500/30 bg-amber-500/5 flex items-start justify-center pt-2">
-                    <span class="text-[9px] font-mono text-amber-400">5.0 km Urgent Protective Zone</span>
-                  </div>
-                  <div class="absolute inset-12 rounded-full border border-orange-500/40 bg-orange-500/10 flex items-start justify-center pt-2">
-                    <span class="text-[9px] font-mono text-orange-300">1.0 km Exclusion Perimeter</span>
-                  </div>
-                  <div class="absolute inset-24 rounded-full border-2 border-rose-500 bg-rose-500/20 flex items-center justify-center">
-                    <div class="text-center">
-                      <i class="fa-solid fa-radiation text-rose-400 text-lg animate-pulse"></i>
-                      <div class="text-[9px] font-mono text-rose-300 font-bold">&gt;10 mSv/hr</div>
-                    </div>
-                  </div>
-                </div>
+                <div id="inspectPlumeRings" class="relative w-72 h-72 flex items-center justify-center"></div>
               </div>
 
               <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-3 text-xs">
-                <h4 class="font-bold text-slate-200 text-xs uppercase tracking-wider">Dispersion Model Parameters</h4>
-                <div class="space-y-2 font-mono text-[11px] text-slate-300">
-                  <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Atmospheric Stability:</span> <span class="text-cyan-300 font-bold">Pasquill-Gifford Class D</span></div>
-                  <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Surface Wind Vector:</span> <span class="text-slate-100 font-bold">12 kts @ 045° (NE)</span></div>
-                  <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Inner Hot Zone (10 mSv):</span> <span class="text-rose-400 font-bold">450 m Radius</span></div>
-                  <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Urgent Protective Zone:</span> <span class="text-amber-400 font-bold">5.0 km Downwind</span></div>
-                  <div class="flex justify-between py-1"><span class="text-slate-400">Decorporation Stockpile:</span> <span class="text-emerald-400 font-bold">Prussian Blue / DTPA</span></div>
-                </div>
+                <h4 class="font-bold text-slate-200 text-xs uppercase tracking-wider">Dispersion parameters</h4>
+                <div id="inspectPlumeParams" class="space-y-2 font-mono text-[11px] text-slate-300"></div>
+                <div id="inspectPlumeProvenance" class="text-[10px] text-amber-300">Provenance: simulated</div>
               </div>
             </div>
           </div>

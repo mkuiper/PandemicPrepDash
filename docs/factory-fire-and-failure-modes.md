@@ -37,6 +37,18 @@ Today the lookup table is in the scenario file. A later platform would geocode
 and query real registers, with the same “unknown / stale / conflict” states.
 Do not hard-wire only Erskine Park as if that were the product.
 
+## Data viewers and lead context
+
+The Pipeline Data Inspector used to show sequence GC%, AlphaFold, Oseltamivir, and a
+static Cs-137 plume for every incident. Tabs now follow `threat_type`. Empty
+chemistry/structure boards say **not produced** instead of inventing a drug or
+glycoprotein. The fire plume tab binds `plume_model` and does not display mSv or
+Prussian Blue. Sitrep is text. Adjacent occupancies have their own tool.
+
+Each completed node publishes **lead context**: two to four questions grounded in
+blackboard keys. If a key is missing the answer is `unknown`. Leads do not issue
+orders. Inter-node dialogues whose target is not on the active pathway are dropped.
+
 ## Event recording for diagnostics
 
 Each run appends an **incident event log** (scenario selected, node completed,

@@ -451,6 +451,7 @@ function updateUIState() {
     else threatTier = "Tier 1 SSBA";
   }
   ssbaBadge.textContent = threatTier;
+  if (AppState.activeTab === "tab-inspector") syncInspectorTabs();
 
   document.getElementById("pathwayNameDisplay").textContent = pathway.name;
   document.getElementById("nodesStatusSummary").textContent = `${stats.completed_nodes} / ${stats.total_nodes} Completed (${run.status.toUpperCase()})`;
@@ -1525,15 +1526,58 @@ async function renderAgencyMapView() {
 
 // ---------------- Pipeline Data Inspector ----------------
 
+function inspectorToolsForThreat() {
+  const threat = currentThreatType();
+  if (threat === "severe_weather") return ["tool-sitrep", "tool-events"];
+  if (threat === "industrial_fire") return ["tool-sitrep", "tool-adjacent", "tool-plume", "tool-events"];
+  if (threat === "radiological_dispersal" || threat === "nuclear_material") return ["tool-sitrep", "tool-plume", "tool-events"];
+  if (threat === "chemical_nerve_agent" || threat === "chemical_toxin") return ["tool-chemical", "tool-plume", "tool-events"];
+  return ["tool-sequence", "tool-structure", "tool-chemical", "tool-events"];
+}
+
+function syncInspectorTabs() {
+  const allowed = inspectorToolsForThreat();
+  document.querySelectorAll(".inspect-subtab-btn").forEach((btn) => {
+    const id = btn.dataset.inspectTool;
+    if (allowed.includes(id)) btn.classList.remove("hidden");
+    else btn.classList.add("hidden");
+  });
+  if (!allowed.includes(AppState.activeInspectorSubtab)) {
+    AppState.activeInspectorSubtab = allowed[0];
+    document.querySelectorAll(".inspect-subtab-btn").forEach((b) => {
+      const on = b.dataset.inspectTool === AppState.activeInspectorSubtab;
+      b.classList.toggle("active", on);
+      b.classList.toggle("bg-cyan-600", on);
+      b.classList.toggle("text-white", on);
+      b.classList.toggle("font-medium", on);
+      b.classList.toggle("text-slate-400", !on);
+    });
+    document.querySelectorAll(".inspect-tool-panel").forEach((p) => p.classList.add("hidden"));
+    document.getElementById(AppState.activeInspectorSubtab)?.classList.remove("hidden");
+  }
+}
+
 function renderPipelineDataInspector() {
+  syncInspectorTabs();
   const sample = AppState.state?.scenario?.sample || {};
   const artifacts = AppState.state?.run?.node_artifacts || {};
   const rawPayload = sample.raw_payload || "";
+  const tab = AppState.activeInspectorSubtab;
 
-  if (AppState.activeInspectorSubtab === "tool-sequence") {
+  if (tab === "tool-sequence") {
+    const isSeq = ["DNA", "RNA", "PROTEIN"].includes(sample.sample_type);
+    if (!isSeq) {
+      document.getElementById("inspectSeqLength").textContent = "n/a";
+      document.getElementById("inspectSeqGc").textContent = "n/a";
+      document.getElementById("inspectSeqType").textContent = sample.sample_type || "not a sequence";
+      document.getElementById("inspectBaseStats").textContent = "Sequence viewer is for nucleotide/protein payloads only.";
+      document.getElementById("inspectBaseBar").innerHTML = "";
+      const box = document.getElementById("inspectSequenceBox");
+      if (box) box.innerHTML = `<span class="text-slate-500 italic">This incident payload is not a sequence. Use the Sitrep tool.</span>`;
+      return;
+    }
     const cleanSeq = rawPayload.replace(/^>.*\n/g, "").replace(/\s+/g, "");
     const totalLen = cleanSeq.length || 1;
-
     let countA = 0, countC = 0, countG = 0, countTU = 0;
     for (const ch of cleanSeq.toUpperCase()) {
       if (ch === "A") countA++;
@@ -1541,18 +1585,14 @@ function renderPipelineDataInspector() {
       else if (ch === "G") countG++;
       else if (ch === "T" || ch === "U") countTU++;
     }
-
     const pctA = Math.round((countA / totalLen) * 100);
     const pctC = Math.round((countC / totalLen) * 100);
     const pctG = Math.round((countG / totalLen) * 100);
     const pctTU = Math.round((countTU / totalLen) * 100);
-    const gcPct = pctC + pctG;
-
     document.getElementById("inspectSeqLength").textContent = `${cleanSeq.length} bp`;
-    document.getElementById("inspectSeqGc").textContent = `${gcPct}%`;
+    document.getElementById("inspectSeqGc").textContent = `${pctC + pctG}%`;
     document.getElementById("inspectSeqType").textContent = sample.sample_type || "RNA";
     document.getElementById("inspectBaseStats").textContent = `A: ${pctA}% | C: ${pctC}% | G: ${pctG}% | T/U: ${pctTU}%`;
-
     const bar = document.getElementById("inspectBaseBar");
     bar.innerHTML = `
       <div style="width: ${pctA}%" class="bg-emerald-500" title="Adenine: ${pctA}%"></div>
@@ -1560,25 +1600,127 @@ function renderPipelineDataInspector() {
       <div style="width: ${pctG}%" class="bg-amber-500" title="Guanine: ${pctG}%"></div>
       <div style="width: ${pctTU}%" class="bg-rose-500" title="Thymine/Uracil: ${pctTU}%"></div>
     `;
-
     renderFormattedSequence(cleanSeq);
-  } else if (AppState.activeInspectorSubtab === "tool-structure") {
+  } else if (tab === "tool-sitrep") {
+    const meta = document.getElementById("inspectSitrepMeta");
+    const text = document.getElementById("inspectSitrepText");
+    if (meta) {
+      meta.innerHTML = `
+        <div class="bg-slate-950 p-2 rounded border border-slate-800"><span class="text-slate-500">Name</span><div>${escapeHtml(sample.name || "unset")}</div></div>
+        <div class="bg-slate-950 p-2 rounded border border-slate-800"><span class="text-slate-500">Location</span><div>${escapeHtml(sample.source_location || "unset")}</div></div>
+        <div class="bg-slate-950 p-2 rounded border border-slate-800"><span class="text-slate-500">Type</span><div>${escapeHtml(sample.sample_type || "sitrep")}</div></div>
+        <div class="bg-slate-950 p-2 rounded border border-slate-800"><span class="text-slate-500">Provenance</span><div>simulated</div></div>`;
+    }
+    if (text) text.textContent = rawPayload || "No sitrep on the blackboard.";
+  } else if (tab === "tool-adjacent") {
+    const list = document.getElementById("inspectAdjacentList");
+    const neighbours = artifacts.adjacent_sites || [];
+    if (!list) return;
+    if (!neighbours.length) {
+      list.innerHTML = `<div class="text-slate-500 italic">Adjacent lookup has not run yet. Unknown is the honest state.</div>`;
+    } else {
+      list.innerHTML = neighbours.map((n) => `
+        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+          <div class="font-bold text-slate-100">${escapeHtml(n.name)}</div>
+          <div class="text-slate-400">${escapeHtml(n.bearing)} · ${escapeHtml(n.occupancy)}</div>
+          <div class="text-amber-300">Inventory: ${escapeHtml(n.inventory_status)}</div>
+          <div class="text-slate-300">${escapeHtml(n.note)}</div>
+        </div>`).join("");
+    }
+  } else if (tab === "tool-events") {
+    const box = document.getElementById("inspectEventLog");
+    const events = AppState.state?.run?.event_log || [];
+    if (!box) return;
+    if (!events.length) {
+      box.innerHTML = `<div class="text-slate-500 italic">No events on this run yet.</div>`;
+    } else {
+      box.innerHTML = events.slice().reverse().map((e) => `
+        <div class="flex justify-between gap-2 border-b border-slate-800 py-1">
+          <span><span class="font-mono text-cyan-400 text-[9px]">${escapeHtml(e.kind)}</span> ${escapeHtml(e.summary)}</span>
+          <span class="font-mono text-slate-500">${escapeHtml((e.at || "").split("T")[1]?.slice(0, 8) || "")}</span>
+        </div>`).join("");
+    }
+  } else if (tab === "tool-structure") {
     const targets = artifacts.protein_targets || [];
-    const primary = targets[0] || { name: "Surface Glycoprotein Trimer", pocket_volume_angstrom3: 1420, druggability_score: 0.94, plddt_confidence: 96.2 };
-    
-    document.getElementById("inspectTargetNameBadge").textContent = primary.name;
-    document.getElementById("molCanvasTargetLabel").textContent = `${primary.name} (AlphaFold 3D Atomic Model)`;
-    document.getElementById("pocketVolumeValue").textContent = `${primary.pocket_volume_angstrom3 || 1420} Å³`;
-    document.getElementById("druggabilityScoreValue").textContent = `${primary.druggability_score || 0.94} / 1.0`;
-    document.getElementById("plddtScoreValue").textContent = `${primary.plddt_confidence || 96.2}%`;
-  } else if (AppState.activeInspectorSubtab === "tool-chemical") {
+    if (!targets.length) {
+      document.getElementById("inspectTargetNameBadge").textContent = "Not produced";
+      document.getElementById("molCanvasTargetLabel").textContent = "No structural model on the blackboard for this incident.";
+      document.getElementById("pocketVolumeValue").textContent = "—";
+      document.getElementById("druggabilityScoreValue").textContent = "—";
+      document.getElementById("plddtScoreValue").textContent = "—";
+      return;
+    }
+    const primary = targets[0];
+    document.getElementById("inspectTargetNameBadge").textContent = primary.name || "Target";
+    document.getElementById("molCanvasTargetLabel").textContent = `${primary.name} (model on blackboard)`;
+    document.getElementById("pocketVolumeValue").textContent = primary.pocket_volume_angstrom3 != null ? `${primary.pocket_volume_angstrom3} Å³` : "—";
+    document.getElementById("druggabilityScoreValue").textContent = primary.druggability_score != null ? `${primary.druggability_score} / 1.0` : "—";
+    document.getElementById("plddtScoreValue").textContent = primary.plddt_confidence != null ? `${primary.plddt_confidence}%` : "—";
+  } else if (tab === "tool-chemical") {
     const drugs = artifacts.drug_candidates || [];
-    const lead = drugs[0] || { name: "Oseltamivir Carboxylate", binding_affinity_kcal_mol: -8.6, tga_artg_status: "ARTG Registered (AUST R 76342)" };
-
-    document.getElementById("inspectChemName").textContent = lead.name;
-    document.getElementById("inspectChemAffinity").textContent = `${lead.binding_affinity_kcal_mol || -8.6} kcal/mol`;
-    document.getElementById("inspectChemArtg").textContent = lead.tga_artg_status || "Evaluating";
+    if (!drugs.length) {
+      document.getElementById("inspectChemName").textContent = "Not produced";
+      document.getElementById("inspectChemAffinity").textContent = "—";
+      document.getElementById("inspectChemArtg").textContent = "No chemistry artifact on the blackboard.";
+      return;
+    }
+    const lead = drugs[0];
+    document.getElementById("inspectChemName").textContent = lead.name || "Candidate";
+    document.getElementById("inspectChemAffinity").textContent = lead.binding_affinity_kcal_mol != null ? `${lead.binding_affinity_kcal_mol} kcal/mol` : "—";
+    document.getElementById("inspectChemArtg").textContent = lead.tga_artg_status || "unset";
+  } else if (tab === "tool-plume") {
+    renderPlumeInspector(artifacts);
   }
+}
+
+function renderPlumeInspector(artifacts) {
+  const plume = artifacts.plume_model || AppState.state?.data_hub?.plume_and_environmental || {};
+  const weather = artifacts.weather || {};
+  const threat = currentThreatType();
+  const title = document.getElementById("inspectPlumeTitle");
+  const sub = document.getElementById("inspectPlumeSubtitle");
+  const rings = document.getElementById("inspectPlumeRings");
+  const params = document.getElementById("inspectPlumeParams");
+  const prov = document.getElementById("inspectPlumeProvenance");
+  const has = plume && (plume.planning_distance_km || plume.inner_hot_zone_m || Object.keys(plume).length);
+  if (title) title.textContent = threat === "industrial_fire" ? "HYSPLIT-shaped planning contour" : "Atmospheric dispersion inspector";
+  if (sub) {
+    sub.textContent = has
+      ? (plume.method || "Planning contour from blackboard artifacts.")
+      : "No plume artifact on the blackboard yet. Rings will not invent a Cs-137 default.";
+  }
+  const km = plume.planning_distance_km || plume.urgent_protective_km;
+  const inner = plume.inner_hot_zone_m;
+  if (rings) {
+    if (!has) {
+      rings.innerHTML = `<div class="text-slate-500 italic text-xs text-center">No contour produced for this run.</div>`;
+    } else if (threat === "industrial_fire") {
+      rings.innerHTML = `
+        <div class="absolute inset-0 rounded-full border border-amber-500/30 bg-amber-500/5 flex items-start justify-center pt-2">
+          <span class="text-[9px] font-mono text-amber-400">${escapeHtml(km || "3.2")} km planning</span>
+        </div>
+        <div class="absolute inset-20 rounded-full border-2 border-rose-500/50 bg-rose-500/10 flex items-center justify-center">
+          <div class="text-center text-[9px] font-mono text-rose-300">Site<br>${escapeHtml(plume.direction || "ENE")}</div>
+        </div>`;
+    } else {
+      rings.innerHTML = `
+        <div class="absolute inset-0 rounded-full border border-amber-500/30 bg-amber-500/5 flex items-start justify-center pt-2">
+          <span class="text-[9px] font-mono text-amber-400">${escapeHtml(km || "—")} km protective</span>
+        </div>
+        <div class="absolute inset-24 rounded-full border-2 border-rose-500 bg-rose-500/20 flex items-center justify-center">
+          <div class="text-center text-[9px] font-mono text-rose-300">${inner ? escapeHtml(inner) + " m inner" : "source"}</div>
+        </div>`;
+    }
+  }
+  if (params) {
+    const wind = weather.wind_dir ? `${weather.wind_dir} ${weather.wind_kt || ""} kt` : (plume.wind || "not on blackboard");
+    params.innerHTML = `
+      <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Wind</span><span>${escapeHtml(wind)}</span></div>
+      <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Direction</span><span>${escapeHtml(plume.direction || "unset")}</span></div>
+      <div class="flex justify-between py-1 border-b border-slate-800"><span class="text-slate-400">Planning distance</span><span>${escapeHtml(km || "unset")} km</span></div>
+      <div class="flex justify-between py-1"><span class="text-slate-400">Method</span><span>${escapeHtml(plume.method || "unset")}</span></div>`;
+  }
+  if (prov) prov.textContent = `Provenance: ${plume.provenance || "simulated"} — not a live NOAA HYSPLIT run`;
 }
 
 function renderFormattedSequence(cleanSeq, highlightPattern = null) {
@@ -2299,6 +2441,31 @@ function makeDraggable(element, node) {
   });
 }
 
+function leadContextHtml(node, state) {
+  const ctx = node.outputs?.lead_context || [];
+  const dialogues = (state?.run?.inter_node_dialogues || []).filter((d) => d.source_node_id === node.id);
+  if (!ctx.length && !dialogues.length) return "";
+  const qs = ctx.map((q) => `
+    <div class="bg-slate-950 p-2 rounded border border-slate-800 space-y-1">
+      <div class="text-cyan-300 font-medium">${escapeHtml(q.question)}</div>
+      <div class="${q.unknown ? "text-amber-300" : "text-slate-200"}">${escapeHtml(q.answer)}</div>
+      <div class="text-[9px] font-mono text-slate-500">cites: ${escapeHtml((q.cites || []).join(", "))} · ${escapeHtml(q.provenance || "simulated")}</div>
+    </div>`).join("");
+  const dhtml = dialogues.map((d) => `
+    <div class="text-[10px] text-slate-300 border-l-2 border-cyan-700 pl-2">
+      <div class="text-slate-400">${escapeHtml(d.subject)}</div>
+      <div>${escapeHtml(d.content)}</div>
+      ${d.response_content ? `<div class="text-slate-400 italic">${escapeHtml(d.response_content)}</div>` : ""}
+    </div>`).join("");
+  return `
+    <div class="space-y-2">
+      <span class="text-slate-500 uppercase font-semibold text-[10px]">Lead context (second eyes)</span>
+      <p class="text-[10px] text-slate-500">Grounded in the blackboard. Unknown is a valid answer. This crew does not issue orders.</p>
+      ${qs}
+      ${dhtml}
+    </div>`;
+}
+
 // ---------------- Node Inspector ----------------
 
 function renderNodeInspector(nodeId) {
@@ -2338,7 +2505,7 @@ function renderNodeInspector(nodeId) {
           </span>
         </div>
         <div class="text-slate-300 text-[10px] space-y-1">
-          <div><strong>Authority:</strong> ${node.human_oversight_role || "Statutory Duty Officer"}</div>
+          <div><strong>Authority:</strong> ${escapeHtml(node.human_oversight_role || "Incident Controller")}</div>
           ${node.human_signoff_notes ? `<div class="text-slate-400 italic">Notes: ${node.human_signoff_notes}</div>` : ""}
         </div>
         ${
@@ -2509,10 +2676,12 @@ const HARNESS_DEFAULT_COMMANDS = {
         </div>
       </div>
 
+      ${leadContextHtml(node, AppState.state)}
+
       <div>
         <span class="text-slate-500 uppercase font-semibold text-[10px]">Outputs &amp; Generated Artifacts</span>
         <pre class="mt-1 bg-slate-950 p-2.5 rounded border border-slate-800 font-mono text-[10px] text-cyan-300 overflow-x-auto max-h-40">${
-          JSON.stringify(node.outputs, null, 2) || "{}"
+          escapeHtml(JSON.stringify(node.outputs, null, 2) || "{}")
         }</pre>
       </div>
 

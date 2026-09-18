@@ -75,6 +75,9 @@ agencies; do not assume existing government classification labels are sufficient
    connector shows as unknown/stale/conflict rather than a silent last value.
    Chaos against the software (concurrent approve/reset, poisoned artifacts)
    belongs in tests for the later platform; workshop injects belong in the demo.
+7. **Honest viewers + lead context** — inspect tools follow the hazard; crew leads
+   ask grounded bigger-picture questions (unknown is allowed). See the inspector
+   tab and node inspector after a node completes.
 
 For the larger platform, prioritize incident-scoped durable storage, authenticated
 identities, enforced disclosure rules, accountable approvals, event history,

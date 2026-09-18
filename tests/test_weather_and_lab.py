@@ -63,6 +63,44 @@ def test_factory_fire_playbook_selects_matching_data():
     assert state["run"]["event_log"]
 
 
+def test_lead_context_is_grounded_and_dialogues_stay_on_pathway():
+    from pandemic_prep_dash.core.lead_context import build_lead_context, filter_dialogues
+    from pandemic_prep_dash.models.pathway import PathwayNode, NodeCategory
+    from pandemic_prep_dash.models.agent import InterNodeDialogue, DialogueMessageType
+
+    node = PathwayNode(id="node_ff_adjacent", label="Adjacent", description="x", category=NodeCategory.TRIAGE)
+    ctx = build_lead_context(node, {"adjacent_sites": [{"name": "Tank farm", "inventory_status": "unknown"}]}, ["node_ff_adjacent"], "industrial_fire")
+    blob = str(ctx).lower()
+    assert "unknown" in blob
+    assert "m7" not in blob or "inventory" in blob
+    assert "oseltamivir" not in blob
+
+    bio = PathwayNode(id="node_genomic_characterization", label="G", description="x", category=NodeCategory.CHARACTERIZATION)
+    bio_ctx = build_lead_context(bio, {"identification": {"agent_name": "H5N1"}}, ["node_genomic_characterization"], "biological_virus")
+    assert "M7" not in str(bio_ctx)
+
+    kept = filter_dialogues(
+        [InterNodeDialogue(
+            dialogue_id="d1", source_node_id="a", source_agent_id="x", source_agent_name="A",
+            target_node_id="node_genomic_characterization", target_agent_id="y", target_agent_name="B",
+            message_type=DialogueMessageType.REQUEST_INFO, subject="s", content="c",
+        )],
+        ["node_ff_intake"],
+    )
+    assert kept == []
+
+
+def test_factory_fire_run_publishes_lead_context_without_genomic_dialogue():
+    engine = PathwayExecutionEngine(create_default_biological_pathway(), "scen_h5n1_avian_flu")
+    engine.set_scenario("scen_industrial_warehouse_fire")
+    engine.execute_all()
+    adj = next(n for n in engine.pathway.nodes if n.id == "node_ff_adjacent")
+    assert adj.outputs.get("lead_context")
+    assert any("unknown" in str(q).lower() for q in adj.outputs["lead_context"])
+    assert all(d.target_node_id in {n.id for n in engine.pathway.nodes} for d in engine.run.inter_node_dialogues)
+    assert any(e.kind == "lead_context" for e in engine.run.event_log)
+
+
 def test_factory_fire_evidence_is_not_nerve_agent():
     report = EvidenceAnalyzer.analyze_incident_evidence(
         scenario_id="scen_industrial_warehouse_fire",
