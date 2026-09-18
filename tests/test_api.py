@@ -16,7 +16,7 @@ def test_health_endpoint():
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
-    assert data["service"] == "Incident Response Dashboard"
+    assert data["service"] == "CBRN Rapid Response"
 
 
 def test_scenarios_endpoints():

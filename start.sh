@@ -53,6 +53,6 @@ if [[ "$install" == true ]]; then
   fi
 fi
 
-echo "Second Eyes demo: http://${HOST}:${PORT}"
+echo "CBRN Rapid Response demo: http://${HOST}:${PORT}"
 echo "Stop with Ctrl+C. Workflow state resets when the server stops."
 exec .venv/bin/python -m uvicorn pandemic_prep_dash.main:app --host "$HOST" --port "$PORT" --workers 1

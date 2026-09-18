@@ -18,7 +18,7 @@ DOCS_CHAPTERS = [
         "content": """
 # Operational Overview & Whole-of-Government CONOPS
 
-The **Incident Response Dashboard** platform is designed to provide Australia with an adaptive, auditable, and whole-of-government emergency response pipeline for emerging biological, chemical, and radiological (CBRN) threats.
+**CBRN Rapid Response** is a workshop demonstrator for an adaptive, auditable, whole-of-government pipeline for biological, chemical, and radiological (CBRN) threats.
 
 ### Core Operational Principles
 1. **Dynamic Directed Acyclic Graph (DAG) Response Pathways:** Rather than a rigid linear workflow, response operations are represented as a configurable DAG. Analytical nodes (e.g. sequence ingestion, structural modeling, therapeutic docking, plume modeling) execute concurrently whenever their input dependencies are resolved.
@@ -226,7 +226,7 @@ Real-world physical validation from accredited Commonwealth reference laboratori
         "content": """
 # Platform System Architecture & Agentic Harness Specifications
 
-Incident Response Dashboard is architected as an auditable, sovereign, multi-agent emergency management engine designed to operate within Australian Government secure enclaves.
+CBRN Rapid Response is presented as an auditable, multi-agent emergency management demonstrator. It is not deployed in a government enclave.
 
 ### 1. High-Level Multi-Tier Architecture
 

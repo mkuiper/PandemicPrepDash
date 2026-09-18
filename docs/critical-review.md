@@ -2,7 +2,7 @@
 
 ## Assessment and intended use
 
-The Incident Response Dashboard is useful as a facilitated demonstrator for
+CBRN Rapid Response is useful as a facilitated demonstrator for
 agency feedback. It has a functioning graph editor, workflow engine, API, and
 briefing UI. It is not yet a general incident platform: domain categories,
 scenario logic, evidence scores, and agency mappings remain CBRN-specific.
@@ -34,7 +34,7 @@ or external integration contracts. No external agency communications were sent.
 | Governance updates bypassed validation and returned success HTTP status on errors | Validate merged settings and return 422 for invalid data without mutation. This is still demo configuration, not policy enforcement. |
 | UI claimed working diagnostics, a secrets vault, and verified compliance | Label diagnostics/storage as simulations, disable credential fields, and default unverified controls/key connections to false. |
 
-Product branding now reads **Incident Response Dashboard**. A persistent demo
+Product branding now reads **CBRN Rapid Response**. A persistent demo
 notice clarifies simulated analysis and dispatch. The existing import/package
 name is preserved, with an additional `incident-response` console entry point.
 

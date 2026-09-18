@@ -1,6 +1,6 @@
 /**
- * Second Eyes — Incident Response Dashboard
- * All-hazards workshop demonstrator. Analysis and dispatch are simulated.
+ * CBRN Rapid Response — frontend.
+ * Workshop demonstrator. Analysis and dispatch are simulated.
  */
 
 // Escape text before inserting it into HTML templates (including attribute values).

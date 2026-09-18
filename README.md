@@ -1,21 +1,14 @@
-# Second Eyes
+# CBRN Rapid Response
 
-**Incident Response Dashboard** — an all-hazards workshop demonstrator.
+A workshop demonstrator for chemical, biological, radiological and nuclear
+incident coordination: response pathways, human review, and shared situational
+awareness. Its purpose is to gather agency feedback and inform the design of a
+larger platform. It is not an operational command system.
 
-A working demonstrator for incident coordination, response pathways, human review,
-and shared situational awareness. It is a **second set of eyes** on an evolving
-event, not a command system and not a CBRN-only product. Its purpose is to gather
-agency feedback and inform the design of a larger platform.
-
-The current example scenarios cover biological, chemical, radiological,
-severe-weather (Hawkesbury–Nepean flood), and an industrial warehouse fire with
-a simulated toxic plume. Civilian pathways are a **second set of eyes** on an
-evolving event — they do not replace fire, EPA, ambulance, or SES protocols.
-The fire path starts at the site, looks up adjacent occupancies, offers a
-HYSPLIT-shaped planning contour (simulated), and records an in-run event log
-for after-action discussion. Agency access controls are planned, not
-implemented. The Python package and repository retain their original names
-for compatibility.
+The core example scenarios are biological, chemical, and radiological. Flood and
+industrial-fire pathways are additional coordination examples (intake, evidence,
+approval, briefing). Analyses, agent logs, and dispatches are simulated. The
+Python package and repository retain their original names for compatibility.
 
 ## What works today
 

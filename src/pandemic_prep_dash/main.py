@@ -1,5 +1,5 @@
 """
-Incident Response Dashboard - FastAPI Application Entrypoint.
+CBRN Rapid Response - FastAPI Application Entrypoint.
 """
 
 from fastapi import FastAPI
@@ -13,8 +13,8 @@ from .api import api_router
 from .core.state_manager import StateManager
 
 app = FastAPI(
-    title="Incident Response Dashboard",
-    description="Second Eyes: all-hazards workshop demonstrator for incident coordination and decision tracking",
+    title="CBRN Rapid Response",
+    description="Workshop demonstrator for CBRN incident coordination, response pathways and decision tracking",
     version="0.1.0",
 )
 
@@ -33,9 +33,9 @@ app.include_router(api_router)
 def health_check():
     return {
         "status": "healthy",
-        "service": "Incident Response Dashboard",
+        "service": "CBRN Rapid Response",
         "version": "0.1.0",
-        "framework": "Second Eyes all-hazards workshop demonstration",
+        "framework": "CBRN rapid response workshop demonstration",
     }
 
 
@@ -48,7 +48,7 @@ if static_dir.exists():
 def main():
     host = os.getenv("HOST", "127.0.0.1")
     port = int(os.getenv("PORT", "8000"))
-    print(f"Starting Second Eyes (Incident Response Dashboard) on http://{host}:{port}")
+    print(f"Starting CBRN Rapid Response on http://{host}:{port}")
     uvicorn.run("pandemic_prep_dash.main:app", host=host, port=port, reload=False)
 
 
