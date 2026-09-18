@@ -165,6 +165,8 @@ function switchTab(targetTab) {
     renderPipelineDataInspector();
   } else if (targetTab === "tab-tools") {
     renderToolsView();
+  } else if (targetTab === "tab-academy") {
+    renderAcademyView();
   } else if (targetTab === "tab-agency-map") {
     renderAgencyMapView();
   } else if (targetTab === "tab-agencies") {
@@ -1340,6 +1342,87 @@ async function handleRecordAssayResultsSubmit(e) {
 }
 
 // ---------------- Software Toolbox & MCP Servers View ----------------
+
+async function renderAcademyView() {
+  const [crewsRes, boardRes] = await Promise.all([
+    fetch("/api/agents/crews").then((r) => r.json()),
+    fetch("/api/agents/orchestrator-board").then((r) => r.json()),
+  ]);
+  const list = document.getElementById("academyCrewsList");
+  const board = document.getElementById("orchestratorProblemList");
+  if (list) {
+    const crews = crewsRes.crews || [];
+    list.innerHTML = crews.map((crew) => `
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-slate-100 text-sm">${escapeHtml(crew.node_label)}</h3>
+            <div class="text-[10px] font-mono text-slate-500">${escapeHtml(crew.node_id)} · ${escapeHtml(crew.team_name)}</div>
+          </div>
+        </div>
+        ${(crew.instances || []).map((inst) => `
+          <div class="bg-slate-950 border border-slate-800 rounded-lg p-3 space-y-2">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <span class="font-mono text-cyan-300 text-[11px]">${escapeHtml(inst.instance_name)}</span>
+                ${inst.is_lead ? `<span class="ml-1 text-[9px] px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">LEAD</span>` : ""}
+                ${inst.academy?.overdue ? `<span class="ml-1 text-[9px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">ACADEMY DUE</span>` : ""}
+              </div>
+              <div class="text-[10px] text-slate-400">${escapeHtml(inst.role)}</div>
+            </div>
+            <div class="text-[10px] text-slate-500">Template ${escapeHtml(inst.template_id)} · instance is unique to this node</div>
+            <div class="flex flex-wrap gap-1">${(inst.enabled_aus_gov_skills || []).map((s) => `<span class="px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-200 text-[9px] font-mono">${escapeHtml(s)}</span>`).join("")}</div>
+            <div class="flex flex-wrap gap-1">${(inst.enabled_mcp_servers || []).map((s) => `<span class="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-200 text-[9px] font-mono">${escapeHtml(s)}</span>`).join("")}</div>
+            <div class="flex space-x-1.5 pt-1">
+              <button data-instance-id="${escapeHtml(inst.instance_id)}" data-track="skills" class="btn-academy-attend px-2 py-1 bg-slate-800 hover:bg-slate-700 text-cyan-300 rounded text-[10px] border border-slate-700">Skills</button>
+              <button data-instance-id="${escapeHtml(inst.instance_id)}" data-track="mcp" class="btn-academy-attend px-2 py-1 bg-slate-800 hover:bg-slate-700 text-purple-300 rounded text-[10px] border border-slate-700">MCP</button>
+              <button data-instance-id="${escapeHtml(inst.instance_id)}" data-track="tools" class="btn-academy-attend px-2 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-300 rounded text-[10px] border border-slate-700">Tools</button>
+            </div>
+          </div>`).join("")}
+      </div>`).join("") || `<div class="text-slate-500 italic">No pathway nodes.</div>`;
+    list.querySelectorAll(".btn-academy-attend").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        await fetch("/api/agents/academy/attend", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ instance_id: btn.dataset.instanceId, track: btn.dataset.track, actor: "workshop_operator" }),
+        });
+        await renderAcademyView();
+      });
+    });
+  }
+  if (board) {
+    const problems = boardRes.problems || [];
+    if (!problems.length) {
+      board.innerHTML = `<div class="text-slate-500 italic">No open orchestrator issues.</div>`;
+    } else {
+      board.innerHTML = problems.map((p) => `
+        <div class="bg-slate-950 border border-slate-800 rounded-lg p-2.5 space-y-1">
+          <div class="text-[9px] font-mono text-cyan-400">${escapeHtml(p.kind)}</div>
+          <div class="text-slate-100 text-[11px] font-medium">${escapeHtml(p.title)}</div>
+          <div class="text-slate-400 text-[10px]">${escapeHtml(p.detail)}</div>
+          <button data-title="${escapeHtml(p.title)}" data-detail="${escapeHtml(p.detail)}" class="btn-post-orchestrator-issue mt-1 text-[10px] text-cyan-300 hover:text-cyan-200">Post to message board</button>
+        </div>`).join("");
+      board.querySelectorAll(".btn-post-orchestrator-issue").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          await fetch("/api/hub/messages", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sender_name: "Control Hub Orchestrator",
+              sender_role: "Orchestrator",
+              target_node_id: "@all",
+              content: `${btn.dataset.title}: ${btn.dataset.detail}`,
+              tags: ["ORCHESTRATOR"],
+            }),
+          });
+          btn.textContent = "Posted";
+          btn.disabled = true;
+        });
+      });
+    }
+  }
+}
 
 async function renderToolsView() {
   if (!AppState.toolbox.length) {

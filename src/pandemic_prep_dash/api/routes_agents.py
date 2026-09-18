@@ -2,13 +2,16 @@
 Agent, Team, Skills, Toolbox, and MCP Server API routes.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 from typing import Dict, Any, List
 
 from ..agents.teams import AGENT_PERSONAS, AGENT_TEAMS
 from ..agents.skills_toolbox import AUS_GOV_SKILLS, SOFTWARE_TOOLBOX, MCP_SERVERS_REGISTRY
 from ..models.agent import ModelProviderType
 from ..core.state_manager import StateManager
+from ..core.academy import AcademyManager, list_node_crews, orchestrator_problems, ACADEMY_TRACKS
+from ..core.data_hub import HubMessage, MessageSenderType
 
 router = APIRouter(prefix="/api/agents", tags=["Agents"])
 
@@ -113,3 +116,59 @@ def list_model_providers():
 def get_inter_node_dialogues():
     engine = StateManager.get_engine()
     return {"dialogues": [d.model_dump() for d in engine.run.inter_node_dialogues]}
+
+
+class AcademyAttendRequest(BaseModel):
+    instance_id: str
+    track: str
+    actor: str = "orchestrator"
+
+
+@router.get("/crews")
+def list_crews():
+    """Node-bound agent instances (not shared personas)."""
+    engine = StateManager.get_engine()
+    return {
+        "principle": (
+            "Role templates are job descriptions. Each pathway node has its own agent "
+            "instances so two nodes never share academy history or working memory."
+        ),
+        "crews": list_node_crews(engine.pathway.nodes),
+    }
+
+
+@router.post("/academy/attend")
+def attend_academy(req: AcademyAttendRequest):
+    if req.track not in ACADEMY_TRACKS:
+        raise HTTPException(status_code=422, detail=f"track must be one of {list(ACADEMY_TRACKS)}")
+    session = AcademyManager.attend(req.instance_id, req.track, req.actor)
+    engine = StateManager.get_engine()
+    engine.record_event(
+        "academy",
+        f"{req.instance_id} attended Academy ({req.track})",
+        actor=req.actor,
+    )
+    engine.data_hub.post_message(
+        HubMessage(
+            message_id=f"msg_acad_{session['session_id']}",
+            sender_type=MessageSenderType.SYSTEM,
+            sender_name="Control Hub Orchestrator",
+            sender_role="Academy",
+            target_node_id="@all",
+            content=(
+                f"Academy session {session['session_id']}: {req.instance_id} refreshed "
+                f"{req.track}. {session['note']}"
+            ),
+            tags=["ACADEMY", req.track.upper()],
+        )
+    )
+    return {"status": "attended", "session": session, "record": AcademyManager.get_record(req.instance_id)}
+
+
+@router.get("/orchestrator-board")
+def get_orchestrator_board():
+    engine = StateManager.get_engine()
+    return {
+        "purpose": "Issues the orchestrator can raise on the control-hub board. Simulated.",
+        "problems": orchestrator_problems(engine),
+    }

@@ -1,6 +1,6 @@
-# PandemicPrepDash - System Architecture & Engineering Blueprint
+# CBRN Rapid Response — architecture
 
-This document details the software engineering design, concurrency model, data contracts, and architectural decisions underlying **PandemicPrepDash**.
+This document details the software engineering design, concurrency model, data contracts, and architectural decisions underlying **CBRN Rapid Response** (package `pandemic_prep_dash`).
 
 ---
 
@@ -151,6 +151,56 @@ class AgentThoughtLog(BaseModel):
 
 ### Extensibility to Real LLM APIs
 The node executor is structured to easily bind to real LLM backends (Gemini 1.5/2.0, Claude 3.5, GPT-4o, or local Ollama instances) and external bioinformatic tools (NCBI BLAST API, Foldseek, AutoDock Vina CLI) by subclassing or configuring `NodeExecutor`.
+
+### 4.1 Role templates vs node-bound instances
+
+Today `AGENT_PERSONAS` are **role templates** (job descriptions): `AGENT-BIOINFO-LEAD-01` is the bioinformatics lead *role*. Several squads historically referenced the same Python object, which made it look as if one agent worked every genomics-adjacent node.
+
+The intended model is:
+
+| Layer | Identity | Shares |
+|---|---|---|
+| Role template | `agent_bioinfo_lead` | Default tools, skills, MCP list, system prompt |
+| Node instance | `{node_id}::{persona_id}` e.g. `node_genomic_characterization::agent_bioinfo_lead` | Nothing. Own academy log, own working memory, own skill currency |
+
+**Separate agents per node is the rule.** Two nodes may use the same *role template* so a workshop can see “this is a bioinformatics lead job”. They must not share instance state. If intake and characterization both need a bioinformatics lead, they get two instances. That prevents a briefing node from inheriting a lab node’s unstated assumptions.
+
+The **Crews & Academy** tab lists instances, not templates.
+
+### 4.2 Agent Academy (skills, MCP, tools)
+
+Academy is a **currency loop**, not model training.
+
+- **Skills** — refresh the assigned government skill pack (playbooks, statutory notes).
+- **MCP** — re-check which Model Context Protocol servers this instance is allowed to call.
+- **Tools** — look up software/version notes relevant to the field (BLAST, HYSPLIT-shaped methods, docking, etc.).
+
+Attendance writes a simulated session onto the instance and a note on the control-hub board. It does **not** update weights, install packages, or contact live MCP endpoints. In a later platform, Academy would pull versioned skill files and fail closed if a tool is stale.
+
+### 4.3 Control-hub orchestrator board
+
+The existing human–agent message board is the right place for problems. The orchestrator should **surface**, not silently fix:
+
+- Open blockers (HITL, missing evidence)
+- Lead-context `unknown` answers
+- Academy overdue on a node lead
+
+A human posts the issue to `@all` or a node. Agents do not dispatch from the board. This is second eyes for the *software crews*, parallel to second eyes on the incident.
+
+```mermaid
+flowchart LR
+  template[Role template]
+  n1[Instance @ intake]
+  n2[Instance @ characterization]
+  acad[Academy: skills / MCP / tools]
+  board[Orchestrator board]
+  template --> n1
+  template --> n2
+  n1 --> acad
+  n2 --> acad
+  n1 --> board
+  n2 --> board
+```
 
 ---
 

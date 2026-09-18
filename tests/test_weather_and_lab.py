@@ -167,6 +167,32 @@ def test_flood_evidence_is_not_nerve_agent():
     assert any("overtopping" in c.title.lower() or "forecast" in c.title.lower() for c in report.conflicting_evidence)
 
 
+def test_node_crews_are_distinct_instances_and_academy_is_simulated():
+    from pandemic_prep_dash.core.academy import list_node_crews, AcademyManager
+    engine = StateManager.get_engine()
+    crews = list_node_crews(engine.pathway.nodes)
+    assert crews
+    ids = [inst["instance_id"] for c in crews for inst in c["instances"]]
+    assert len(ids) == len(set(ids))
+    assert all("::" in i for i in ids)
+    lead = crews[0]["instances"][0]
+    session = AcademyManager.attend(lead["instance_id"], "skills", "tester")
+    assert session["provenance"] == "simulated"
+    assert "weights" not in session["note"].lower()
+    rec = AcademyManager.get_record(lead["instance_id"])
+    assert rec["last_skills_at"]
+
+    with TestClient(app) as client:
+        listed = client.get("/api/agents/crews").json()
+        assert listed["crews"]
+        inst = listed["crews"][0]["instances"][0]["instance_id"]
+        posted = client.post("/api/agents/academy/attend", json={"instance_id": inst, "track": "mcp"})
+        assert posted.status_code == 200
+        board = client.get("/api/agents/orchestrator-board").json()
+        assert "problems" in board
+        assert client.post("/api/agents/academy/attend", json={"instance_id": inst, "track": "nope"}).status_code == 422
+
+
 def test_lab_requests_reset_on_scenario_switch_and_start_as_proposals():
     engine = StateManager.get_engine()
     LabBridgeManager.initialize_scenario_requests("biological_virus", "scen_h5n1_avian_flu")

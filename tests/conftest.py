@@ -17,6 +17,7 @@ def isolate_demo_state(monkeypatch, tmp_path):
     from pandemic_prep_dash.core.state_manager import StateManager
     from pandemic_prep_dash.core import templates
     from pandemic_prep_dash.core.lab_bridge import LabBridgeManager
+    from pandemic_prep_dash.core.academy import AcademyManager
     from pandemic_prep_dash.core.version_control import VersionControlManager
     from pandemic_prep_dash.api import routes_governance
     from pandemic_prep_dash.models.governance import GovernanceSettings
@@ -25,6 +26,7 @@ def isolate_demo_state(monkeypatch, tmp_path):
     monkeypatch.setattr(StateManager, "_engine", None)
     monkeypatch.setattr(templates, "TEMPLATES_DIR", tmp_path)
     monkeypatch.setattr(LabBridgeManager, "_REQUESTS", {})
+    monkeypatch.setattr(AcademyManager, "_RECORDS", {})
     monkeypatch.setattr(VersionControlManager, "_TIMELINE", [])
     monkeypatch.setattr(VersionControlManager, "_RUN_ID", None)
     monkeypatch.setattr(routes_governance, "CURRENT_GOVERNANCE_SETTINGS", GovernanceSettings())
