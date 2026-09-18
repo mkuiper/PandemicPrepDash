@@ -84,19 +84,36 @@ document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   setupTabs();
   setupInspectorSubtabs();
-  setupEventListeners();
+  const toggle = document.getElementById("btnToggleNodeInspector");
+  if (toggle) toggle.addEventListener("click", toggleNodeInspector);
   applyInspectorCollapsed();
+  setupEventListeners();
   loadInitialData();
 });
+
+function toggleNodeInspector() {
+  AppState.inspectorCollapsed = !AppState.inspectorCollapsed;
+  try {
+    localStorage.setItem("inspectorCollapsed", AppState.inspectorCollapsed ? "1" : "0");
+  } catch (err) {}
+  applyInspectorCollapsed();
+}
 
 function applyInspectorCollapsed() {
   const aside = document.getElementById("nodeInspector");
   const btn = document.getElementById("btnToggleNodeInspector");
   if (!aside) return;
-  aside.classList.toggle("collapsed", !!AppState.inspectorCollapsed);
+  const collapsed = !!AppState.inspectorCollapsed;
+  aside.classList.toggle("collapsed", collapsed);
+  aside.style.width = collapsed ? "2.75rem" : "24rem";
+  aside.style.minWidth = collapsed ? "2.75rem" : "24rem";
+  aside.style.maxWidth = collapsed ? "2.75rem" : "24rem";
+  aside.querySelectorAll(".inspector-expanded-only").forEach((el) => {
+    el.style.display = collapsed ? "none" : "";
+  });
   if (btn) {
-    btn.title = AppState.inspectorCollapsed ? "Expand node inspector" : "Collapse node inspector";
-    btn.setAttribute("aria-expanded", AppState.inspectorCollapsed ? "false" : "true");
+    btn.title = collapsed ? "Show node inspector" : "Hide node inspector";
+    btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
   }
 }
 
@@ -233,11 +250,6 @@ function setupEventListeners() {
 
   // Modals
   document.getElementById("btnConnectModal").addEventListener("click", () => openConnectModal());
-  document.getElementById("btnToggleNodeInspector")?.addEventListener("click", () => {
-    AppState.inspectorCollapsed = !AppState.inspectorCollapsed;
-    try { localStorage.setItem("inspectorCollapsed", AppState.inspectorCollapsed ? "1" : "0"); } catch (err) {}
-    applyInspectorCollapsed();
-  });
   document.getElementById("btnAddNodeModal").addEventListener("click", () => {
     document.getElementById("addNodeModal").classList.remove("hidden");
   });
