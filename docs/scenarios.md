@@ -76,5 +76,13 @@ During routine maritime cargo container inspection at an Australian port, custom
 
 ---
 
+## Scenario 5: East Coast Low / Hawkesbury–Nepean flooding (simulated)
+
+Workshop fiction for a non-CBRN pathway. An East Coast Low produces major flooding on the Hawkesbury–Nepean. Example BOM forecast, river-gauge, and SES field reports disagree on overnight overtopping at Windsor/Richmond. The Incident Controller must approve evacuation and remaining road closures. BOM, NSW SES, and NEMA receive operational briefs; CBRN and medicines regulators stay on standby.
+
+All gauges, population figures, and dispatches are simulated. Selecting this scenario loads `pathway_default_severe_weather` (intake → triage → evidence → approval → briefing → recovery) rather than the biological DAG.
+
+---
+
 ## Custom Specimen Ingestion
 Users can ingest arbitrary biological or chemical specimens through the UI ("Custom Specimen" modal) or via `POST /api/scenarios/custom`. The pipeline will automatically parse the input format (DNA, RNA, Protein, SMILES, or Syndromic narrative), instantiate the node graph, and execute the agent squads.

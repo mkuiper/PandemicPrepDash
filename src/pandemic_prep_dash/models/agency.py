@@ -20,6 +20,8 @@ class AgencyIdentifier(str, Enum):
     HOME_AFFAIRS = "HOME_AFFAIRS"  # Department of Home Affairs (National Counter-Terrorism & Critical Infrastructure)
     CDNA = "CDNA"                  # Communicable Diseases Network Australia
     PHLN = "PHLN"                  # Public Health Laboratory Network
+    BOM = "BOM"                    # Bureau of Meteorology
+    NSW_SES = "NSW_SES"            # NSW State Emergency Service
 
 
 class SecurityClassification(str, Enum):

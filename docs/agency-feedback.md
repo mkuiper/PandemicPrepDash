@@ -56,9 +56,9 @@ agencies; do not assume existing government classification labels are sufficient
 
 ## Next demonstrator increments
 
-1. **A non-CBRN scenario**, such as a service outage or severe-weather disruption,
-   with intake, triage, evidence review, task assignment, approval, communication,
-   and recovery. This tests whether the model is genuinely reusable.
+1. **A non-CBRN scenario** — the East Coast Low / Hawkesbury–Nepean flood pathway
+   now covers intake, triage, evidence, approval, briefing, and recovery. A service
+   outage remains a useful second generic incident.
 2. **Artifact provenance and uncertainty**, visibly distinguishing example data,
    uploaded reports, computed values, and verified observations.
 3. **Agency view previews**, showing proposed information boundaries using synthetic

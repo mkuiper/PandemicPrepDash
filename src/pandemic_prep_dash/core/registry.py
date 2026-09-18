@@ -346,8 +346,156 @@ def create_default_chemical_pathway() -> Pathway:
     )
 
 
+def create_default_severe_weather_pathway() -> Pathway:
+    """Intake, triage, evidence, approval, briefing, and recovery for a flood incident."""
+    nodes = [
+        PathwayNode(
+            id="node_wx_intake",
+            label="Incident intake",
+            category=NodeCategory.INGESTION,
+            description="Ingest the simulated BOM warning and SES sitrep for the Hawkesbury–Nepean catchment.",
+            status=NodeStatus.PENDING,
+            agent_team_id="policy_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="wx_intake_squad",
+                name="Incident Intake Squad",
+                description="Warning and sitrep intake",
+                lead_role=AgentRole.WHOLE_OF_GOV_LIAISON,
+                harness_engine=HarnessEngineType.AGY,
+                harness_command="agy exec",
+                sandbox_policy="restricted_fs",
+            ),
+            human_oversight_role="Incident Management Team Watch Officer",
+            position_x=80.0,
+            position_y=250.0,
+        ),
+        PathwayNode(
+            id="node_wx_triage",
+            label="Impact triage",
+            category=NodeCategory.TRIAGE,
+            description="Triage people, roads, hospitals, and levee reports from the simulated sitrep.",
+            status=NodeStatus.PENDING,
+            agent_team_id="policy_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="wx_triage_squad",
+                name="Impact Triage Squad",
+                description="Consequence triage",
+                lead_role=AgentRole.WHOLE_OF_GOV_LIAISON,
+                harness_engine=HarnessEngineType.CLAUDE_CODE,
+                harness_command="claude -p",
+                sandbox_policy="restricted_fs",
+            ),
+            human_oversight_role="NSW SES Planning Officer",
+            position_x=340.0,
+            position_y=140.0,
+        ),
+        PathwayNode(
+            id="node_wx_evidence",
+            label="Evidence review",
+            category=NodeCategory.RESEARCH,
+            description="Compare the simulated BOM forecast, river-gauge series, and SES reconnaissance.",
+            status=NodeStatus.PENDING,
+            agent_team_id="research_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="wx_evidence_squad",
+                name="Hydrology Evidence Squad",
+                description="Forecast versus observation review",
+                lead_role=AgentRole.SCIENTIFIC_RESEARCHER,
+                harness_engine=HarnessEngineType.CLAUDE_CODE,
+                harness_command="claude -p",
+                sandbox_policy="restricted_fs",
+            ),
+            human_oversight_role="BOM Hydrology Liaison (workshop role)",
+            position_x=340.0,
+            position_y=360.0,
+        ),
+        PathwayNode(
+            id="node_wx_approval",
+            label="Protective action approval",
+            category=NodeCategory.BIOSECURITY,
+            description="Human approval to evacuate floodplain polygons and close the Windsor–Richmond corridor.",
+            status=NodeStatus.PENDING,
+            agent_team_id="policy_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="wx_approval_squad",
+                name="Protective Action Squad",
+                description="Evacuation and road-closure gate",
+                lead_role=AgentRole.WHOLE_OF_GOV_LIAISON,
+                harness_engine=HarnessEngineType.SOVEREIGN_CONTAINER,
+                harness_command="podman run --network none",
+                sandbox_policy="isolated_container",
+            ),
+            requires_human_approval=True,
+            approval_granted=False,
+            human_oversight_role="Incident Controller",
+            position_x=640.0,
+            position_y=250.0,
+        ),
+        PathwayNode(
+            id="node_wx_briefing",
+            label="Agency briefings",
+            category=NodeCategory.AGENCY_REPORTING,
+            description="Produce simulated briefings for BOM, NSW SES, NEMA, and related agencies.",
+            status=NodeStatus.PENDING,
+            agent_team_id="policy_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="wx_briefing_squad",
+                name="All-hazards Liaison Squad",
+                description="Agency briefing synthesis",
+                lead_role=AgentRole.WHOLE_OF_GOV_LIAISON,
+                harness_engine=HarnessEngineType.CLAUDE_CODE,
+                harness_command="claude -p",
+                sandbox_policy="restricted_fs",
+            ),
+            human_oversight_role="Public Information Officer",
+            position_x=900.0,
+            position_y=180.0,
+        ),
+        PathwayNode(
+            id="node_wx_recovery",
+            label="Recovery and stand-down",
+            category=NodeCategory.RECOVERY,
+            description="Record simulated stand-down conditions, restoration tasks, and after-action notes.",
+            status=NodeStatus.PENDING,
+            agent_team_id="policy_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="wx_recovery_squad",
+                name="Recovery Squad",
+                description="Stand-down and restoration",
+                lead_role=AgentRole.WHOLE_OF_GOV_LIAISON,
+                harness_engine=HarnessEngineType.AGY,
+                harness_command="agy exec",
+                sandbox_policy="restricted_fs",
+            ),
+            human_oversight_role="Recovery Coordinator",
+            position_x=900.0,
+            position_y=340.0,
+        ),
+    ]
+    edges = [
+        PathwayEdge(id="wx_edge_1", source="node_wx_intake", target="node_wx_triage", label="Sitrep accepted"),
+        PathwayEdge(id="wx_edge_2", source="node_wx_intake", target="node_wx_evidence", label="Warning ingested"),
+        PathwayEdge(id="wx_edge_3", source="node_wx_triage", target="node_wx_approval", label="Impacts ranked"),
+        PathwayEdge(id="wx_edge_4", source="node_wx_evidence", target="node_wx_approval", label="Conflicts listed"),
+        PathwayEdge(id="wx_edge_5", source="node_wx_approval", target="node_wx_briefing", label="Order authorised"),
+        PathwayEdge(id="wx_edge_6", source="node_wx_briefing", target="node_wx_recovery", label="Agencies notified"),
+    ]
+    return Pathway(
+        id="pathway_default_severe_weather",
+        name="Severe weather and flood response pathway",
+        description=(
+            "Generic all-hazards DAG for a simulated East Coast Low: intake, triage, "
+            "evidence review, human approval, agency briefings, and recovery."
+        ),
+        threat_type=ThreatType.SEVERE_WEATHER,
+        nodes=nodes,
+        edges=edges,
+    )
+
+
 PATHWAY_TEMPLATES: Dict[str, Pathway] = {
     "pathway_default_biological": create_default_biological_pathway(),
     "pathway_default_chemical": create_default_chemical_pathway(),
+    "pathway_default_severe_weather": create_default_severe_weather_pathway(),
 }
 

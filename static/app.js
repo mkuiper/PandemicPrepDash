@@ -11,6 +11,21 @@ function escapeHtml(value) {
   })[char]);
 }
 
+function isSevereWeatherIncident() {
+  const threat = AppState.state?.scenario?.threat_type || AppState.state?.pathway?.threat_type || "";
+  return threat === "severe_weather";
+}
+
+function safeHttpUrl(value) {
+  try {
+    const url = new URL(String(value ?? ""));
+    if (url.protocol === "http:" || url.protocol === "https:") return url.href;
+  } catch (err) {
+    return "";
+  }
+  return "";
+}
+
 const AppState = {
   state: null,
   scenarios: [],
@@ -395,14 +410,30 @@ function updateUIState() {
 
   const specBadge = document.getElementById("activeSpecimenBadge");
   if (specBadge && scenario) {
-    specBadge.textContent = scenario.name || scenario.sample?.name || "Active Specimen";
+    specBadge.textContent = scenario.name || scenario.sample?.name || (isSevereWeatherIncident() ? "Active incident" : "Active Specimen");
+  }
+  const sourceLabel = document.getElementById("incidentSourceLabel");
+  if (sourceLabel) sourceLabel.textContent = isSevereWeatherIncident() ? "Incident:" : "Specimen:";
+  const intelHeading = document.getElementById("hubSpecimenIntelHeading");
+  if (intelHeading && intelHeading.lastChild) {
+    intelHeading.lastChild.textContent = isSevereWeatherIncident()
+      ? " Incident source & impact"
+      : " Specimen Intel & Variant Determinants";
+  }
+  const litNote = document.getElementById("hubLiteratureSourceNote");
+  if (litNote) litNote.textContent = isSevereWeatherIncident() ? "Simulated example records" : "Example records";
+  const counterPanel = document.getElementById("hubCountermeasuresPanel");
+  if (counterPanel) {
+    if (isSevereWeatherIncident()) counterPanel.classList.add("hidden");
+    else counterPanel.classList.remove("hidden");
   }
 
   const ssbaBadge = document.getElementById("threatClassificationBadge");
-  let threatTier = run.node_artifacts?.threat_assessment?.ssba_tier;
+  let threatTier = run.node_artifacts?.threat_assessment?.ssba_tier || run.node_artifacts?.threat_assessment?.hazard_class;
   if (!threatTier) {
     if (pathway.threat_type === "radiological_dispersal") threatTier = "Category 1 Source";
     else if (pathway.threat_type === "chemical_nerve_agent") threatTier = "CWC Schedule 1";
+    else if (pathway.threat_type === "severe_weather") threatTier = "Severe weather warning";
     else threatTier = "Tier 1 SSBA";
   }
   ssbaBadge.textContent = threatTier;
@@ -609,17 +640,17 @@ function renderCentralDataHub() {
         <div class="p-3 rounded-lg border flex items-start justify-between space-x-3 ${isOpen ? "bg-slate-950 border-amber-500/40 shadow" : "bg-slate-950/60 border-slate-800 opacity-70"}">
           <div class="space-y-1 flex-1">
             <div class="flex items-center space-x-2">
-              <span class="px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase border ${sevColor}">${b.severity}</span>
-              <span class="font-bold text-slate-100 text-xs">${b.title}</span>
+              <span class="px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase border ${sevColor}">${escapeHtml(b.severity)}</span>
+              <span class="font-bold text-slate-100 text-xs">${escapeHtml(b.title)}</span>
               ${!isOpen ? `<span class="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded">RESOLVED</span>` : ""}
             </div>
-            <p class="text-slate-300 text-[11px] leading-relaxed">${b.description}</p>
-            <div class="text-[10px] text-amber-300 font-medium"><strong>Action Required:</strong> ${b.required_action}</div>
-            ${b.resolution_notes ? `<div class="text-[10px] text-slate-400 italic pt-1 border-t border-slate-800">Resolution: ${b.resolution_notes}</div>` : ""}
+            <p class="text-slate-300 text-[11px] leading-relaxed">${escapeHtml(b.description)}</p>
+            <div class="text-[10px] text-amber-300 font-medium"><strong>Action Required:</strong> ${escapeHtml(b.required_action)}</div>
+            ${b.resolution_notes ? `<div class="text-[10px] text-slate-400 italic pt-1 border-t border-slate-800">Resolution: ${escapeHtml(b.resolution_notes)}</div>` : ""}
           </div>
           ${
             isOpen
-              ? `<button data-alert-id="${b.alert_id}" data-alert-title="${b.title}" class="btn-open-resolve-blocker px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded text-xs transition shrink-0 shadow">Resolve</button>`
+              ? `<button data-alert-id="${escapeHtml(b.alert_id)}" data-alert-title="${escapeHtml(b.title)}" class="btn-open-resolve-blocker px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold rounded text-xs transition shrink-0 shadow">Resolve</button>`
               : ""
           }
         </div>
@@ -644,17 +675,36 @@ function renderCentralDataHub() {
   const specIntel = dataHub.specimen_intel || {};
   const specEl = document.getElementById("hubSpecimenIntelContent");
   if (Object.keys(specIntel).length === 0) {
-    specEl.innerHTML = `<div class="text-slate-500 italic py-3 text-center">Execute Ingestion &amp; Characterization to populate specimen metrics.</div>`;
+    specEl.innerHTML = `<div class="text-slate-500 italic py-3 text-center">${isSevereWeatherIncident() ? "Execute intake to populate the incident sitrep." : "Execute Ingestion &amp; Characterization to populate specimen metrics."}</div>`;
+  } else if (isSevereWeatherIncident()) {
+    const meta = specIntel.metadata || {};
+    specEl.innerHTML = `
+      <div class="grid grid-cols-2 gap-2 font-mono text-[11px]">
+        <div class="bg-slate-950 p-2 rounded border border-slate-800">
+          <span class="text-slate-500 block text-[9px]">HAZARD</span>
+          <span class="text-cyan-300 font-bold">${escapeHtml(specIntel.name || meta.hazard || "Severe weather")}</span>
+        </div>
+        <div class="bg-slate-950 p-2 rounded border border-slate-800">
+          <span class="text-slate-500 block text-[9px]">WARNING</span>
+          <span class="text-slate-200">${escapeHtml(meta.warning_level || "Unspecified")}</span>
+        </div>
+      </div>
+      <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1 text-[11px] text-slate-300">
+        <div><span class="text-slate-500">Location:</span> ${escapeHtml(specIntel.source_location || "")}</div>
+        <div><span class="text-slate-500">Gauge (simulated):</span> ${escapeHtml(meta.windsor_gauge_m)} m</div>
+        <div class="text-[10px] text-amber-300">Provenance: simulated workshop data</div>
+      </div>
+    `;
   } else {
     specEl.innerHTML = `
       <div class="grid grid-cols-2 gap-2 font-mono text-[11px]">
         <div class="bg-slate-950 p-2 rounded border border-slate-800">
           <span class="text-slate-500 block text-[9px]">AGENT / ORGANISM</span>
-          <span class="text-cyan-300 font-bold">${specIntel.agent_name || specIntel.name || "Identified Agent"}</span>
+          <span class="text-cyan-300 font-bold">${escapeHtml(specIntel.agent_name || specIntel.name || "Identified Agent")}</span>
         </div>
         <div class="bg-slate-950 p-2 rounded border border-slate-800">
           <span class="text-slate-500 block text-[9px]">LINEAGE / CLADE</span>
-          <span class="text-slate-200">${specIntel.clade_or_lineage || "Standard isolate"}</span>
+          <span class="text-slate-200">${escapeHtml(specIntel.clade_or_lineage || "Standard isolate")}</span>
         </div>
       </div>
       ${
@@ -663,7 +713,7 @@ function renderCentralDataHub() {
         <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1">
           <span class="text-slate-400 font-bold text-[10px] uppercase">Validated Molecular Signatures:</span>
           <ul class="space-y-0.5 text-[11px] text-slate-300">
-            ${specIntel.genomic_mutations_detected.map((m) => `<li class="flex items-start"><span class="text-cyan-400 mr-1.5">•</span><span>${m}</span></li>`).join("")}
+            ${specIntel.genomic_mutations_detected.map((m) => `<li class="flex items-start"><span class="text-cyan-400 mr-1.5">•</span><span>${escapeHtml(m)}</span></li>`).join("")}
           </ul>
         </div>
       `
@@ -684,15 +734,15 @@ function renderCentralDataHub() {
       <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
         <div class="flex items-start justify-between">
           <h5 class="font-bold text-slate-100 text-xs">
-            <a href="${p.source_url}" target="_blank" class="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 flex items-center">
-              <span>${p.title}</span>
+            <a href="${escapeHtml(safeHttpUrl(p.source_url))}" target="_blank" class="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 flex items-center">
+              <span>${escapeHtml(p.title)}</span>
               <i class="fa-solid fa-arrow-up-right-from-square text-[9px] ml-1.5 shrink-0"></i>
             </a>
           </h5>
-          ${p.pmid ? `<span class="px-1.5 py-0.2 rounded text-[9px] font-mono bg-purple-500/10 text-purple-300 border border-purple-500/20 ml-2 shrink-0">PMID: ${p.pmid}</span>` : ""}
+          ${p.pmid ? `<span class="px-1.5 py-0.2 rounded text-[9px] font-mono bg-purple-500/10 text-purple-300 border border-purple-500/20 ml-2 shrink-0">PMID: ${escapeHtml(p.pmid)}</span>` : ""}
         </div>
-        <div class="text-[10px] text-slate-400">${p.authors} • <em>${p.journal}</em> (${p.year})</div>
-        <p class="text-slate-300 text-[11px]">${p.summary}</p>
+        <div class="text-[10px] text-slate-400">${escapeHtml(p.authors)} • <em>${escapeHtml(p.journal)}</em> (${escapeHtml(p.year)})</div>
+        <p class="text-slate-300 text-[11px]">${escapeHtml(p.summary)}</p>
       </div>
     `
       )
@@ -711,10 +761,10 @@ function renderCentralDataHub() {
         (c) => `
       <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-1 text-xs">
         <div class="flex items-center justify-between">
-          <span class="font-bold text-slate-100">${c.name || c.target_antigen}</span>
-          <span class="text-[10px] font-mono text-emerald-400">${c.binding_affinity_kcal_mol ? c.binding_affinity_kcal_mol + " kcal/mol" : c.platform || ""}</span>
+          <span class="font-bold text-slate-100">${escapeHtml(c.name || c.target_antigen)}</span>
+          <span class="text-[10px] font-mono text-emerald-400">${escapeHtml(c.binding_affinity_kcal_mol ? c.binding_affinity_kcal_mol + " kcal/mol" : c.platform || "")}</span>
         </div>
-        <div class="text-[10px] text-slate-400 truncate">${c.mechanism_of_action || c.formulation_details || ""}</div>
+        <div class="text-[10px] text-slate-400 truncate">${escapeHtml(c.mechanism_of_action || c.formulation_details || "")}</div>
       </div>
     `
       )
@@ -744,14 +794,14 @@ function renderVersionTimelineView() {
         <div class="timeline-dot"></div>
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-2">
-            <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">${s.version_id}</span>
-            <span class="font-bold text-slate-200 text-xs">${s.checkpoint_name}</span>
+            <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">${escapeHtml(s.version_id)}</span>
+            <span class="font-bold text-slate-200 text-xs">${escapeHtml(s.checkpoint_name)}</span>
           </div>
           <span class="text-[10px] font-mono text-slate-500">${timeDisplay}</span>
         </div>
-        <p class="text-slate-300 text-[11px]">${s.change_summary}</p>
+        <p class="text-slate-300 text-[11px]">${escapeHtml(s.change_summary)}</p>
         <div class="flex items-center space-x-3 text-[10px] text-slate-400 font-mono">
-          <span>By: ${s.created_by}</span>
+          <span>By: ${escapeHtml(s.created_by)}</span>
           <span>•</span>
           <span>Nodes: ${s.completed_nodes_count}/${s.total_nodes_count}</span>
           ${s.open_blockers_count > 0 ? `<span class="text-amber-400 font-bold">• ${s.open_blockers_count} Blockers</span>` : ""}
@@ -866,13 +916,13 @@ function renderEvidenceAnalysisView() {
       <div class="flex items-center justify-between">
         <span class="font-bold text-purple-300 flex items-center">
           <i class="fa-solid fa-circle-question text-purple-400 mr-1.5"></i>
-          Knowledge Gap: ${g.title}
+          Knowledge Gap: ${escapeHtml(g.title)}
         </span>
         <span class="text-[9px] font-mono px-1.5 py-0.2 bg-purple-950 text-purple-300 rounded border border-purple-800">${g.severity}</span>
       </div>
-      <p class="text-slate-300 text-[11px] leading-relaxed">${g.description}</p>
-      <div class="text-[10px] text-rose-300"><strong>Impact if Unresolved:</strong> ${g.impact_if_unresolved}</div>
-      <div class="text-[10px] text-cyan-300 font-medium"><strong>Investigation:</strong> ${g.suggested_investigation}</div>
+      <p class="text-slate-300 text-[11px] leading-relaxed">${escapeHtml(g.description)}</p>
+      <div class="text-[10px] text-rose-300"><strong>Impact if Unresolved:</strong> ${escapeHtml(g.impact_if_unresolved)}</div>
+      <div class="text-[10px] text-cyan-300 font-medium"><strong>Investigation:</strong> ${escapeHtml(g.suggested_investigation)}</div>
     </div>
     `;
   }).join("");
@@ -884,13 +934,13 @@ function renderEvidenceAnalysisView() {
       <div class="flex items-center justify-between">
         <span class="font-bold text-emerald-300 flex items-center">
           <i class="fa-solid fa-vial-virus text-emerald-400 mr-1.5"></i>
-          ${v.assay_title}
+          ${escapeHtml(v.assay_title)}
         </span>
         <span class="text-[9px] font-mono px-1.5 py-0.2 bg-emerald-950 text-emerald-400 rounded border border-emerald-800">${v.urgency}</span>
       </div>
-      <div class="text-[11px] text-slate-300"><strong>Facility:</strong> ${v.target_facility}</div>
-      <div class="text-[11px] text-slate-200"><strong>Critical Question:</strong> ${v.critical_question}</div>
-      <div class="text-[10px] text-emerald-300 font-medium"><strong>Unblocks Decision:</strong> ${v.unblocks_decision}</div>
+      <div class="text-[11px] text-slate-300"><strong>Facility:</strong> ${escapeHtml(v.target_facility)}</div>
+      <div class="text-[11px] text-slate-200"><strong>Critical Question:</strong> ${escapeHtml(v.critical_question)}</div>
+      <div class="text-[10px] text-emerald-300 font-medium"><strong>Unblocks Decision:</strong> ${escapeHtml(v.unblocks_decision)}</div>
       <div class="pt-1 flex justify-end">
         <button class="btn-jump-lab-bridge px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px] font-bold transition flex items-center space-x-1 shadow">
           <i class="fa-solid fa-paper-plane text-[9px]"></i>
@@ -1040,12 +1090,12 @@ async function renderLabBridgeView() {
               <span class="text-xs font-mono ${priorityColor}">Priority: ${r.priority}</span>
               <span class="text-xs font-mono text-slate-500">• ${r.request_id}</span>
             </div>
-            <h3 class="text-base font-bold text-white tracking-tight">${r.title}</h3>
+            <h3 class="text-base font-bold text-white tracking-tight">${escapeHtml(r.title)}</h3>
             <div class="text-xs text-cyan-300 flex items-center space-x-2">
               <i class="fa-solid fa-hospital-user text-xs"></i>
-              <span><strong>Facility:</strong> ${r.target_facility}</span>
+              <span><strong>Facility:</strong> ${escapeHtml(r.target_facility)}</span>
               <span class="text-slate-600">•</span>
-              <span class="text-slate-400">Containment: ${r.biosafety_level}</span>
+              <span class="text-slate-400">Containment: ${escapeHtml(r.biosafety_level)}</span>
             </div>
           </div>
           <div class="text-right space-y-1">
@@ -1057,17 +1107,17 @@ async function renderLabBridgeView() {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-slate-950 p-4 rounded-lg border border-slate-800/80">
           <div class="space-y-1">
             <span class="text-slate-400 font-bold text-[10px] uppercase tracking-wider block">Critical Question to Resolve:</span>
-            <p class="text-slate-200 leading-relaxed">${r.critical_question}</p>
+            <p class="text-slate-200 leading-relaxed">${escapeHtml(r.critical_question)}</p>
           </div>
           <div class="space-y-1">
             <span class="text-slate-400 font-bold text-[10px] uppercase tracking-wider block">Hypothesis to Test:</span>
-            <p class="text-slate-300 leading-relaxed">${r.hypothesis_to_test}</p>
+            <p class="text-slate-300 leading-relaxed">${escapeHtml(r.hypothesis_to_test)}</p>
           </div>
         </div>
 
         <div class="text-xs text-slate-400 flex items-center justify-between pt-1">
-          <div><strong>Specimen Requirements:</strong> ${r.specimen_requirements}</div>
-          ${r.authorized_by ? `<div class="text-slate-500 font-mono text-[10px]">Authorized by: ${r.authorized_by}</div>` : ""}
+          <div><strong>Specimen Requirements:</strong> ${escapeHtml(r.specimen_requirements)}</div>
+          ${r.authorized_by ? `<div class="text-slate-500 font-mono text-[10px]">Authorized by: ${escapeHtml(r.authorized_by)}</div>` : ""}
         </div>
 
         ${
@@ -1081,8 +1131,8 @@ async function renderLabBridgeView() {
               </span>
               <span class="text-[10px] font-mono text-emerald-400/80">${r.results_received_at || "Recent"}</span>
             </div>
-            <pre class="bg-slate-950 p-2.5 rounded border border-emerald-900/60 font-mono text-[11px] text-emerald-300 overflow-x-auto">${JSON.stringify(r.results_payload, null, 2)}</pre>
-            ${r.impact_on_pipeline ? `<div class="text-slate-200 text-xs font-sans"><strong>Impact on Response:</strong> ${r.impact_on_pipeline}</div>` : ""}
+            <pre class="bg-slate-950 p-2.5 rounded border border-emerald-900/60 font-mono text-[11px] text-emerald-300 overflow-x-auto">${escapeHtml(JSON.stringify(r.results_payload, null, 2))}</pre>
+            ${r.impact_on_pipeline ? `<div class="text-slate-200 text-xs font-sans"><strong>Impact on Response:</strong> ${escapeHtml(r.impact_on_pipeline)}</div>` : ""}
           </div>
         `
             : ""
@@ -1092,9 +1142,9 @@ async function renderLabBridgeView() {
           ${
             r.status === "PROPOSED_BY_AGENT" || r.status === "AUTHORIZED_BY_DUTY_OFFICER"
               ? `
-            <button data-req-id="${r.request_id}" class="btn-dispatch-assay px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-semibold transition flex items-center space-x-1.5 shadow">
+            <button data-req-id="${escapeHtml(r.request_id)}" class="btn-dispatch-assay px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-semibold transition flex items-center space-x-1.5 shadow">
               <i class="fa-solid fa-truck-fast"></i>
-              <span>Authorize &amp; Dispatch to ${r.target_facility.split(" ")[0]}</span>
+              <span>Authorize &amp; Dispatch to ${escapeHtml(String(r.target_facility || "").split(" ")[0])}</span>
             </button>
           `
               : ""
@@ -1102,7 +1152,7 @@ async function renderLabBridgeView() {
           ${
             r.status === "DISPATCHED_TO_FACILITY" || r.status === "IN_PROGRESS_AT_LAB"
               ? `
-            <button data-req-id="${r.request_id}" data-req-title="${r.title}" class="btn-record-results px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-semibold transition flex items-center space-x-1.5 shadow">
+            <button data-req-id="${escapeHtml(r.request_id)}" data-req-title="${escapeHtml(r.title)}" class="btn-record-results px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-semibold transition flex items-center space-x-1.5 shadow">
               <i class="fa-solid fa-microscope"></i>
               <span>Record Empirical Lab Results</span>
             </button>
@@ -2262,17 +2312,17 @@ const HARNESS_DEFAULT_COMMANDS = {
     <div class="space-y-4">
       <div>
         <span class="text-slate-500 uppercase font-semibold text-[10px]">Node Identifier</span>
-        <div class="font-mono text-cyan-400 font-medium">${node.id}</div>
+        <div class="font-mono text-cyan-400 font-medium">${escapeHtml(node.id)}</div>
       </div>
 
       <div>
         <span class="text-slate-500 uppercase font-semibold text-[10px]">Label</span>
-        <div class="font-semibold text-slate-100 text-sm">${node.label}</div>
+        <div class="font-semibold text-slate-100 text-sm">${escapeHtml(node.label)}</div>
       </div>
 
       <div>
         <span class="text-slate-500 uppercase font-semibold text-[10px]">Description</span>
-        <div class="text-slate-300 leading-relaxed">${node.description}</div>
+        <div class="text-slate-300 leading-relaxed">${escapeHtml(node.description)}</div>
       </div>
 
       <!-- Live Interactive Agentic Harness Configuration -->
@@ -2726,24 +2776,24 @@ async function openTemplatesManager() {
         <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-start justify-between space-x-4 shadow-sm hover:border-slate-700 transition">
           <div class="space-y-1.5 flex-1">
             <div class="flex items-center space-x-2">
-              <span class="font-bold text-slate-100 text-sm tracking-tight">${playbookTitle}</span>
+              <span class="font-bold text-slate-100 text-sm tracking-tight">${escapeHtml(playbookTitle)}</span>
               ${t.is_builtin ? `<span class="text-[9px] font-mono px-1.5 py-0.2 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded font-bold">COMMONWEALTH PLAYBOOK</span>` : `<span class="text-[9px] font-mono px-1.5 py-0.2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded font-bold">USER PLAYBOOK</span>`}
               ${isCurrent ? `<span class="text-[9px] font-mono px-1.5 py-0.2 bg-cyan-500/20 text-cyan-300 rounded font-bold">ACTIVE</span>` : ""}
             </div>
-            <p class="text-slate-300 text-xs leading-relaxed">${scope}</p>
+            <p class="text-slate-300 text-xs leading-relaxed">${escapeHtml(scope)}</p>
             <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-400 font-mono pt-1">
-              <div><strong class="text-amber-400">Trigger:</strong> ${trigger}</div>
-              <div><strong class="text-cyan-400">Lead Agency:</strong> ${lead}</div>
+              <div><strong class="text-amber-400">Trigger:</strong> ${escapeHtml(trigger)}</div>
+              <div><strong class="text-cyan-400">Lead Agency:</strong> ${escapeHtml(lead)}</div>
             </div>
-            <div class="text-[10px] text-slate-500 font-mono">${t.node_count} nodes • ${t.edge_count} edges • Threat: ${t.threat_type}</div>
+            <div class="text-[10px] text-slate-500 font-mono">${escapeHtml(t.node_count)} nodes • ${escapeHtml(t.edge_count)} edges • Threat: ${escapeHtml(t.threat_type)}</div>
           </div>
           <div class="flex flex-col items-end space-y-2 shrink-0">
-            <button data-template-id="${t.id}" class="btn-load-template px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-bold transition shadow">
+            <button data-template-id="${escapeHtml(t.id)}" class="btn-load-template px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-bold transition shadow">
               Deploy Playbook
             </button>
             ${
               !t.is_builtin
-                ? `<button data-template-id="${t.id}" class="btn-delete-template px-2 py-1 text-rose-400 hover:text-rose-300 text-xs transition" title="Delete Playbook"><i class="fa-solid fa-trash-can"></i></button>`
+                ? `<button data-template-id="${escapeHtml(t.id)}" class="btn-delete-template px-2 py-1 text-rose-400 hover:text-rose-300 text-xs transition" title="Delete Playbook"><i class="fa-solid fa-trash-can"></i></button>`
                 : ""
             }
           </div>
@@ -2772,7 +2822,7 @@ async function openTemplatesManager() {
       });
     });
   } catch (err) {
-    container.innerHTML = `<div class="text-rose-400 p-4 text-center">Failed to load playbooks: ${err}</div>`;
+    container.innerHTML = `<div class="text-rose-400 p-4 text-center">Failed to load playbooks: ${escapeHtml(err)}</div>`;
   }
 }
 

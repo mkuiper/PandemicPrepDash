@@ -18,6 +18,8 @@ class EvidenceDomain(str, Enum):
     EPIDEMIOLOGY = "Transmission & Epidemiology"
     HEALTH_PHYSICS = "Health Physics & Plume Dynamics"
     STATUTORY_LEGAL = "Statutory & Biosecurity Law"
+    OPERATIONS = "Operations & Impact Assessment"
+    HYDROLOGY = "Hydrology & Forecast"
 
 
 class GapSeverity(str, Enum):

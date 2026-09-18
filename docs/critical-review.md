@@ -67,25 +67,20 @@ or **retrieved**, plus source, timestamp, method/version, and validation status.
 Show “unknown” when evidence is missing. Separate retrieval from corroboration;
 never treat a source link or a numeric score as proof of correctness.
 
-### High: remaining HTML injection surface
+### High: remaining HTML injection surface (partially reduced)
 
-`static/app.js` still has many `innerHTML` templates for node labels, custom
-specimens, report content, templates, and other API data. The message and Markdown
-fixes do not establish general XSS protection. Migrate user-controlled values to
-DOM text/attribute setters and use a reviewed sanitizer for any deliberate rich
-content. Include a real-browser test with malicious custom incident input.
+Workshop-path interpolations for hub specimen/literature/blockers, lab titles,
+checkpoints, node inspector labels, and playbooks now pass through `escapeHtml`.
+Other `innerHTML` templates (tools, agencies, sequence viewer, some reports) still
+need review. Prefer DOM text/attribute setters and a reviewed sanitizer for
+deliberate rich content. Include a real-browser test with malicious custom
+incident input.
 
-### High: laboratory state and lifecycle are misleading
+### Medium: laboratory records are still simulated
 
-`core/lab_bridge.py` seeds requests with prefilled dispatch/progress and approvals.
-Its global registry survives scenario changes and resets. Results can be recorded
-without a valid prior dispatch, and supplied identifiers can overwrite requests.
-Consequently a lab record from one incident can contaminate another or inflate
-checkpoint dispatch counts. These are simulated records, not facility receipts.
-
-Scope requests to incident/run, start examples as proposals, validate transitions,
-and distinguish an operator-entered result from verified external evidence. Tests
-must cover scenario changes, illegal transitions, duplicates, and replay.
+Lab requests re-seed on reset and scenario change as proposals, without a prefilled
+dispatch time. Illegal transitions and duplicate IDs are rejected. Records remain
+workshop objects, not facility receipts, and are not a durable per-incident store.
 
 ### Medium: execution is neither concurrent-safe nor durable
 

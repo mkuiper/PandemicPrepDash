@@ -138,7 +138,7 @@
           </span>
           <span class="text-slate-600">•</span>
           <span class="text-slate-400 flex items-center truncate">
-            <span class="text-slate-500 font-semibold mr-1.5">Specimen:</span>
+            <span id="incidentSourceLabel" class="text-slate-500 font-semibold mr-1.5">Specimen:</span>
             <span id="activeSpecimenBadge" class="px-2 py-0.5 rounded bg-cyan-950/70 border border-cyan-500/30 text-cyan-300 font-mono text-[10px] truncate">Active Specimen</span>
           </span>
           <span class="text-slate-600">•</span>
@@ -335,7 +335,7 @@
 
           <!-- Specimen Intelligence -->
           <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-md">
-            <h4 class="font-bold text-slate-100 text-xs flex items-center">
+            <h4 id="hubSpecimenIntelHeading" class="font-bold text-slate-100 text-xs flex items-center">
               <i class="fa-solid fa-dna text-cyan-400 mr-2"></i>
               Specimen Intel &amp; Variant Determinants
             </h4>
@@ -349,13 +349,13 @@
                 <i class="fa-solid fa-book-open-reader text-purple-400 mr-2"></i>
                 Peer-Reviewed Threat Literature (PubMed)
               </h4>
-              <span class="text-[10px] font-mono text-slate-500">Real-Time Citations</span>
+              <span id="hubLiteratureSourceNote" class="text-[10px] font-mono text-slate-500">Example records</span>
             </div>
             <div id="hubLiteratureContent" class="space-y-2.5 text-xs text-slate-300 max-h-64 overflow-y-auto"></div>
           </div>
 
           <!-- Screened Medical Countermeasures -->
-          <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-md">
+          <div id="hubCountermeasuresPanel" class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-md">
             <h4 class="font-bold text-slate-100 text-xs flex items-center">
               <i class="fa-solid fa-capsules text-emerald-400 mr-2"></i>
               Screened Medical Countermeasures

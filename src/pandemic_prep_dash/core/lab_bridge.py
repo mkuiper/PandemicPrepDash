@@ -149,6 +149,51 @@ class LabBridgeManager:
 
             cls._REQUESTS[req1.request_id] = req1
 
+        elif "flood" in scenario_id.lower() or "weather" in threat_type.lower():
+            req1 = PhysicalAssayRequest(
+                request_id="REQ-BOM-GAUGE-01",
+                title="Windsor gauge audit (simulated field task)",
+                assay_category=AssayCategory.HYDROLOGICAL_GAUGE_AUDIT,
+                target_facility=FacilityIdentifier.BOM_OBSERVING,
+                originating_node_id="node_wx_evidence",
+                requesting_agent_role="Hydrology Evidence Lead",
+                hypothesis_to_test="The example Windsor gauge is still within 0.05 m of the independent staff gauge.",
+                critical_question="Is the slower rise than forecast an observing error or a real hydrograph difference?",
+                specimen_requirements="Gauge log extract and photographs (workshop fiction).",
+                biosafety_level="Field observing site — not a laboratory",
+                estimated_turnaround_hours=4,
+                priority="HIGH",
+                status=AssayRequestStatus.PROPOSED_BY_AGENT,
+                impact_on_pipeline="Would change whether overnight overtopping is treated as likely.",
+            )
+            req2 = PhysicalAssayRequest(
+                request_id="REQ-SES-RECON-01",
+                title="Richmond levee reconnaissance (simulated)",
+                assay_category=AssayCategory.FIELD_RECONNAISSANCE,
+                target_facility=FacilityIdentifier.NSW_SES_RECON,
+                originating_node_id="node_wx_triage",
+                requesting_agent_role="Impact Triage Lead",
+                hypothesis_to_test="Reported seepage is local and does not indicate imminent levee failure.",
+                critical_question="Should the evacuation polygon expand because of levee condition?",
+                specimen_requirements="Field photographs and observer notes (workshop fiction).",
+                biosafety_level="Flood operations — not a laboratory",
+                estimated_turnaround_hours=3,
+                priority="HIGH",
+                status=AssayRequestStatus.PROPOSED_BY_AGENT,
+                impact_on_pipeline="Would change protective-action scope if the levee is failing.",
+            )
+            cls._REQUESTS[req1.request_id] = req1
+            cls._REQUESTS[req2.request_id] = req2
+
+        for req in cls._REQUESTS.values():
+            req.status = AssayRequestStatus.PROPOSED_BY_AGENT
+            req.authorized_by = None
+            req.dispatched_at = None
+            req.results_received_at = None
+            req.results_payload = {}
+            req.simulated = True
+            req.scenario_id = scenario_id
+
     @classmethod
     def list_requests(cls) -> List[PhysicalAssayRequest]:
         return list(cls._REQUESTS.values())
@@ -159,6 +204,12 @@ class LabBridgeManager:
 
     @classmethod
     def propose_request(cls, req: PhysicalAssayRequest) -> PhysicalAssayRequest:
+        if req.request_id in cls._REQUESTS:
+            raise ValueError(f"An assay request with identifier '{req.request_id}' already exists")
+        req.status = AssayRequestStatus.PROPOSED_BY_AGENT
+        req.dispatched_at = None
+        req.results_received_at = None
+        req.simulated = True
         cls._REQUESTS[req.request_id] = req
         return req
 
@@ -167,6 +218,14 @@ class LabBridgeManager:
         req = cls._REQUESTS.get(request_id)
         if not req:
             return False
+        allowed = {
+            AssayRequestStatus.PROPOSED_BY_AGENT,
+            AssayRequestStatus.AUTHORIZED_BY_DUTY_OFFICER,
+        }
+        if req.status not in allowed:
+            raise ValueError(
+                f"Cannot dispatch request '{request_id}' from status {req.status.value}"
+            )
         req.status = AssayRequestStatus.DISPATCHED_TO_FACILITY
         req.authorized_by = authorized_by
         req.dispatched_at = datetime.utcnow().isoformat() + "Z"
@@ -177,6 +236,14 @@ class LabBridgeManager:
         req = cls._REQUESTS.get(request_id)
         if not req:
             return False
+        allowed = {
+            AssayRequestStatus.DISPATCHED_TO_FACILITY,
+            AssayRequestStatus.IN_PROGRESS_AT_LAB,
+        }
+        if req.status not in allowed:
+            raise ValueError(
+                f"Cannot record results for '{request_id}' from status {req.status.value}; dispatch it first"
+            )
         req.status = AssayRequestStatus.RESULTS_RECEIVED
         req.results_received_at = datetime.utcnow().isoformat() + "Z"
         req.results_payload = results_payload

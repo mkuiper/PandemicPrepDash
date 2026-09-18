@@ -28,6 +28,19 @@ class AgencyReportGenerator:
         is_rad = "radiological" in threat_str or "nuclear" in threat_str
         is_chem = "chemical" in threat_str or "nerve_agent" in threat_str or "toxin" in threat_str
         is_bio = "biological" in threat_str or "virus" in threat_str or "bacteria" in threat_str or "synthetic" in threat_str
+        is_weather = "weather" in threat_str or "flood" in threat_str
+
+        if agency_id in [AgencyIdentifier.BOM, AgencyIdentifier.NSW_SES]:
+            if is_weather:
+                return True, "Primary operational jurisdiction: severe weather and flood response (simulated workshop products)."
+            return False, "Standby: incident is not a weather or flood hazard."
+
+        if is_weather:
+            if agency_id == AgencyIdentifier.NEMA:
+                return True, "Active crisis mandate: disaster logistics, sheltering, and inter-jurisdictional coordination."
+            if agency_id == AgencyIdentifier.HOME_AFFAIRS:
+                return True, "Active brief: flood impact on transport and other critical infrastructure (SOCI Act awareness)."
+            return False, "Standby: CBRN, health-security, or laboratory mandate is not triggered by this flood incident."
 
         if agency_id in [AgencyIdentifier.ARPANSA, AgencyIdentifier.ANSTO, AgencyIdentifier.ASNO]:
             if is_rad:
@@ -92,11 +105,79 @@ class AgencyReportGenerator:
         agent_name = identification.get("agent_name", "Emerging CBRN Threat")
         lineage = identification.get("clade_or_lineage", "Unclassified")
         ssba_tier = threat_assessment.get("ssba_tier", "Dangerous Substance")
+        impact = artifacts.get("impact_assessment", {})
+        conflicts = artifacts.get("conflicting_reports", {})
 
         now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
         is_relevant, relevance_reason = cls.determine_relevance(agency_id, threat_type, artifacts)
+        is_weather = "weather" in str(threat_type).lower() or "flood" in str(threat_type).lower()
 
-        if agency_id == AgencyIdentifier.ACDP:
+        if is_weather and not is_relevant:
+            return AgencyReport(
+                report_id=f"REP-{agency_id.value}-{uuid.uuid4().hex[:6].upper()}",
+                agency_id=agency_id,
+                title=f"{agency_id.value} standby note (simulated): {agent_name}",
+                classification=SecurityClassification.OFFICIAL,
+                urgency=UrgencyLevel.ROUTINE,
+                generated_at=now_str,
+                incident_name=incident_name,
+                threat_type=threat_type,
+                is_relevant=False,
+                relevance_reason=relevance_reason,
+                executive_summary=(
+                    "Standby only. This flood workshop incident does not trigger a CBRN, "
+                    "laboratory, or medical-countermeasure mandate for this agency."
+                ),
+                situation_update=f"Incident location: {sample_info.get('source_location', 'NSW')}.",
+                scientific_findings={"identification": identification, "provenance": "simulated"},
+                strategic_implications=["Remain on standby unless the hazard type changes."],
+                action_items_required=["No action required in this demonstration."],
+                cross_agency_dependencies=[AgencyIdentifier.NEMA, AgencyIdentifier.NSW_SES],
+                signoff_authority="Automated AI Incident Response Pipeline (Verified by Human-In-The-Loop Lead)",
+                dispatched=False,
+            )
+
+        if agency_id == AgencyIdentifier.BOM:
+            title = f"BOM warning and hydrology brief (simulated): {agent_name}"
+            exec_summary = (
+                "Workshop example of a Bureau of Meteorology flood-warning brief. "
+                "No live forecast, warning, or gauge feed is connected."
+            )
+            sit_update = (
+                f"Location: {sample_info.get('source_location', 'NSW')}. "
+                f"Warning: {identification.get('warning_level', 'Severe Weather Warning')}. "
+                f"Example gauge {identification.get('gauge_height_m')} m; example forecast peak "
+                f"{identification.get('forecast_peak_m')} m."
+            )
+            strategic_imps = [
+                "Treat the hydrograph as a simulated decision aid, not a verified observation.",
+                "Flag the overnight overtopping forecast as unreconciled with the slower gauge rise.",
+            ]
+            action_items = [
+                "Provide an independent gauge audit task to the Incident Controller (simulated).",
+            ]
+            cross_deps = [AgencyIdentifier.NSW_SES, AgencyIdentifier.NEMA]
+        elif agency_id == AgencyIdentifier.NSW_SES:
+            title = f"NSW SES operational sitrep (simulated): {agent_name}"
+            exec_summary = (
+                "Workshop example of an SES flood operations sitrep covering evacuations, roads, and levee reports."
+            )
+            sit_update = (
+                f"Population at risk (example): {impact.get('population_at_risk_estimate', 25000)}. "
+                f"Roads: {impact.get('road_status', 'Partial closures')}. "
+                f"Levee: {impact.get('levee_status', 'Seepage reported')}. "
+                f"Field recon: {conflicts.get('ses_recon', 'Not yet recorded')}."
+            )
+            strategic_imps = [
+                "Evacuation polygons are not complete until the Incident Controller approves the order.",
+                "Levee seepage is a field report, not a confirmed failure.",
+            ]
+            action_items = [
+                "Hold remaining road closures ready pending approval.",
+                "Keep reconnaissance on the Richmond levee.",
+            ]
+            cross_deps = [AgencyIdentifier.BOM, AgencyIdentifier.NEMA]
+        elif agency_id == AgencyIdentifier.ACDP:
             title = f"ACDP High-Containment Diagnostic & Surveillance Sitrep: {agent_name} ({lineage})"
             exec_summary = (
                 f"Diagnostic confirmation and high-containment PC4 evaluation completed at Geelong for {agent_name} "
@@ -192,25 +273,45 @@ class AgencyReportGenerator:
             cross_deps = [AgencyIdentifier.ACDP, AgencyIdentifier.NEMA, AgencyIdentifier.DFAT]
 
         elif agency_id == AgencyIdentifier.NEMA:
-            title = f"NEMA Crisis Logistics & Emergency Supply Chain Brief: {agent_name}"
-            exec_summary = (
-                f"Civil protection and supply chain resilience assessment for {agent_name}. Preparedness triggers "
-                f"activated for national medical stockpiling, transport cold-chain, and potential COMDISPLAN logistics deployment."
-            )
-            sit_update = (
-                f"National Threat Level: PRIORITY. Projected regional impact: Multi-jurisdictional. "
-                f"Required cold chain: {vaccine_candidates[0].get('stability_profile', 'Standard Cold Chain') if vaccine_candidates else 'Standard'}."
-            )
-            strategic_imps = [
-                "Audit National Medical Stockpile (NMS) for PPE (N95 respirators, PAPRs), transport media, and therapeutics.",
-                "Model interstate air/road freight transport corridors for medical countermeasure distribution.",
-                "Prepare briefing for National Security Committee of Cabinet (NSC) on whole-of-nation supply resiliency.",
-            ]
-            action_items = [
-                "Establish direct liaison cell with State/Territory State Emergency Service (SES) coordinators.",
-                "Review emergency critical care bed capacity and surge oxygen distribution logistics.",
-            ]
-            cross_deps = [AgencyIdentifier.ACDP, AgencyIdentifier.TGA, AgencyIdentifier.DSTG]
+            if is_weather:
+                title = f"NEMA disaster logistics brief (simulated): {agent_name}"
+                exec_summary = (
+                    "Workshop example of a NEMA coordination brief for sheltering, transport, and inter-jurisdictional support. "
+                    "No agencies are contacted."
+                )
+                sit_update = (
+                    f"Catchment: {sample_info.get('source_location', 'Hawkesbury–Nepean')}. "
+                    f"Example population at risk: {impact.get('population_at_risk_estimate', 25000)}. "
+                    f"Protective action pending Incident Controller approval."
+                )
+                strategic_imps = [
+                    "Support state-led evacuation with shelter and transport options if the order is approved.",
+                    "Do not treat this brief as a COMDISPLAN activation.",
+                ]
+                action_items = [
+                    "Stand by for a state request for additional flood boats or shelter capacity (simulated).",
+                ]
+                cross_deps = [AgencyIdentifier.NSW_SES, AgencyIdentifier.BOM, AgencyIdentifier.HOME_AFFAIRS]
+            else:
+                title = f"NEMA Crisis Logistics & Emergency Supply Chain Brief: {agent_name}"
+                exec_summary = (
+                    f"Civil protection and supply chain resilience assessment for {agent_name}. Preparedness triggers "
+                    f"activated for national medical stockpiling, transport cold-chain, and potential COMDISPLAN logistics deployment."
+                )
+                sit_update = (
+                    f"National Threat Level: PRIORITY. Projected regional impact: Multi-jurisdictional. "
+                    f"Required cold chain: {vaccine_candidates[0].get('stability_profile', 'Standard Cold Chain') if vaccine_candidates else 'Standard'}."
+                )
+                strategic_imps = [
+                    "Audit National Medical Stockpile (NMS) for PPE (N95 respirators, PAPRs), transport media, and therapeutics.",
+                    "Model interstate air/road freight transport corridors for medical countermeasure distribution.",
+                    "Prepare briefing for National Security Committee of Cabinet (NSC) on whole-of-nation supply resiliency.",
+                ]
+                action_items = [
+                    "Establish direct liaison cell with State/Territory State Emergency Service (SES) coordinators.",
+                    "Review emergency critical care bed capacity and surge oxygen distribution logistics.",
+                ]
+                cross_deps = [AgencyIdentifier.ACDP, AgencyIdentifier.TGA, AgencyIdentifier.DSTG]
 
         elif agency_id == AgencyIdentifier.DFAT:
             title = f"DFAT International Health Security & Diplomatic Notification: {agent_name}"
@@ -342,25 +443,43 @@ class AgencyReportGenerator:
             cross_deps = [AgencyIdentifier.ARPANSA, AgencyIdentifier.ANSTO, AgencyIdentifier.HOME_AFFAIRS]
 
         elif agency_id == AgencyIdentifier.HOME_AFFAIRS:
-            title = f"Home Affairs National Security & Critical Infrastructure SITREP: {agent_name}"
-            exec_summary = (
-                f"National security risk appraisal and critical infrastructure impact analysis under the Security of Critical "
-                f"Infrastructure Act 2018 (SOCI Act) and National Counter-Terrorism Plan."
-            )
-            sit_update = (
-                f"Sector Impact: Intermodal freight logistics, maritime ports, transport corridors, and public gathering nodes. "
-                f"National Threat Level: Elevated. ABF interdiction operations active across inbound freight streams."
-            )
-            strategic_imps = [
-                "Convene the National Security Committee of Cabinet (NSC) Crisis Policy Team.",
-                "Issue security directives to critical infrastructure owners under the SOCI Act 2018.",
-                "Deploy Australian Border Force (ABF) targeting rules for related international cargo manifests.",
-            ]
-            action_items = [
-                "Issue operational containment directive to State/Territory police counter-terrorism commands.",
-                "Establish multi-agency coordination center at Home Affairs National Situation Centre.",
-            ]
-            cross_deps = [AgencyIdentifier.DSTG, AgencyIdentifier.NEMA, AgencyIdentifier.ACDP, AgencyIdentifier.ARPANSA]
+            if is_weather:
+                title = f"Home Affairs infrastructure awareness brief (simulated): {agent_name}"
+                exec_summary = (
+                    "Workshop example of a critical-infrastructure awareness note for flooded transport corridors. "
+                    "This is not a counter-terrorism activation."
+                )
+                sit_update = (
+                    f"Sector impact (example): {impact.get('road_status', 'Partial road closures')}. "
+                    f"Hospital listed in triage: {', '.join(impact.get('critical_sites', [])[:1]) or 'Hawkesbury District Health Service'}."
+                )
+                strategic_imps = [
+                    "Watch SOCI Act assets in the floodplain; do not issue security directives from this demo.",
+                ]
+                action_items = [
+                    "Record which infrastructure owners would need a real notification after workshop validation.",
+                ]
+                cross_deps = [AgencyIdentifier.NEMA, AgencyIdentifier.NSW_SES]
+            else:
+                title = f"Home Affairs National Security & Critical Infrastructure SITREP: {agent_name}"
+                exec_summary = (
+                    f"National security risk appraisal and critical infrastructure impact analysis under the Security of Critical "
+                    f"Infrastructure Act 2018 (SOCI Act) and National Counter-Terrorism Plan."
+                )
+                sit_update = (
+                    f"Sector Impact: Intermodal freight logistics, maritime ports, transport corridors, and public gathering nodes. "
+                    f"National Threat Level: Elevated. ABF interdiction operations active across inbound freight streams."
+                )
+                strategic_imps = [
+                    "Convene the National Security Committee of Cabinet (NSC) Crisis Policy Team.",
+                    "Issue security directives to critical infrastructure owners under the SOCI Act 2018.",
+                    "Deploy Australian Border Force (ABF) targeting rules for related international cargo manifests.",
+                ]
+                action_items = [
+                    "Issue operational containment directive to State/Territory police counter-terrorism commands.",
+                    "Establish multi-agency coordination center at Home Affairs National Situation Centre.",
+                ]
+                cross_deps = [AgencyIdentifier.DSTG, AgencyIdentifier.NEMA, AgencyIdentifier.ACDP, AgencyIdentifier.ARPANSA]
 
         else:
             title = f"Whole-of-Government Operational Briefing: {agent_name}"

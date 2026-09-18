@@ -150,6 +150,22 @@ class ThreatResearcher:
                 "source_url": "https://pubmed.ncbi.nlm.nih.gov/33945012/",
             }
         ],
+        "east_coast_low": [
+            {
+                "pmid": None,
+                "title": "SIMULATED EXAMPLE: Hawkesbury–Nepean flood warning and evacuation timing (workshop record)",
+                "authors": "Example record — not retrieved from PubMed",
+                "journal": "Workshop literature fallback",
+                "year": "2026",
+                "doi": None,
+                "summary": "Simulated example record describing forecast-versus-gauge disagreement on a populated floodplain. Not a live retrieval and not independently verified.",
+                "key_findings": [
+                    "Example: protective-action timing depends on which source the Incident Controller privileges",
+                    "Example: levee seepage reports are not the same as confirmed failure",
+                ],
+                "source_url": "https://example.invalid/workshop/east-coast-low",
+            }
+        ],
     }
 
     @classmethod
@@ -204,6 +220,13 @@ class ThreatResearcher:
                 key = "nerve_agent"
             elif "cesium" in q_lower or "radio" in q_lower or "nuclear" in q_lower or "cs-137" in q_lower:
                 key = "cesium137"
+            elif (
+                "flood" in q_lower
+                or "east coast" in q_lower
+                or "hawkesbury" in q_lower
+                or "weather" in q_lower
+            ):
+                key = "east_coast_low"
 
             raw_curated = cls.CURATED_LITERATURE_REGISTRY.get(key, cls.CURATED_LITERATURE_REGISTRY["h5n1"])
             papers = [ResearchPaper(**item) for item in raw_curated]

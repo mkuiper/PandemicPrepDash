@@ -15,6 +15,8 @@ class NodeCategory(str, Enum):
     VACCINOLOGY = "vaccinology"
     BIOSECURITY = "biosecurity"
     AGENCY_REPORTING = "agency_reporting"
+    TRIAGE = "triage"
+    RECOVERY = "recovery"
     CUSTOM = "custom"
 
 

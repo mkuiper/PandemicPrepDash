@@ -264,6 +264,13 @@ def test_scenario_switching_auto_aligns_pathway():
     engine.set_scenario("scen_novel_coronavirus")
     assert engine.pathway.threat_type == ThreatType.BIOLOGICAL_VIRUS
 
+    engine.set_scenario("scen_east_coast_low_flood")
+    assert engine.pathway.threat_type == ThreatType.SEVERE_WEATHER
+    assert engine.pathway.id == "pathway_default_severe_weather"
+
+    engine.set_scenario("scen_h5n1_avian_flu")
+    assert engine.pathway.threat_type == ThreatType.BIOLOGICAL_VIRUS
+
 
 def test_aisi_non_anthropomorphic_agent_names():
     """Verify that all agent personas strictly adhere to AISI non-anthropomorphic naming guidelines."""

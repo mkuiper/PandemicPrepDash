@@ -4,9 +4,10 @@ A working demonstrator for incident coordination, response pathways, human revie
 and shared situational awareness. Its purpose is to gather agency feedback and
 inform the design of a larger platform.
 
-The current example scenarios cover biological, chemical, and radiological
-incidents in an Australian inter-agency context. The product name is broader than
-these examples: generic incident types and agency access controls are planned,
+The current example scenarios cover biological, chemical, radiological, and
+severe-weather (Hawkesbury–Nepean flood) incidents in an Australian inter-agency
+context. The flood pathway is the first non-CBRN check that intake, evidence,
+approval, briefing, and recovery still work. Agency access controls are planned,
 not implemented. The Python package and repository retain their original names
 for compatibility.
 

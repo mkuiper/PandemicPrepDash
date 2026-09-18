@@ -11,6 +11,7 @@ class ThreatType(str, Enum):
     RADIOLOGICAL_DISPERSAL = "radiological_dispersal"
     NUCLEAR_MATERIAL = "nuclear_material"
     SYNTHETIC_ENGINEERED = "synthetic_engineered"
+    SEVERE_WEATHER = "severe_weather"
     UNKNOWN = "unknown"
 
 
@@ -21,6 +22,7 @@ class SampleType(str, Enum):
     SMILES = "SMILES"
     RADIOLOGICAL_SPECTRUM = "RADIOLOGICAL_SPECTRUM"
     SYNDROMIC_TEXT = "SYNDROMIC_TEXT"
+    SITREP_TEXT = "SITREP_TEXT"
 
 
 class BiologicalSample(BaseModel):

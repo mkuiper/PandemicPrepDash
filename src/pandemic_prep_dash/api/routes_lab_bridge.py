@@ -47,7 +47,10 @@ def list_assay_requests():
 @router.post("/requests")
 def propose_assay_request(req: PhysicalAssayRequest):
     """Allows an agent squad or human expert to propose an empirical laboratory assay."""
-    created = LabBridgeManager.propose_request(req)
+    try:
+        created = LabBridgeManager.propose_request(req)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     
     # Broadcast to Central Hub Message Board
     engine = StateManager.get_engine()
@@ -69,7 +72,10 @@ def propose_assay_request(req: PhysicalAssayRequest):
 @router.post("/requests/{request_id}/dispatch")
 def dispatch_assay_request(request_id: str, body: DispatchAssayRequest):
     """Authorizes and dispatches an assay request to the accredited reference facility."""
-    success = LabBridgeManager.dispatch_request(request_id, body.authorized_by)
+    try:
+        success = LabBridgeManager.dispatch_request(request_id, body.authorized_by)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     if not success:
         raise HTTPException(status_code=404, detail=f"Assay request '{request_id}' not found")
 
@@ -92,7 +98,10 @@ def dispatch_assay_request(request_id: str, body: DispatchAssayRequest):
 @router.post("/requests/{request_id}/results")
 def record_assay_results(request_id: str, body: IngestAssayResultsRequest):
     """Ingests empirical lab results into the dashboard, updating the blackboard and notifying squads."""
-    success = LabBridgeManager.record_results(request_id, body.results_payload, body.impact_notes)
+    try:
+        success = LabBridgeManager.record_results(request_id, body.results_payload, body.impact_notes)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     if not success:
         raise HTTPException(status_code=404, detail=f"Assay request '{request_id}' not found")
 

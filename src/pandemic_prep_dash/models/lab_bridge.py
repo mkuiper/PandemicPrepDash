@@ -19,6 +19,8 @@ class AssayCategory(str, Enum):
     GAMMA_SPECTROMETRY_ISOTOPES = "gamma_spectrometry_isotopes"
     IN_VIVO_BIOASSAY = "in_vivo_bioassay"
     CHEMICAL_TOXICOLOGY_GCMS = "chemical_toxicology_gcms"
+    FIELD_RECONNAISSANCE = "field_reconnaissance"
+    HYDROLOGICAL_GAUGE_AUDIT = "hydrological_gauge_audit"
 
 
 class FacilityIdentifier(str, Enum):
@@ -28,6 +30,8 @@ class FacilityIdentifier(str, Enum):
     ARPANSA_YALLAMBIE = "ARPANSA Radiation Health Services (Yallambie)"
     DSTG_FISHERMANS_BEND = "DSTG CBRN Defence Laboratories (Fishermans Bend)"
     DAFF_ANIMAL_HEALTH = "DAFF National Animal Health Diagnostic Laboratories"
+    BOM_OBSERVING = "Bureau of Meteorology Observing Network (NSW)"
+    NSW_SES_RECON = "NSW State Emergency Service Field Reconnaissance"
 
 
 class AssayRequestStatus(str, Enum):
@@ -58,4 +62,6 @@ class PhysicalAssayRequest(BaseModel):
     results_received_at: Optional[str] = None
     results_payload: Dict[str, Any] = Field(default_factory=dict)
     impact_on_pipeline: Optional[str] = None
+    simulated: bool = True
+    scenario_id: Optional[str] = None
     created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")

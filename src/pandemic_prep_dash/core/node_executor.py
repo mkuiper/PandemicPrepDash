@@ -43,6 +43,8 @@ class NodeExecutor:
         new_artifacts: Dict[str, Any] = {}
         new_dialogues: List[InterNodeDialogue] = []
         new_blocker: Optional[BlockerAlert] = None
+        threat_type_str = str(scenario_data.get("threat_type", "")).lower()
+        is_weather = "weather" in threat_type_str or "flood" in threat_type_str
 
         # Prioritize custom node-level configured agent squad if present
         if node.agent_team_config and node.agent_team_config.members:
@@ -63,8 +65,50 @@ class NodeExecutor:
             sample_data = scenario_data.get("sample", {})
             raw_payload = sample_data.get("raw_payload", "")
 
-            # Check if radiological or biological/chemical
-            if "RADIOISOTOPE" in raw_payload or scenario_data.get("threat_type") == "radiological_dispersal":
+            if is_weather:
+                metadata = sample_data.get("metadata", {})
+                new_logs.append(
+                    AgentThoughtLog(
+                        id=f"th_{uuid.uuid4().hex[:8]}",
+                        agent_id=lead_persona.id,
+                        agent_name=lead_persona.name,
+                        agent_role=f"{lead_persona.role.value} ({team_name})",
+                        node_id=node.id,
+                        phase=AgentThoughtPhase.OBSERVATION,
+                        message=(
+                            f"Received simulated sitrep from {sample_data.get('source_location')}. "
+                            "This is workshop fiction; no live BOM or SES feed is connected."
+                        ),
+                        confidence=0.9,
+                    )
+                )
+                new_logs.append(
+                    AgentThoughtLog(
+                        id=f"th_{uuid.uuid4().hex[:8]}",
+                        agent_id=lead_persona.id,
+                        agent_name=lead_persona.name,
+                        agent_role=f"{lead_persona.role.value} ({team_name})",
+                        node_id=node.id,
+                        phase=AgentThoughtPhase.TOOL_EXECUTION,
+                        message="Parsed warning level, catchment, and gauge fields from the sitrep.",
+                        tool_name="sitrep_parser",
+                        tool_input={"sample_id": sample_data.get("sample_id"), "sample_type": sample_data.get("sample_type")},
+                        tool_output_summary=(
+                            f"Warning: {metadata.get('warning_level')}. "
+                            f"Windsor gauge {metadata.get('windsor_gauge_m')} m (simulated)."
+                        ),
+                        confidence=0.9,
+                    )
+                )
+                new_artifacts["sample"] = sample_data
+                node.outputs = {
+                    "incident_id": sample_data.get("sample_id"),
+                    "warning_level": metadata.get("warning_level"),
+                    "catchment": metadata.get("catchment"),
+                    "status": "ingested",
+                    "provenance": "simulated",
+                }
+            elif "RADIOISOTOPE" in raw_payload or scenario_data.get("threat_type") == "radiological_dispersal":
                 new_logs.append(
                     AgentThoughtLog(
                         id=f"th_{uuid.uuid4().hex[:8]}",
@@ -179,22 +223,27 @@ class NodeExecutor:
                 )
             )
 
-            new_dialogues.append(
-                InterNodeDialogue(
-                    dialogue_id=f"dial_{uuid.uuid4().hex[:8]}",
-                    source_node_id=node.id,
-                    source_agent_id=lead_persona.id,
-                    source_agent_name=lead_persona.name,
-                    target_node_id="node_genomic_characterization",
-                    target_agent_id="agent_bioinfo_lead",
-                    target_agent_name="AGENT-BIOINFO-LEAD-01",
-                    message_type=DialogueMessageType.REQUEST_INFO,
-                    subject="Literature Evidence on Functional Mutations",
-                    content=f"Research Lead transmitting {len(papers)} peer-reviewed studies on '{query_term}'. Validated mutations and cleavage mechanisms corroborated.",
-                    response_content="Genomics Lead: Cross-referencing literature findings with sequencing reads.",
-                    resolved=True,
+            if not is_weather:
+                new_dialogues.append(
+                    InterNodeDialogue(
+                        dialogue_id=f"dial_{uuid.uuid4().hex[:8]}",
+                        source_node_id=node.id,
+                        source_agent_id=lead_persona.id,
+                        source_agent_name=lead_persona.name,
+                        target_node_id="node_genomic_characterization",
+                        target_agent_id="agent_bioinfo_lead",
+                        target_agent_name="AGENT-BIOINFO-LEAD-01",
+                        message_type=DialogueMessageType.REQUEST_INFO,
+                        subject="Literature Evidence on Functional Mutations",
+                        content=f"Research Lead transmitting {len(papers)} peer-reviewed studies on '{query_term}'. Validated mutations and cleavage mechanisms corroborated.",
+                        response_content="Genomics Lead: Cross-referencing literature findings with sequencing reads.",
+                        resolved=True,
+                    )
                 )
-            )
+            else:
+                conflicts = scenario_data.get("conflicting_reports", {})
+                new_artifacts["conflicting_reports"] = conflicts
+                new_artifacts["identification"] = scenario_data.get("identification", {})
 
             node.outputs = {
                 "papers_retrieved": len(papers),
@@ -425,54 +474,94 @@ class NodeExecutor:
 
         # ---------------- 7. BIOSECURITY & THREAT ASSESSMENT NODE ----------------
         elif node.category == NodeCategory.BIOSECURITY:
-            new_dialogues.append(
-                InterNodeDialogue(
-                    dialogue_id=f"dial_{uuid.uuid4().hex[:8]}",
-                    source_node_id=node.id,
-                    source_agent_id=lead_persona.id,
-                    source_agent_name=lead_persona.name,
-                    target_node_id="node_genomic_characterization",
-                    target_agent_id="agent_bioinfo_lead",
-                    target_agent_name="AGENT-BIOINFO-LEAD-01",
-                    message_type=DialogueMessageType.REQUEST_INFO,
-                    subject="Requesting dual-use and SSBA regulatory scan",
-                    content="Biosecurity Lead auditing sequence and scenario data for Security Sensitive Biological Agent (SSBA) or CWC schedule markers.",
-                    response_content="Genomics Lead: Transmitting molecular determinants and dual-use markers.",
-                    resolved=True,
-                )
-            )
-
             threat_assessment = scenario_data.get("threat_assessment", {})
-            new_logs.append(
-                AgentThoughtLog(
-                    id=f"th_{uuid.uuid4().hex[:8]}",
-                    agent_id=lead_persona.id,
-                    agent_name=lead_persona.name,
-                    agent_role=f"{lead_persona.role.value} ({team_name})",
-                    node_id=node.id,
-                    phase=AgentThoughtPhase.TOOL_EXECUTION,
-                    message="Audited threat characteristics against Commonwealth Statutory Lists (SSBA Standards / ARPANS Act / CWC Schedule).",
-                    tool_name="ssba_regulatory_classifier",
-                    tool_input={"pathway_threat": scenario_data.get("threat_type")},
-                    tool_output_summary=f"Classification: {threat_assessment.get('ssba_tier')}. Human-in-the-Loop authorization verified.",
-                    confidence=0.99,
+            if is_weather:
+                new_logs.append(
+                    AgentThoughtLog(
+                        id=f"th_{uuid.uuid4().hex[:8]}",
+                        agent_id=lead_persona.id,
+                        agent_name=lead_persona.name,
+                        agent_role=f"{lead_persona.role.value} ({team_name})",
+                        node_id=node.id,
+                        phase=AgentThoughtPhase.TOOL_EXECUTION,
+                        message=(
+                            "Prepared simulated evacuation and road-closure order for Incident Controller sign-off. "
+                            "No SSBA or CBRN classification applies."
+                        ),
+                        tool_name="protective_action_pack",
+                        tool_input={"action": threat_assessment.get("protective_action")},
+                        tool_output_summary="Awaiting human approval to evacuate floodplain polygons and close remaining roads.",
+                        confidence=0.85,
+                    )
                 )
-            )
-            new_artifacts["threat_assessment"] = threat_assessment
-            node.outputs = threat_assessment
-
-            # Flag statutory reporting requirement blocker
-            if "Tier 1" in str(threat_assessment.get("ssba_tier")):
+                new_artifacts["threat_assessment"] = threat_assessment
+                new_artifacts["protective_action"] = {
+                    "action": "Evacuate Windsor/Richmond polygons and close Windsor–Richmond corridor",
+                    "authority": "Incident Controller",
+                    "provenance": "simulated",
+                }
+                node.outputs = {
+                    "approval_required": True,
+                    "protective_action": threat_assessment.get("protective_action"),
+                    "hazard_class": threat_assessment.get("hazard_class"),
+                    "provenance": "simulated",
+                }
                 new_blocker = BlockerAlert(
                     alert_id=f"blk_{uuid.uuid4().hex[:6]}",
                     node_id=node.id,
                     node_label=node.label,
                     severity=BlockerSeverity.WARNING,
-                    title="Mandatory SSBA Tier 1 Notification Triggered",
-                    description="Pathogen falls under National Health Security Act 2007 Tier 1 SSBA list. Requires formal notification to ACDP within 24 hours.",
-                    required_action="Submit Initial Notification Form SSBA-01 to ACDP Biosecurity Regulatory Desk.",
+                    title="Evacuation order pending Incident Controller approval",
+                    description="Forecast and field reports still disagree on overnight overtopping. The protective-action order is not in force until approved.",
+                    required_action="Review conflicting evidence and explicitly approve or withhold the evacuation / road-closure order.",
                     raised_by_agent=lead_persona.name,
                 )
+            else:
+                new_dialogues.append(
+                    InterNodeDialogue(
+                        dialogue_id=f"dial_{uuid.uuid4().hex[:8]}",
+                        source_node_id=node.id,
+                        source_agent_id=lead_persona.id,
+                        source_agent_name=lead_persona.name,
+                        target_node_id="node_genomic_characterization",
+                        target_agent_id="agent_bioinfo_lead",
+                        target_agent_name="AGENT-BIOINFO-LEAD-01",
+                        message_type=DialogueMessageType.REQUEST_INFO,
+                        subject="Requesting dual-use and SSBA regulatory scan",
+                        content="Biosecurity Lead auditing sequence and scenario data for Security Sensitive Biological Agent (SSBA) or CWC schedule markers.",
+                        response_content="Genomics Lead: Transmitting molecular determinants and dual-use markers.",
+                        resolved=True,
+                    )
+                )
+                new_logs.append(
+                    AgentThoughtLog(
+                        id=f"th_{uuid.uuid4().hex[:8]}",
+                        agent_id=lead_persona.id,
+                        agent_name=lead_persona.name,
+                        agent_role=f"{lead_persona.role.value} ({team_name})",
+                        node_id=node.id,
+                        phase=AgentThoughtPhase.TOOL_EXECUTION,
+                        message="Audited threat characteristics against Commonwealth Statutory Lists (SSBA Standards / ARPANS Act / CWC Schedule).",
+                        tool_name="ssba_regulatory_classifier",
+                        tool_input={"pathway_threat": scenario_data.get("threat_type")},
+                        tool_output_summary=f"Classification: {threat_assessment.get('ssba_tier')}. Human-in-the-Loop authorization verified.",
+                        confidence=0.99,
+                    )
+                )
+                new_artifacts["threat_assessment"] = threat_assessment
+                node.outputs = threat_assessment
+
+                if "Tier 1" in str(threat_assessment.get("ssba_tier")):
+                    new_blocker = BlockerAlert(
+                        alert_id=f"blk_{uuid.uuid4().hex[:6]}",
+                        node_id=node.id,
+                        node_label=node.label,
+                        severity=BlockerSeverity.WARNING,
+                        title="Mandatory SSBA Tier 1 Notification Triggered",
+                        description="Pathogen falls under National Health Security Act 2007 Tier 1 SSBA list. Requires formal notification to ACDP within 24 hours.",
+                        required_action="Submit Initial Notification Form SSBA-01 to ACDP Biosecurity Regulatory Desk.",
+                        raised_by_agent=lead_persona.name,
+                    )
 
         # ---------------- 8. AGENCY REPORTING NODE ----------------
         elif node.category == NodeCategory.AGENCY_REPORTING:
@@ -518,6 +607,57 @@ class NodeExecutor:
             )
             new_artifacts["agency_reports"] = {k.value: v.model_dump() for k, v in agency_reports.items()}
             node.outputs = {"briefings_compiled": len(agency_reports), "relevant_agencies": relevant_agencies}
+
+        elif node.category == NodeCategory.TRIAGE:
+            impact = scenario_data.get("impact_assessment", {})
+            new_logs.append(
+                AgentThoughtLog(
+                    id=f"th_{uuid.uuid4().hex[:8]}",
+                    agent_id=lead_persona.id,
+                    agent_name=lead_persona.name,
+                    agent_role=f"{lead_persona.role.value} ({team_name})",
+                    node_id=node.id,
+                    phase=AgentThoughtPhase.SYNTHESIS,
+                    message=(
+                        "Ranked simulated impacts: population at risk, hospital exposure, "
+                        "road closures, and levee condition. Figures are workshop fiction."
+                    ),
+                    confidence=0.8,
+                )
+            )
+            new_artifacts["impact_assessment"] = impact
+            node.outputs = {
+                "population_at_risk_estimate": impact.get("population_at_risk_estimate"),
+                "critical_sites": impact.get("critical_sites", []),
+                "road_status": impact.get("road_status"),
+                "levee_status": impact.get("levee_status"),
+                "provenance": "simulated",
+            }
+
+        elif node.category == NodeCategory.RECOVERY:
+            new_logs.append(
+                AgentThoughtLog(
+                    id=f"th_{uuid.uuid4().hex[:8]}",
+                    agent_id=lead_persona.id,
+                    agent_name=lead_persona.name,
+                    agent_role=f"{lead_persona.role.value} ({team_name})",
+                    node_id=node.id,
+                    phase=AgentThoughtPhase.SYNTHESIS,
+                    message="Recorded simulated stand-down conditions and restoration tasks. No live recovery system is connected.",
+                    confidence=0.8,
+                )
+            )
+            recovery = {
+                "status": "stand-down drafted",
+                "restoration_tasks": [
+                    "Reopen Windsor–Richmond corridor after levee inspection",
+                    "Return evacuated residents when gauges fall below major flood",
+                    "Capture after-action notes for the workshop",
+                ],
+                "provenance": "simulated",
+            }
+            new_artifacts["recovery"] = recovery
+            node.outputs = recovery
 
         else:
             # Custom node

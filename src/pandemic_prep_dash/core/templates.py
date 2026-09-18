@@ -12,7 +12,11 @@ import re
 from ..models.pathway import Pathway, PathwayNode, PathwayEdge, NodeCategory, NodeStatus
 from ..models.bio_chem import ThreatType
 from ..models.agent import AgentTeamConfig, HarnessEngineType, AgentRole
-from .registry import create_default_biological_pathway, create_default_chemical_pathway
+from .registry import (
+    create_default_biological_pathway,
+    create_default_chemical_pathway,
+    create_default_severe_weather_pathway,
+)
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent.parent / "templates"
 TEMPLATES_DIR.mkdir(parents=True, exist_ok=True)
@@ -254,6 +258,7 @@ class TemplateManager:
             "pathway_default_biological": create_default_biological_pathway(),
             "pathway_default_chemical": create_default_chemical_pathway(),
             "pathway_default_radiological": create_default_radiological_pathway(),
+            "pathway_default_severe_weather": create_default_severe_weather_pathway(),
             "pathway_rapid_antiviral": create_rapid_antiviral_pathway(),
             "pathway_sovereign_vaccine": create_sovereign_vaccine_pathway(),
         }
@@ -281,6 +286,12 @@ class TemplateManager:
                 "scenario_scope": "Industrial gamma source detonation, Caesium-137 / Cobalt-60 RDD",
                 "trigger_criteria": "Uncontrolled radionuclide release or detected gamma photopeak >10 mSv/hr",
                 "lead_agency": "ARPANSA / ANSTO Lucas Heights",
+            },
+            "pathway_default_severe_weather": {
+                "playbook_title": "Severe Weather and Flood Protective-Action Playbook",
+                "scenario_scope": "East Coast Low, riverine flood, and related all-hazards disruption (simulated)",
+                "trigger_criteria": "BOM severe weather warning plus major flood classification on a populated river",
+                "lead_agency": "NSW SES / BOM / NEMA",
             },
             "pathway_rapid_antiviral": {
                 "playbook_title": "Accelerated Antiviral Repurposing & TGA Section 19A Playbook",

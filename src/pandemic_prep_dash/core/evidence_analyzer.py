@@ -171,6 +171,55 @@ class EvidenceAnalyzer:
                 "Physical HPGe spectrometry at ANSTO is essential for attribution."
             )
 
+        elif "weather" in threat_lower or "flood" in scen_lower:
+            domain_scores = {
+                "Hydrology & Forecast": 0.72 if "node_wx_evidence" in completed_node_ids else 0.35,
+                "Operations & Impact Assessment": 0.68 if "node_wx_triage" in completed_node_ids else 0.30,
+                "Statutory & Biosecurity Law": 0.55 if "node_wx_approval" in completed_node_ids else 0.20,
+            }
+            gaps.append(
+                KnowledgeGap(
+                    domain=EvidenceDomain.HYDROLOGY,
+                    title="Overnight hydrograph versus gauge rise (simulated)",
+                    description=(
+                        "The example BOM forecast peaks at 17.4 m at Windsor while the example gauge is 16.8 m "
+                        "and rising more slowly than the previous three-hour forecast. These figures are workshop fiction."
+                    ),
+                    severity=GapSeverity.CRITICAL,
+                    related_node_ids=["node_wx_evidence", "node_wx_intake"],
+                    impact_if_unresolved="Evacuation timing may be too early or too late relative to actual overtopping.",
+                    suggested_investigation="Audit the Windsor gauge and compare with an independent hydrology run (simulated field task).",
+                )
+            )
+            conflicts.append(
+                ConflictingEvidence(
+                    domain=EvidenceDomain.HYDROLOGY,
+                    title="Forecast overtopping versus field reconnaissance (simulated)",
+                    source_a="BOM hydrology example product",
+                    claim_a="Overtopping at Windsor/Richmond is likely overnight.",
+                    source_b="SES field recon example",
+                    claim_b="Rise is slower than forecast; levee seepage is reported but not confirmed as failure.",
+                    discrepancy_explanation="Example products were generated independently for the workshop and are not reconciled observations.",
+                    operational_risk="An evacuation order based on only one source will be hard to justify later.",
+                    recommended_arbitration="Incident Controller records which sources were used and the conditions that would reopen the decision.",
+                )
+            )
+            validations.append(
+                ExperimentalValidationNeed(
+                    assay_title="Windsor gauge audit (simulated field task)",
+                    target_facility="Bureau of Meteorology Observing Network (NSW)",
+                    critical_question="Does the Windsor gauge still match the independent staff gauge within 0.05 m?",
+                    urgency="HIGH",
+                    specimen_spec="Gauge log extract and photographs (workshop fiction)",
+                    unblocks_decision="Whether overnight overtopping is treated as likely or uncertain.",
+                )
+            )
+            overall_conf = sum(domain_scores.values()) / len(domain_scores)
+            summary = (
+                "Simulated flood evidence is incomplete: the forecast, gauge, and field recon do not agree. "
+                "This is a workshop conflict, not a live hydrology assessment."
+            )
+
         else:
             # Chemical / Generic Threat
             domain_scores = {

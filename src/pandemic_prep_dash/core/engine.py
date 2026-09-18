@@ -71,16 +71,21 @@ class PathwayExecutionEngine:
         self.scenario_data = scenario_data
         threat_type = self.scenario_data.get("threat_type")
 
-        # Auto-align pathway threat type if switching between chemical, radiological, and biological
         from ..models.bio_chem import ThreatType
-        if threat_type == ThreatType.RADIOLOGICAL_DISPERSAL and self.pathway.threat_type != ThreatType.RADIOLOGICAL_DISPERSAL:
+        from .registry import (
+            create_default_biological_pathway,
+            create_default_chemical_pathway,
+            create_default_severe_weather_pathway,
+        )
+        aligned = {ThreatType.CHEMICAL_NERVE_AGENT, ThreatType.RADIOLOGICAL_DISPERSAL, ThreatType.SEVERE_WEATHER}
+        if threat_type == ThreatType.SEVERE_WEATHER and self.pathway.threat_type != ThreatType.SEVERE_WEATHER:
+            self.pathway = create_default_severe_weather_pathway()
+        elif threat_type == ThreatType.RADIOLOGICAL_DISPERSAL and self.pathway.threat_type != ThreatType.RADIOLOGICAL_DISPERSAL:
             from .templates import TemplateManager
             self.pathway = TemplateManager.get_template("pathway_default_radiological").model_copy(deep=True)
         elif threat_type == ThreatType.CHEMICAL_NERVE_AGENT and self.pathway.threat_type != ThreatType.CHEMICAL_NERVE_AGENT:
-            from .registry import create_default_chemical_pathway
             self.pathway = create_default_chemical_pathway()
-        elif threat_type not in [ThreatType.CHEMICAL_NERVE_AGENT, ThreatType.RADIOLOGICAL_DISPERSAL] and self.pathway.threat_type in [ThreatType.CHEMICAL_NERVE_AGENT, ThreatType.RADIOLOGICAL_DISPERSAL]:
-            from .registry import create_default_biological_pathway
+        elif threat_type not in aligned and self.pathway.threat_type in aligned:
             self.pathway = create_default_biological_pathway()
 
         self.data_hub = CentralDataHub(
@@ -116,6 +121,11 @@ class PathwayExecutionEngine:
             threat_type=str(self.scenario_data.get("threat_type", "biological_virus")),
         )
         self._build_graph()
+        from .lab_bridge import LabBridgeManager
+        LabBridgeManager.initialize_scenario_requests(
+            str(self.scenario_data.get("threat_type", "")),
+            self.scenario_id or "",
+        )
 
     def get_node(self, node_id: str) -> Optional[PathwayNode]:
         for node in self.pathway.nodes:
