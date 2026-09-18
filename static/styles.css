@@ -23,15 +23,23 @@
 
 #nodeInspector {
   width: 24rem;
-  min-width: 24rem;
-  max-width: 24rem;
-  flex: 0 0 24rem;
+  min-width: 16rem;
+  max-width: min(48rem, 80vw);
+  flex: 0 0 auto;
 }
 #nodeInspector.collapsed {
   width: 2.75rem !important;
   min-width: 2.75rem !important;
   max-width: 2.75rem !important;
   flex: 0 0 2.75rem !important;
+}
+#nodeInspector.collapsed #nodeInspectorResizeHandle {
+  display: none !important;
+  cursor: default;
+}
+body.inspector-resizing {
+  cursor: col-resize;
+  user-select: none;
 }
 #nodeInspector.collapsed .inspector-expanded-only {
   display: none !important;

@@ -60,6 +60,7 @@ const AppState = {
   govPolicies: [],
   theme: localStorage.getItem("theme") || "dark",
   inspectorCollapsed: localStorage.getItem("inspectorCollapsed") === "1",
+  inspectorWidth: clampInspectorWidth(parseInt(localStorage.getItem("inspectorWidth") || "384", 10)),
   connecting: {
     active: false,
     sourceId: null,
@@ -86,10 +87,19 @@ document.addEventListener("DOMContentLoaded", () => {
   setupInspectorSubtabs();
   const toggle = document.getElementById("btnToggleNodeInspector");
   if (toggle) toggle.addEventListener("click", toggleNodeInspector);
+  setupInspectorResize();
   applyInspectorCollapsed();
   setupEventListeners();
   loadInitialData();
 });
+
+function clampInspectorWidth(px) {
+  const n = Number(px);
+  if (!Number.isFinite(n)) return 384;
+  const viewport = (typeof window !== "undefined" && window.innerWidth) ? window.innerWidth : 1200;
+  const max = Math.min(768, Math.floor(viewport * 0.8) || 768);
+  return Math.max(260, Math.min(max, Math.round(n)));
+}
 
 function toggleNodeInspector() {
   AppState.inspectorCollapsed = !AppState.inspectorCollapsed;
@@ -105,9 +115,11 @@ function applyInspectorCollapsed() {
   if (!aside) return;
   const collapsed = !!AppState.inspectorCollapsed;
   aside.classList.toggle("collapsed", collapsed);
-  aside.style.width = collapsed ? "2.75rem" : "24rem";
-  aside.style.minWidth = collapsed ? "2.75rem" : "24rem";
-  aside.style.maxWidth = collapsed ? "2.75rem" : "24rem";
+  const width = collapsed ? "2.75rem" : `${AppState.inspectorWidth}px`;
+  aside.style.width = width;
+  aside.style.minWidth = width;
+  aside.style.maxWidth = width;
+  aside.style.flexBasis = width;
   aside.querySelectorAll(".inspector-expanded-only").forEach((el) => {
     el.style.display = collapsed ? "none" : "";
   });
@@ -115,6 +127,41 @@ function applyInspectorCollapsed() {
     btn.title = collapsed ? "Show node inspector" : "Hide node inspector";
     btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
   }
+}
+
+function setupInspectorResize() {
+  const handle = document.getElementById("nodeInspectorResizeHandle");
+  const aside = document.getElementById("nodeInspector");
+  if (!handle || !aside) return;
+  let dragging = false;
+  handle.addEventListener("pointerdown", (e) => {
+    if (AppState.inspectorCollapsed) return;
+    dragging = true;
+    handle.setPointerCapture(e.pointerId);
+    document.body.classList.add("inspector-resizing");
+    e.preventDefault();
+  });
+  handle.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    const right = aside.getBoundingClientRect().right;
+    AppState.inspectorWidth = clampInspectorWidth(right - e.clientX);
+    applyInspectorCollapsed();
+  });
+  const stop = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    document.body.classList.remove("inspector-resizing");
+    try {
+      localStorage.setItem("inspectorWidth", String(AppState.inspectorWidth));
+    } catch (err) {}
+    if (e && handle.hasPointerCapture?.(e.pointerId)) handle.releasePointerCapture(e.pointerId);
+  };
+  handle.addEventListener("pointerup", stop);
+  handle.addEventListener("pointercancel", stop);
+  window.addEventListener("resize", () => {
+    AppState.inspectorWidth = clampInspectorWidth(AppState.inspectorWidth);
+    if (!AppState.inspectorCollapsed) applyInspectorCollapsed();
+  });
 }
 
 // ---------------- Theme Management (Light / Dark) ----------------
