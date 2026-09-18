@@ -1,8 +1,11 @@
-# Incident Response Dashboard
+# Second Eyes
+
+**Incident Response Dashboard** — an all-hazards workshop demonstrator.
 
 A working demonstrator for incident coordination, response pathways, human review,
-and shared situational awareness. Its purpose is to gather agency feedback and
-inform the design of a larger platform.
+and shared situational awareness. It is a **second set of eyes** on an evolving
+event, not a command system and not a CBRN-only product. Its purpose is to gather
+agency feedback and inform the design of a larger platform.
 
 The current example scenarios cover biological, chemical, radiological,
 severe-weather (Hawkesbury–Nepean flood), and an industrial warehouse fire with

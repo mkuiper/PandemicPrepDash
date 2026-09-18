@@ -161,4 +161,5 @@ def test_demo_does_not_claim_verified_security_or_connected_keys():
         assert settings['api_keys']['ncbi_api_key_set'] is False
         page = client.get('/').text
         assert 'Incident Response Dashboard' in page
+        assert 'Second Eyes' in page
         assert 'Demonstration mode' in page

@@ -1,7 +1,6 @@
 /**
- * Incident Response Dashboard - Frontend Application Logic
- * Australian Whole-of-Government Emergency Response Platform.
- * Developed with full multi-agent cooperative, real-world lab bridge, and modern UI/UX engineering.
+ * Second Eyes — Incident Response Dashboard
+ * All-hazards workshop demonstrator. Analysis and dispatch are simulated.
  */
 
 // Escape text before inserting it into HTML templates (including attribute values).
@@ -448,7 +447,8 @@ function updateUIState() {
     else if (pathway.threat_type === "chemical_nerve_agent") threatTier = "CWC Schedule 1";
     else if (pathway.threat_type === "severe_weather") threatTier = "Severe weather warning";
     else if (pathway.threat_type === "industrial_fire") threatTier = "Watch and Act — toxic smoke";
-    else threatTier = "Tier 1 SSBA";
+    else if (String(pathway.threat_type || "").startsWith("biological") || pathway.threat_type === "synthetic_engineered") threatTier = "Biological incident";
+    else threatTier = "Demonstration";
   }
   ssbaBadge.textContent = threatTier;
   if (AppState.activeTab === "tab-inspector") syncInspectorTabs();
@@ -2080,7 +2080,7 @@ async function dispatchAllBriefings() {
   }
   await refreshState();
   renderAgencyView();
-  alert("All targeted Australian Whole-of-Government situation briefs have been securely dispatched.");
+  alert("Simulated briefing dispatch only. No agencies were contacted.");
 }
 
 // ---------------- Documentation Center ----------------

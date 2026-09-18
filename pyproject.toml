@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pandemic-prep-dash"
 version = "0.1.0"
-description = "Incident Response Dashboard: incident coordination and response workflow demonstration"
+description = "Second Eyes: all-hazards incident coordination workshop demonstrator"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [

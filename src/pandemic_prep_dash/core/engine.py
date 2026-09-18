@@ -39,7 +39,7 @@ class PathwayExecutionEngine:
             status=RunStatus.IDLE,
         )
         self.data_hub = CentralDataHub(
-            incident_name=self.scenario_data.get("name", "CBRN Threat"),
+            incident_name=self.scenario_data.get("name", "Incident"),
             threat_type=str(self.scenario_data.get("threat_type", "biological_virus")),
         )
         self.reset()
@@ -99,7 +99,7 @@ class PathwayExecutionEngine:
             self.pathway = create_default_biological_pathway()
 
         self.data_hub = CentralDataHub(
-            incident_name=self.scenario_data.get("name", "CBRN Threat"),
+            incident_name=self.scenario_data.get("name", "Incident"),
             threat_type=str(threat_type),
         )
         self.reset()
@@ -152,7 +152,7 @@ class PathwayExecutionEngine:
             status=RunStatus.IDLE,
         )
         self.data_hub = CentralDataHub(
-            incident_name=self.scenario_data.get("name", "CBRN Threat"),
+            incident_name=self.scenario_data.get("name", "Incident"),
             threat_type=str(self.scenario_data.get("threat_type", "biological_virus")),
         )
         self._build_graph()

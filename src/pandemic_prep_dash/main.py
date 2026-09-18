@@ -14,7 +14,7 @@ from .core.state_manager import StateManager
 
 app = FastAPI(
     title="Incident Response Dashboard",
-    description="Demonstration of incident coordination, response pathways and decision tracking",
+    description="Second Eyes: all-hazards workshop demonstrator for incident coordination and decision tracking",
     version="0.1.0",
 )
 
@@ -35,7 +35,7 @@ def health_check():
         "status": "healthy",
         "service": "Incident Response Dashboard",
         "version": "0.1.0",
-        "framework": "Incident response workflow demonstration",
+        "framework": "Second Eyes all-hazards workshop demonstration",
     }
 
 
@@ -48,7 +48,7 @@ if static_dir.exists():
 def main():
     host = os.getenv("HOST", "127.0.0.1")
     port = int(os.getenv("PORT", "8000"))
-    print(f"Starting Incident Response Dashboard on http://{host}:{port}")
+    print(f"Starting Second Eyes (Incident Response Dashboard) on http://{host}:{port}")
     uvicorn.run("pandemic_prep_dash.main:app", host=host, port=port, reload=False)
 
 

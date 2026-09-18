@@ -127,7 +127,7 @@ class AgencyReportGenerator:
         vaccine_candidates = artifacts.get("vaccine_candidates", [])
         threat_assessment = artifacts.get("threat_assessment", {})
 
-        agent_name = identification.get("agent_name", "Emerging CBRN Threat")
+        agent_name = identification.get("agent_name", "Unspecified incident")
         lineage = identification.get("clade_or_lineage", "Unclassified")
         ssba_tier = threat_assessment.get("ssba_tier", "Dangerous Substance")
         impact = artifacts.get("impact_assessment", {})

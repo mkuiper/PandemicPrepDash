@@ -698,7 +698,7 @@ class NodeExecutor:
                 )
             )
 
-            incident_name = scenario_data.get("name", "CBRN Threat Event")
+            incident_name = scenario_data.get("name", "Incident")
             threat_type_str = str(scenario_data.get("threat_type", "biological_virus"))
             merged_artifacts = dict(blackboard)
 
