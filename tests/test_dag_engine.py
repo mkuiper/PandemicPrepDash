@@ -268,6 +268,10 @@ def test_scenario_switching_auto_aligns_pathway():
     assert engine.pathway.threat_type == ThreatType.SEVERE_WEATHER
     assert engine.pathway.id == "pathway_default_severe_weather"
 
+    engine.set_scenario("scen_industrial_warehouse_fire")
+    assert engine.pathway.threat_type == ThreatType.INDUSTRIAL_FIRE
+    assert engine.pathway.id == "pathway_default_industrial_fire"
+
     engine.set_scenario("scen_h5n1_avian_flu")
     assert engine.pathway.threat_type == ThreatType.BIOLOGICAL_VIRUS
 

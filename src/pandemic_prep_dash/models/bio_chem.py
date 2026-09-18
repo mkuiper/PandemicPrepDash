@@ -12,6 +12,7 @@ class ThreatType(str, Enum):
     NUCLEAR_MATERIAL = "nuclear_material"
     SYNTHETIC_ENGINEERED = "synthetic_engineered"
     SEVERE_WEATHER = "severe_weather"
+    INDUSTRIAL_FIRE = "industrial_fire"
     UNKNOWN = "unknown"
 
 

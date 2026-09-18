@@ -45,6 +45,7 @@ class NodeExecutor:
         new_blocker: Optional[BlockerAlert] = None
         threat_type_str = str(scenario_data.get("threat_type", "")).lower()
         is_weather = "weather" in threat_type_str or "flood" in threat_type_str
+        is_fire = "industrial_fire" in threat_type_str or "factory" in threat_type_str
 
         # Prioritize custom node-level configured agent squad if present
         if node.agent_team_config and node.agent_team_config.members:
@@ -105,6 +106,51 @@ class NodeExecutor:
                     "incident_id": sample_data.get("sample_id"),
                     "warning_level": metadata.get("warning_level"),
                     "catchment": metadata.get("catchment"),
+                    "status": "ingested",
+                    "provenance": "simulated",
+                }
+            elif is_fire:
+                metadata = sample_data.get("metadata", {})
+                site = scenario_data.get("site", {})
+                new_logs.append(
+                    AgentThoughtLog(
+                        id=f"th_{uuid.uuid4().hex[:8]}",
+                        agent_id=lead_persona.id,
+                        agent_name=lead_persona.name,
+                        agent_role=f"{lead_persona.role.value} ({team_name})",
+                        node_id=node.id,
+                        phase=AgentThoughtPhase.OBSERVATION,
+                        message=(
+                            f"Pinned simulated fireground at {sample_data.get('source_location')}. "
+                            "This is a second-eyes sitrep, not a live CAD or FRNSW feed."
+                        ),
+                        confidence=0.9,
+                    )
+                )
+                new_logs.append(
+                    AgentThoughtLog(
+                        id=f"th_{uuid.uuid4().hex[:8]}",
+                        agent_id=lead_persona.id,
+                        agent_name=lead_persona.name,
+                        agent_role=f"{lead_persona.role.value} ({team_name})",
+                        node_id=node.id,
+                        phase=AgentThoughtPhase.TOOL_EXECUTION,
+                        message="Parsed declared materials and first-hour weather from the sitrep.",
+                        tool_name="site_sitrep_parser",
+                        tool_input={"sample_id": sample_data.get("sample_id"), "site": site.get("name")},
+                        tool_output_summary=(
+                            f"Declared: {', '.join(site.get('materials_declared', []))}. "
+                            f"Wind {metadata.get('wind_dir')} {metadata.get('wind_kt')} kt (simulated)."
+                        ),
+                        confidence=0.88,
+                    )
+                )
+                new_artifacts["sample"] = sample_data
+                new_artifacts["site"] = site
+                node.outputs = {
+                    "incident_id": sample_data.get("sample_id"),
+                    "site_name": site.get("name"),
+                    "warning_level": metadata.get("warning_level"),
                     "status": "ingested",
                     "provenance": "simulated",
                 }
@@ -223,7 +269,7 @@ class NodeExecutor:
                 )
             )
 
-            if not is_weather:
+            if not is_weather and not is_fire:
                 new_dialogues.append(
                     InterNodeDialogue(
                         dialogue_id=f"dial_{uuid.uuid4().hex[:8]}",
@@ -244,6 +290,32 @@ class NodeExecutor:
                 conflicts = scenario_data.get("conflicting_reports", {})
                 new_artifacts["conflicting_reports"] = conflicts
                 new_artifacts["identification"] = scenario_data.get("identification", {})
+                if is_fire:
+                    plume = scenario_data.get("plume_model", {})
+                    weather = scenario_data.get("weather", {})
+                    new_artifacts["plume_model"] = plume
+                    new_artifacts["weather"] = weather
+                    new_logs.append(
+                        AgentThoughtLog(
+                            id=f"th_{uuid.uuid4().hex[:8]}",
+                            agent_id=lead_persona.id,
+                            agent_name=lead_persona.name,
+                            agent_role=f"{lead_persona.role.value} ({team_name})",
+                            node_id=node.id,
+                            phase=AgentThoughtPhase.TOOL_EXECUTION,
+                            message=(
+                                "Built a HYSPLIT-shaped planning contour from the example wind. "
+                                "This is not a live NOAA HYSPLIT run."
+                            ),
+                            tool_name="hysplit_planning_contour",
+                            tool_input={"wind": weather, "method": plume.get("method")},
+                            tool_output_summary=(
+                                f"Planning distance {plume.get('planning_distance_km')} km "
+                                f"{plume.get('direction')}. Field reports disagree (simulated)."
+                            ),
+                            confidence=0.7,
+                        )
+                    )
 
             node.outputs = {
                 "papers_retrieved": len(papers),
@@ -252,6 +324,9 @@ class NodeExecutor:
                 "top_pmid": top_paper.pmid if top_paper else "N/A",
                 "evidence_tier": "Peer-Reviewed Primary Research (NLM Indexed / Nature / Lancet)",
             }
+            if is_fire:
+                node.outputs["planning_distance_km"] = scenario_data.get("plume_model", {}).get("planning_distance_km")
+                node.outputs["provenance"] = "simulated"
 
         # ---------------- 3. CHARACTERIZATION NODE ----------------
         elif node.category == NodeCategory.CHARACTERIZATION:
@@ -475,7 +550,48 @@ class NodeExecutor:
         # ---------------- 7. BIOSECURITY & THREAT ASSESSMENT NODE ----------------
         elif node.category == NodeCategory.BIOSECURITY:
             threat_assessment = scenario_data.get("threat_assessment", {})
-            if is_weather:
+            if is_fire:
+                new_logs.append(
+                    AgentThoughtLog(
+                        id=f"th_{uuid.uuid4().hex[:8]}",
+                        agent_id=lead_persona.id,
+                        agent_name=lead_persona.name,
+                        agent_role=f"{lead_persona.role.value} ({team_name})",
+                        node_id=node.id,
+                        phase=AgentThoughtPhase.TOOL_EXECUTION,
+                        message=(
+                            "Prepared simulated shelter, M7 do-not-enter, and hospital-diversion pack. "
+                            "This does not replace fireground command or ambulance protocols."
+                        ),
+                        tool_name="protective_action_pack",
+                        tool_input={"action": threat_assessment.get("protective_action")},
+                        tool_output_summary="Awaiting Incident Controller: shelter, motorway, ambulance divert.",
+                        confidence=0.8,
+                    )
+                )
+                new_artifacts["threat_assessment"] = threat_assessment
+                new_artifacts["protective_action"] = {
+                    "action": threat_assessment.get("protective_action"),
+                    "authority": "Incident Controller",
+                    "provenance": "simulated",
+                }
+                node.outputs = {
+                    "approval_required": True,
+                    "protective_action": threat_assessment.get("protective_action"),
+                    "hazard_class": threat_assessment.get("hazard_class"),
+                    "provenance": "simulated",
+                }
+                new_blocker = BlockerAlert(
+                    alert_id=f"blk_{uuid.uuid4().hex[:6]}",
+                    node_id=node.id,
+                    node_label=node.label,
+                    severity=BlockerSeverity.WARNING,
+                    title="Protective action pending Incident Controller",
+                    description="Model contour and field reports disagree; tank-farm inventory is unknown. Shelter, M7, and hospital diversion are not in force until approved.",
+                    required_action="Review adjacent risks and plume conflict, then approve or withhold the protective-action pack.",
+                    raised_by_agent=lead_persona.name,
+                )
+            elif is_weather:
                 new_logs.append(
                     AgentThoughtLog(
                         id=f"th_{uuid.uuid4().hex[:8]}",
@@ -610,29 +726,63 @@ class NodeExecutor:
 
         elif node.category == NodeCategory.TRIAGE:
             impact = scenario_data.get("impact_assessment", {})
-            new_logs.append(
-                AgentThoughtLog(
-                    id=f"th_{uuid.uuid4().hex[:8]}",
-                    agent_id=lead_persona.id,
-                    agent_name=lead_persona.name,
-                    agent_role=f"{lead_persona.role.value} ({team_name})",
-                    node_id=node.id,
-                    phase=AgentThoughtPhase.SYNTHESIS,
-                    message=(
-                        "Ranked simulated impacts: population at risk, hospital exposure, "
-                        "road closures, and levee condition. Figures are workshop fiction."
-                    ),
-                    confidence=0.8,
+            if is_fire:
+                neighbours = scenario_data.get("adjacent_sites", [])
+                unknown = [n for n in neighbours if n.get("inventory_status") == "unknown"]
+                new_logs.append(
+                    AgentThoughtLog(
+                        id=f"th_{uuid.uuid4().hex[:8]}",
+                        agent_id=lead_persona.id,
+                        agent_name=lead_persona.name,
+                        agent_role=f"{lead_persona.role.value} ({team_name})",
+                        node_id=node.id,
+                        phase=AgentThoughtPhase.TOOL_EXECUTION,
+                        message=(
+                            f"Looked up {len(neighbours)} adjacent occupancies from a simulated "
+                            "cadastral / dangerous-goods table. Unknown inventory is a result, not a gap to hide."
+                        ),
+                        tool_name="adjacent_site_lookup",
+                        tool_input={"origin": scenario_data.get("site", {}).get("name")},
+                        tool_output_summary=(
+                            f"{len(unknown)} neighbour(s) with unknown inventory. "
+                            "School and example hospital sit on the plume axis."
+                        ),
+                        confidence=0.75,
+                    )
                 )
-            )
-            new_artifacts["impact_assessment"] = impact
-            node.outputs = {
-                "population_at_risk_estimate": impact.get("population_at_risk_estimate"),
-                "critical_sites": impact.get("critical_sites", []),
-                "road_status": impact.get("road_status"),
-                "levee_status": impact.get("levee_status"),
-                "provenance": "simulated",
-            }
+                new_artifacts["adjacent_sites"] = neighbours
+                new_artifacts["impact_assessment"] = impact
+                node.outputs = {
+                    "adjacent_count": len(neighbours),
+                    "unknown_inventory_count": len(unknown),
+                    "population_at_risk_estimate": impact.get("population_at_risk_estimate"),
+                    "critical_sites": impact.get("critical_sites", []),
+                    "provenance": "simulated",
+                }
+            else:
+                new_logs.append(
+                    AgentThoughtLog(
+                        id=f"th_{uuid.uuid4().hex[:8]}",
+                        agent_id=lead_persona.id,
+                        agent_name=lead_persona.name,
+                        agent_role=f"{lead_persona.role.value} ({team_name})",
+                        node_id=node.id,
+                        phase=AgentThoughtPhase.SYNTHESIS,
+                        message=(
+                            "Ranked simulated impacts: population at risk, hospital exposure, "
+                            "road closures, and levee condition. Figures are workshop fiction."
+                        ),
+                        confidence=0.8,
+                    )
+                )
+                new_artifacts["impact_assessment"] = impact
+                node.outputs = {
+                    "population_at_risk_estimate": impact.get("population_at_risk_estimate"),
+                    "critical_sites": impact.get("critical_sites", []),
+                    "road_status": impact.get("road_status"),
+                    "levee_status": impact.get("levee_status"),
+                    "provenance": "simulated",
+                }
 
         elif node.category == NodeCategory.RECOVERY:
             new_logs.append(
@@ -649,11 +799,19 @@ class NodeExecutor:
             )
             recovery = {
                 "status": "stand-down drafted",
-                "restoration_tasks": [
-                    "Reopen Windsor–Richmond corridor after levee inspection",
-                    "Return evacuated residents when gauges fall below major flood",
-                    "Capture after-action notes for the workshop",
-                ],
+                "restoration_tasks": (
+                    [
+                        "Hold M7 re-entry until EPA air advice (simulated)",
+                        "Confirm tank-farm inventory before overhaul near the neighbour",
+                        "Export the incident event log for after-action review",
+                    ]
+                    if is_fire
+                    else [
+                        "Reopen Windsor–Richmond corridor after levee inspection",
+                        "Return evacuated residents when gauges fall below major flood",
+                        "Capture after-action notes for the workshop",
+                    ]
+                ),
                 "provenance": "simulated",
             }
             new_artifacts["recovery"] = recovery

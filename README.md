@@ -4,11 +4,14 @@ A working demonstrator for incident coordination, response pathways, human revie
 and shared situational awareness. Its purpose is to gather agency feedback and
 inform the design of a larger platform.
 
-The current example scenarios cover biological, chemical, radiological, and
-severe-weather (Hawkesbury–Nepean flood) incidents in an Australian inter-agency
-context. The flood pathway is the first non-CBRN check that intake, evidence,
-approval, briefing, and recovery still work. Agency access controls are planned,
-not implemented. The Python package and repository retain their original names
+The current example scenarios cover biological, chemical, radiological,
+severe-weather (Hawkesbury–Nepean flood), and an industrial warehouse fire with
+a simulated toxic plume. Civilian pathways are a **second set of eyes** on an
+evolving event — they do not replace fire, EPA, ambulance, or SES protocols.
+The fire path starts at the site, looks up adjacent occupancies, offers a
+HYSPLIT-shaped planning contour (simulated), and records an in-run event log
+for after-action discussion. Agency access controls are planned, not
+implemented. The Python package and repository retain their original names
 for compatibility.
 
 ## What works today

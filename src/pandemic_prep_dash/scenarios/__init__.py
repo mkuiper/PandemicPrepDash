@@ -4,6 +4,7 @@ from .novel_coronavirus import CORONA_SCENARIO_DATA
 from .nerve_agent_toxin import NERVE_AGENT_SCENARIO_DATA
 from .radiological_scenario import SCENARIO_RADIOLOGICAL_CESIUM137
 from .east_coast_low_flood import EAST_COAST_LOW_FLOOD_SCENARIO
+from .industrial_warehouse_fire import INDUSTRIAL_WAREHOUSE_FIRE_SCENARIO
 
 SCENARIO_REGISTRY: Dict[str, Dict[str, Any]] = {
     "scen_h5n1_avian_flu": H5N1_SCENARIO_DATA,
@@ -11,6 +12,7 @@ SCENARIO_REGISTRY: Dict[str, Dict[str, Any]] = {
     "scen_nerve_agent_toxin": NERVE_AGENT_SCENARIO_DATA,
     "scen_radiological_cesium137": SCENARIO_RADIOLOGICAL_CESIUM137,
     "scen_east_coast_low_flood": EAST_COAST_LOW_FLOOD_SCENARIO,
+    "scen_industrial_warehouse_fire": INDUSTRIAL_WAREHOUSE_FIRE_SCENARIO,
 }
 
 

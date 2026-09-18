@@ -18,6 +18,64 @@ from pandemic_prep_dash.models.lab_bridge import (
 from pandemic_prep_dash.models.pathway import NodeStatus, RunStatus
 
 
+def test_factory_fire_starts_at_site_looks_up_neighbours_and_records_events():
+    engine = PathwayExecutionEngine(create_default_biological_pathway(), "scen_h5n1_avian_flu")
+    engine.set_scenario("scen_industrial_warehouse_fire")
+    assert engine.pathway.threat_type == ThreatType.INDUSTRIAL_FIRE
+    assert engine.pathway.id == "pathway_default_industrial_fire"
+    kinds = [e.kind for e in engine.run.event_log]
+    assert "run_started" in kinds
+    assert "scenario_selected" in kinds
+
+    result = engine.execute_all()
+    assert result["status"] == "approval_required"
+    gate = next(n for n in engine.pathway.nodes if n.requires_human_approval)
+    assert gate.id == "node_ff_approval"
+    neighbours = engine.run.node_artifacts["adjacent_sites"]
+    assert any(n.get("inventory_status") == "unknown" for n in neighbours)
+    assert engine.data_hub.plume_and_environmental.get("planning_distance_km") == 3.2
+    assert "drug_candidates" not in engine.run.node_artifacts
+    assert any(e.kind == "approval_required" for e in engine.run.event_log)
+
+    assert engine.approve_node(gate.id)
+    assert engine.execute_all()["status"] == "completed"
+    reports = engine.run.node_artifacts["agency_reports"]
+    assert reports[AgencyIdentifier.FRNSW.value]["is_relevant"] is True
+    assert reports[AgencyIdentifier.EPA_NSW.value]["is_relevant"] is True
+    assert reports[AgencyIdentifier.NSW_AMBULANCE.value]["is_relevant"] is True
+    assert reports[AgencyIdentifier.ACDP.value]["is_relevant"] is False
+    assert reports[AgencyIdentifier.TGA.value]["is_relevant"] is False
+    assert "Section 19A" not in reports[AgencyIdentifier.FRNSW.value]["executive_summary"]
+    assert any(e.kind == "approved" for e in engine.run.event_log)
+    assert any(e.kind == "run_completed" for e in engine.run.event_log)
+    assert "HYSPLIT" in str(engine.run.node_artifacts.get("plume_model", {})).upper() or "hysplit" in str(
+        engine.run.node_artifacts.get("plume_model", {})
+    ).lower()
+
+
+def test_factory_fire_playbook_selects_matching_data():
+    with TestClient(app) as client:
+        response = client.post("/api/pathways/templates/load/pathway_default_industrial_fire")
+        assert response.status_code == 200
+        state = client.get("/api/pathways/state").json()
+    assert state["run"]["scenario_id"] == "scen_industrial_warehouse_fire"
+    assert state["scenario"]["threat_type"] == "industrial_fire"
+    assert state["run"]["event_log"]
+
+
+def test_factory_fire_evidence_is_not_nerve_agent():
+    report = EvidenceAnalyzer.analyze_incident_evidence(
+        scenario_id="scen_industrial_warehouse_fire",
+        threat_type="industrial_fire",
+        node_artifacts={},
+        completed_node_ids=["node_ff_intake", "node_ff_adjacent", "node_ff_dispersal"],
+    )
+    blob = str(report.model_dump())
+    assert "Novichok" not in blob
+    assert "oxime" not in blob.lower()
+    assert "tank-farm" in blob.lower() or "contour" in blob.lower()
+
+
 def test_flood_scenario_aligns_weather_pathway_and_pauses_for_approval():
     engine = PathwayExecutionEngine(create_default_biological_pathway(), "scen_h5n1_avian_flu")
     engine.set_scenario("scen_east_coast_low_flood")

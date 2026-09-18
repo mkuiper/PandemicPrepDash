@@ -220,6 +220,53 @@ class EvidenceAnalyzer:
                 "This is a workshop conflict, not a live hydrology assessment."
             )
 
+        elif "industrial_fire" in threat_lower or "warehouse_fire" in scen_lower:
+            domain_scores = {
+                "Hydrology & Forecast": 0.0,
+                "Operations & Impact Assessment": 0.7 if "node_ff_adjacent" in completed_node_ids else 0.3,
+                "Health Physics & Plume Dynamics": 0.62 if "node_ff_dispersal" in completed_node_ids else 0.28,
+                "Statutory & Biosecurity Law": 0.5 if "node_ff_approval" in completed_node_ids else 0.2,
+            }
+            gaps.append(
+                KnowledgeGap(
+                    domain=EvidenceDomain.OPERATIONS,
+                    title="Adjacent tank-farm inventory unknown (simulated)",
+                    description="The neighbour bulk-liquids site has not confirmed contents in the first hour. Domino risk cannot be bounded.",
+                    severity=GapSeverity.CRITICAL,
+                    related_node_ids=["node_ff_adjacent", "node_ff_intake"],
+                    impact_if_unresolved="Protective action may understate a BLEVE or secondary toxic release.",
+                    suggested_investigation="SafeWork / EPA dangerous-goods request to the tank-farm operator (simulated field task).",
+                )
+            )
+            conflicts.append(
+                ConflictingEvidence(
+                    domain=EvidenceDomain.HEALTH_PHYSICS,
+                    title="HYSPLIT-shaped contour versus creek-line field reports (simulated)",
+                    source_a="Planning contour (simulated HYSPLIT-shaped method)",
+                    claim_a="3.2 km ENE from the warehouse under SW 8 kt night inversion.",
+                    source_b="EPA handheld / public smell reports (example)",
+                    claim_b="Odour and elevated readings along a drainage line at about 4.5 km.",
+                    discrepancy_explanation="Example products are not reconciled. Creek drainage can channel dense smoke.",
+                    operational_risk="School and example hospital sit on the field-report axis; M7 still open.",
+                    recommended_arbitration="IC records which contour was used and the wind-shift that would reopen the decision.",
+                )
+            )
+            validations.append(
+                ExperimentalValidationNeed(
+                    assay_title="Downwind air monitoring transect (simulated)",
+                    target_facility="NSW Environment Protection Authority field team",
+                    critical_question="Do handheld readings support extending the planning contour along the creek?",
+                    urgency="HIGH",
+                    specimen_spec="Air-quality transect notes (workshop fiction)",
+                    unblocks_decision="Shelter vs evacuate east of site, and whether the example hospital must divert.",
+                )
+            )
+            overall_conf = sum(v for v in domain_scores.values() if v) / max(1, len([v for v in domain_scores.values() if v]))
+            summary = (
+                "Simulated industrial-fire evidence is incomplete: neighbour inventory is unknown and "
+                "the planning contour disagrees with field reports. Second eyes only — not a live plume model."
+            )
+
         else:
             # Chemical / Generic Threat
             domain_scores = {

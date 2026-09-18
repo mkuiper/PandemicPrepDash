@@ -185,6 +185,42 @@ class LabBridgeManager:
             cls._REQUESTS[req1.request_id] = req1
             cls._REQUESTS[req2.request_id] = req2
 
+        elif "warehouse_fire" in scenario_id.lower() or "industrial_fire" in threat_type.lower():
+            req1 = PhysicalAssayRequest(
+                request_id="REQ-EPA-AIR-01",
+                title="Downwind air-quality transect (simulated)",
+                assay_category=AssayCategory.FIELD_RECONNAISSANCE,
+                target_facility=FacilityIdentifier.EPA_NSW_FIELD,
+                originating_node_id="node_ff_dispersal",
+                requesting_agent_role="Hazard Transport Lead",
+                hypothesis_to_test="Creek-line odour reports sit outside the 3.2 km planning contour because of drainage channeling.",
+                critical_question="Should the planning contour be extended along the creek before the IC approves shelter?",
+                specimen_requirements="Handheld air-quality notes (workshop fiction).",
+                biosafety_level="Field — smoke and irritant atmosphere",
+                estimated_turnaround_hours=2,
+                priority="CRITICAL",
+                status=AssayRequestStatus.PROPOSED_BY_AGENT,
+                impact_on_pipeline="Would change school shelter and hospital diversion.",
+            )
+            req2 = PhysicalAssayRequest(
+                request_id="REQ-FRNSW-DG-01",
+                title="Adjacent tank-farm dangerous-goods confirmation (simulated)",
+                assay_category=AssayCategory.FIELD_RECONNAISSANCE,
+                target_facility=FacilityIdentifier.FRNSW_HAZMAT,
+                originating_node_id="node_ff_adjacent",
+                requesting_agent_role="Adjacent Risk Lead",
+                hypothesis_to_test="The neighbour site stores flammable liquids that would escalate if involved.",
+                critical_question="What is actually in the tank farm in the first hour?",
+                specimen_requirements="Operator declaration or SafeWork DG extract (workshop fiction).",
+                biosafety_level="Fireground / Hazmat",
+                estimated_turnaround_hours=1,
+                priority="CRITICAL",
+                status=AssayRequestStatus.PROPOSED_BY_AGENT,
+                impact_on_pipeline="Unknown inventory is the current result; a confirmed list would change exclusion.",
+            )
+            cls._REQUESTS[req1.request_id] = req1
+            cls._REQUESTS[req2.request_id] = req2
+
         for req in cls._REQUESTS.values():
             req.status = AssayRequestStatus.PROPOSED_BY_AGENT
             req.authorized_by = None

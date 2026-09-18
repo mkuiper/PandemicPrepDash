@@ -11,9 +11,20 @@ function escapeHtml(value) {
   })[char]);
 }
 
+function currentThreatType() {
+  return AppState.state?.scenario?.threat_type || AppState.state?.pathway?.threat_type || "";
+}
+
 function isSevereWeatherIncident() {
-  const threat = AppState.state?.scenario?.threat_type || AppState.state?.pathway?.threat_type || "";
-  return threat === "severe_weather";
+  return currentThreatType() === "severe_weather";
+}
+
+function isIndustrialFireIncident() {
+  return currentThreatType() === "industrial_fire";
+}
+
+function isCivilianIncident() {
+  return isSevereWeatherIncident() || isIndustrialFireIncident();
 }
 
 function safeHttpUrl(value) {
@@ -410,21 +421,23 @@ function updateUIState() {
 
   const specBadge = document.getElementById("activeSpecimenBadge");
   if (specBadge && scenario) {
-    specBadge.textContent = scenario.name || scenario.sample?.name || (isSevereWeatherIncident() ? "Active incident" : "Active Specimen");
+    specBadge.textContent = scenario.name || scenario.sample?.name || (isCivilianIncident() ? "Active incident" : "Active Specimen");
   }
   const sourceLabel = document.getElementById("incidentSourceLabel");
-  if (sourceLabel) sourceLabel.textContent = isSevereWeatherIncident() ? "Incident:" : "Specimen:";
+  if (sourceLabel) sourceLabel.textContent = isCivilianIncident() ? "Incident:" : "Specimen:";
   const intelHeading = document.getElementById("hubSpecimenIntelHeading");
   if (intelHeading && intelHeading.lastChild) {
-    intelHeading.lastChild.textContent = isSevereWeatherIncident()
-      ? " Incident source & impact"
-      : " Specimen Intel & Variant Determinants";
+    intelHeading.lastChild.textContent = isIndustrialFireIncident()
+      ? " Site, neighbours and plume"
+      : isSevereWeatherIncident()
+        ? " Incident source & impact"
+        : " Specimen Intel & Variant Determinants";
   }
   const litNote = document.getElementById("hubLiteratureSourceNote");
-  if (litNote) litNote.textContent = isSevereWeatherIncident() ? "Simulated example records" : "Example records";
+  if (litNote) litNote.textContent = isCivilianIncident() ? "Simulated example records" : "Example records";
   const counterPanel = document.getElementById("hubCountermeasuresPanel");
   if (counterPanel) {
-    if (isSevereWeatherIncident()) counterPanel.classList.add("hidden");
+    if (isCivilianIncident()) counterPanel.classList.add("hidden");
     else counterPanel.classList.remove("hidden");
   }
 
@@ -434,6 +447,7 @@ function updateUIState() {
     if (pathway.threat_type === "radiological_dispersal") threatTier = "Category 1 Source";
     else if (pathway.threat_type === "chemical_nerve_agent") threatTier = "CWC Schedule 1";
     else if (pathway.threat_type === "severe_weather") threatTier = "Severe weather warning";
+    else if (pathway.threat_type === "industrial_fire") threatTier = "Watch and Act — toxic smoke";
     else threatTier = "Tier 1 SSBA";
   }
   ssbaBadge.textContent = threatTier;
@@ -665,6 +679,8 @@ function renderCentralDataHub() {
     });
   }
 
+  renderIncidentEventLog();
+
   // Render Version Timeline View
   renderVersionTimelineView();
 
@@ -675,7 +691,35 @@ function renderCentralDataHub() {
   const specIntel = dataHub.specimen_intel || {};
   const specEl = document.getElementById("hubSpecimenIntelContent");
   if (Object.keys(specIntel).length === 0) {
-    specEl.innerHTML = `<div class="text-slate-500 italic py-3 text-center">${isSevereWeatherIncident() ? "Execute intake to populate the incident sitrep." : "Execute Ingestion &amp; Characterization to populate specimen metrics."}</div>`;
+    specEl.innerHTML = `<div class="text-slate-500 italic py-3 text-center">${isCivilianIncident() ? "Execute intake to populate the incident sitrep." : "Execute Ingestion &amp; Characterization to populate specimen metrics."}</div>`;
+  } else if (isIndustrialFireIncident()) {
+    const meta = specIntel.metadata || {};
+    const neighbours = specIntel.adjacent_sites || AppState.state?.run?.node_artifacts?.adjacent_sites || [];
+    const plume = AppState.state?.data_hub?.plume_and_environmental || {};
+    specEl.innerHTML = `
+      <div class="grid grid-cols-2 gap-2 font-mono text-[11px]">
+        <div class="bg-slate-950 p-2 rounded border border-slate-800">
+          <span class="text-slate-500 block text-[9px]">SITE</span>
+          <span class="text-cyan-300 font-bold">${escapeHtml(specIntel.name || meta.site_name || "Industrial fire")}</span>
+        </div>
+        <div class="bg-slate-950 p-2 rounded border border-slate-800">
+          <span class="text-slate-500 block text-[9px]">WIND (SIMULATED)</span>
+          <span class="text-slate-200">${escapeHtml(meta.wind_dir || "")} ${escapeHtml(meta.wind_kt)} kt</span>
+        </div>
+      </div>
+      <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1 text-[11px] text-slate-300">
+        <div><span class="text-slate-500">Location:</span> ${escapeHtml(specIntel.source_location || "")}</div>
+        <div><span class="text-slate-500">Planning contour:</span> ${escapeHtml(plume.planning_distance_km || "—")} km ${escapeHtml(plume.direction || "")}</div>
+        <div class="text-[10px] text-amber-300">HYSPLIT-shaped estimate — not a live NOAA run. Provenance: simulated.</div>
+      </div>
+      ${neighbours.length ? `
+        <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1">
+          <span class="text-slate-400 font-bold text-[10px] uppercase">Adjacent lookup (simulated)</span>
+          <ul class="space-y-0.5 text-[11px] text-slate-300">
+            ${neighbours.map((n) => `<li><span class="text-cyan-400">${escapeHtml(n.name)}</span> — ${escapeHtml(n.inventory_status)} (${escapeHtml(n.bearing)})</li>`).join("")}
+          </ul>
+        </div>` : ""}
+    `;
   } else if (isSevereWeatherIncident()) {
     const meta = specIntel.metadata || {};
     specEl.innerHTML = `
@@ -773,6 +817,32 @@ function renderCentralDataHub() {
 }
 
 // ---------------- Situation Progression & Version Control View ----------------
+
+function renderIncidentEventLog() {
+  const container = document.getElementById("hubIncidentEventLog");
+  if (!container) return;
+  const events = AppState.state?.run?.event_log || AppState.state?.data_hub?.recent_events || [];
+  if (!events.length) {
+    container.innerHTML = `<div class="text-slate-500 italic text-xs py-2 text-center">Events appear as the run proceeds. This is an in-memory log for after-action discussion, not a durable audit.</div>`;
+    return;
+  }
+  container.innerHTML = events
+    .slice()
+    .reverse()
+    .slice(0, 24)
+    .map((e) => {
+      const timeDisplay = e.at ? String(e.at).split("T")[1]?.slice(0, 8) : "";
+      return `
+      <div class="flex items-start justify-between gap-2 text-[11px] border-b border-slate-800/80 py-1.5">
+        <div>
+          <span class="font-mono text-[9px] text-cyan-400 mr-1.5">${escapeHtml(e.kind)}</span>
+          <span class="text-slate-200">${escapeHtml(e.summary)}</span>
+        </div>
+        <span class="font-mono text-slate-500 shrink-0">${escapeHtml(timeDisplay)}</span>
+      </div>`;
+    })
+    .join("");
+}
 
 function renderVersionTimelineView() {
   const container = document.getElementById("hubVersionTimelineList");

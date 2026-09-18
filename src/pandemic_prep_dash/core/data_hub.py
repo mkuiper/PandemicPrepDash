@@ -166,6 +166,22 @@ class ThreatResearcher:
                 "source_url": "https://example.invalid/workshop/east-coast-low",
             }
         ],
+        "industrial_fire": [
+            {
+                "pmid": None,
+                "title": "SIMULATED EXAMPLE: Warehouse fire plumes, isocyanates, and protective-action timing (workshop record)",
+                "authors": "Example record — not retrieved from PubMed",
+                "journal": "Workshop literature fallback",
+                "year": "2026",
+                "doi": None,
+                "summary": "Simulated example record on toxic smoke, neighbour-site domino risk, and hospital diversion. Not a live retrieval.",
+                "key_findings": [
+                    "Example: planning contours must be labelled with wind and assumptions",
+                    "Example: an unknown adjacent inventory is a decision input, not a missing field to invent",
+                ],
+                "source_url": "https://example.invalid/workshop/industrial-fire",
+            }
+        ],
     }
 
     @classmethod
@@ -227,6 +243,14 @@ class ThreatResearcher:
                 or "weather" in q_lower
             ):
                 key = "east_coast_low"
+            elif (
+                "warehouse" in q_lower
+                or "industrial fire" in q_lower
+                or "styrene" in q_lower
+                or "isocyanate" in q_lower
+                or "hysplit" in q_lower
+            ):
+                key = "industrial_fire"
 
             raw_curated = cls.CURATED_LITERATURE_REGISTRY.get(key, cls.CURATED_LITERATURE_REGISTRY["h5n1"])
             papers = [ResearchPaper(**item) for item in raw_curated]

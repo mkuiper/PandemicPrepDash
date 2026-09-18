@@ -57,8 +57,12 @@ agencies; do not assume existing government classification labels are sufficient
 ## Next demonstrator increments
 
 1. **A non-CBRN scenario** — the East Coast Low / Hawkesbury–Nepean flood pathway
-   now covers intake, triage, evidence, approval, briefing, and recovery. A service
-   outage remains a useful second generic incident.
+   now covers intake, triage, evidence, approval, briefing, and recovery. A
+   **factory fire with toxic plume** is in the demonstrator
+   (`scen_industrial_warehouse_fire`): site-first adjacent lookup, simulated
+   HYSPLIT-shaped contour, IC gate, civilian briefs, in-run event log. See
+   [factory-fire-and-failure-modes.md](factory-fire-and-failure-modes.md).
+   A service outage remains a useful further generic incident.
 2. **Artifact provenance and uncertainty**, visibly distinguishing example data,
    uploaded reports, computed values, and verified observations.
 3. **Agency view previews**, showing proposed information boundaries using synthetic
@@ -67,6 +71,10 @@ agencies; do not assume existing government classification labels are sufficient
    rationale, alternatives, and the conditions that would reopen a decision.
 5. **Feedback export**, associating workshop observations with the screen, task,
    incident, and software version so the larger platform has traceable requirements.
+6. **Designed failure / injects**, so a wind shift, missing inventory, or downed
+   connector shows as unknown/stale/conflict rather than a silent last value.
+   Chaos against the software (concurrent approve/reset, poisoned artifacts)
+   belongs in tests for the later platform; workshop injects belong in the demo.
 
 For the larger platform, prioritize incident-scoped durable storage, authenticated
 identities, enforced disclosure rules, accountable approvals, event history,

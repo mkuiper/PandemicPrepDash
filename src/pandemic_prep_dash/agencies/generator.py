@@ -29,11 +29,36 @@ class AgencyReportGenerator:
         is_chem = "chemical" in threat_str or "nerve_agent" in threat_str or "toxin" in threat_str
         is_bio = "biological" in threat_str or "virus" in threat_str or "bacteria" in threat_str or "synthetic" in threat_str
         is_weather = "weather" in threat_str or "flood" in threat_str
+        is_fire = "industrial_fire" in threat_str
 
-        if agency_id in [AgencyIdentifier.BOM, AgencyIdentifier.NSW_SES]:
+        if agency_id == AgencyIdentifier.BOM:
+            if is_weather or is_fire:
+                return True, "Meteorology for the incident location (simulated workshop product, not a live BOM feed)."
+            return False, "Standby: meteorology not required for this hazard type in the demonstrator."
+        if agency_id == AgencyIdentifier.NSW_SES:
             if is_weather:
                 return True, "Primary operational jurisdiction: severe weather and flood response (simulated workshop products)."
             return False, "Standby: incident is not a weather or flood hazard."
+        if agency_id in [
+            AgencyIdentifier.FRNSW,
+            AgencyIdentifier.EPA_NSW,
+            AgencyIdentifier.NSW_AMBULANCE,
+            AgencyIdentifier.NSW_POLICE,
+        ]:
+            if is_fire:
+                return True, "Civilian combat or consequence agency for an industrial fire (simulated second-eyes brief)."
+            return False, "Standby: not an industrial-fire incident."
+        if agency_id == AgencyIdentifier.LOCAL_GOV:
+            if is_fire or is_weather:
+                return True, "Local shelter, welfare, and roads (simulated)."
+            return False, "Standby: local-government workshop role not triggered."
+
+        if is_fire:
+            if agency_id == AgencyIdentifier.NEMA:
+                return False, "Standby: state-managed industrial fire unless it scales; NEMA is not the combat agency."
+            if agency_id == AgencyIdentifier.HOME_AFFAIRS:
+                return True, "Awareness: M7 / freight corridor impact (SOCI Act awareness, simulated)."
+            return False, "Standby: CBRN or medicines mandate is not triggered by this factory-fire incident."
 
         if is_weather:
             if agency_id == AgencyIdentifier.NEMA:
@@ -111,8 +136,11 @@ class AgencyReportGenerator:
         now_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
         is_relevant, relevance_reason = cls.determine_relevance(agency_id, threat_type, artifacts)
         is_weather = "weather" in str(threat_type).lower() or "flood" in str(threat_type).lower()
+        is_fire = "industrial_fire" in str(threat_type).lower()
+        neighbours = artifacts.get("adjacent_sites") or []
+        plume = artifacts.get("plume_model") or {}
 
-        if is_weather and not is_relevant:
+        if (is_weather or is_fire) and not is_relevant:
             return AgencyReport(
                 report_id=f"REP-{agency_id.value}-{uuid.uuid4().hex[:6].upper()}",
                 agency_id=agency_id,
@@ -125,7 +153,7 @@ class AgencyReportGenerator:
                 is_relevant=False,
                 relevance_reason=relevance_reason,
                 executive_summary=(
-                    "Standby only. This flood workshop incident does not trigger a CBRN, "
+                    "Standby only. This civilian workshop incident does not trigger a CBRN, "
                     "laboratory, or medical-countermeasure mandate for this agency."
                 ),
                 situation_update=f"Incident location: {sample_info.get('source_location', 'NSW')}.",
@@ -137,26 +165,96 @@ class AgencyReportGenerator:
                 dispatched=False,
             )
 
-        if agency_id == AgencyIdentifier.BOM:
-            title = f"BOM warning and hydrology brief (simulated): {agent_name}"
+        if agency_id == AgencyIdentifier.FRNSW:
+            title = f"FRNSW second-eyes sitrep (simulated): {agent_name}"
             exec_summary = (
-                "Workshop example of a Bureau of Meteorology flood-warning brief. "
-                "No live forecast, warning, or gauge feed is connected."
+                "Workshop guide for the Incident Controller. Does not replace fireground command or AIIMS."
             )
             sit_update = (
-                f"Location: {sample_info.get('source_location', 'NSW')}. "
-                f"Warning: {identification.get('warning_level', 'Severe Weather Warning')}. "
-                f"Example gauge {identification.get('gauge_height_m')} m; example forecast peak "
-                f"{identification.get('forecast_peak_m')} m."
+                f"Site: {sample_info.get('source_location')}. "
+                f"Declared fuel: {', '.join((artifacts.get('site') or {}).get('materials_declared', [])) or 'see sitrep'}. "
+                f"Adjacent unknown inventories: {sum(1 for n in neighbours if n.get('inventory_status')=='unknown')}."
             )
             strategic_imps = [
-                "Treat the hydrograph as a simulated decision aid, not a verified observation.",
-                "Flag the overnight overtopping forecast as unreconciled with the slower gauge rise.",
+                "Treat the dashboard as a shared picture, not an order to appliances.",
+                "Tank-farm contents remain unknown until the operator or SafeWork confirms.",
             ]
-            action_items = [
-                "Provide an independent gauge audit task to the Incident Controller (simulated).",
+            action_items = ["Hold the protective-action pack for IC sign-off."]
+            cross_deps = [AgencyIdentifier.EPA_NSW, AgencyIdentifier.NSW_POLICE, AgencyIdentifier.NSW_AMBULANCE]
+        elif agency_id == AgencyIdentifier.EPA_NSW:
+            title = f"EPA air and neighbour brief (simulated): {agent_name}"
+            exec_summary = "Example EPA advice: planning contour versus field reports, drains, unknown neighbour."
+            sit_update = (
+                f"Planning contour: {plume.get('planning_distance_km')} km {plume.get('direction')}. "
+                f"Field conflict: {(conflicts or {}).get('field', 'not yet recorded')}."
+            )
+            strategic_imps = [
+                "Do not treat the contour as a measured plume.",
+                "Runoff and drain closure may conflict with offensive fire attack — record the IC choice.",
             ]
-            cross_deps = [AgencyIdentifier.NSW_SES, AgencyIdentifier.NEMA]
+            action_items = ["Propose a downwind air transect (simulated field task)."]
+            cross_deps = [AgencyIdentifier.FRNSW, AgencyIdentifier.BOM]
+        elif agency_id == AgencyIdentifier.NSW_AMBULANCE:
+            title = f"Ambulance / hospital diversion note (simulated): {agent_name}"
+            exec_summary = (
+                "Example receiving-hospital problem: the default ED sits near the field-report axis. "
+                "Not a live bed-state or CAD feed."
+            )
+            sit_update = f"Hospital status: {impact.get('hospital_status', 'Diversion not approved')}."
+            strategic_imps = [
+                "Walk-ins may self-present contaminated; decon is a hospital protocol, not this app.",
+            ]
+            action_items = ["Hold diversion until the IC approves the protective-action pack."]
+            cross_deps = [AgencyIdentifier.FRNSW, AgencyIdentifier.LOCAL_GOV]
+        elif agency_id == AgencyIdentifier.LOCAL_GOV:
+            title = f"Council shelter and welfare brief (simulated): {agent_name}"
+            exec_summary = "Example local-government welfare picture. Not a public warning system."
+            sit_update = (
+                f"Population at risk (example): {impact.get('population_at_risk_estimate')}. "
+                f"School listed in adjacent lookup."
+            )
+            strategic_imps = ["Shelter messages must not outrun the IC approval."]
+            action_items = ["Stand by for a shelter request if the order is approved."]
+            cross_deps = [AgencyIdentifier.NSW_POLICE, AgencyIdentifier.NSW_AMBULANCE]
+        elif agency_id == AgencyIdentifier.NSW_POLICE:
+            title = f"Police traffic and cordon brief (simulated): {agent_name}"
+            exec_summary = "Example M7 do-not-enter advice. Not a live traffic-management feed."
+            sit_update = f"Roads: {impact.get('road_status', 'M7 still open')}."
+            strategic_imps = ["Do not send traffic into the field-report axis."]
+            action_items = ["Hold motorway action until IC approval."]
+            cross_deps = [AgencyIdentifier.FRNSW, AgencyIdentifier.LOCAL_GOV]
+        elif agency_id == AgencyIdentifier.BOM:
+            if is_fire:
+                title = f"BOM meteorology for the fire site (simulated): {agent_name}"
+                exec_summary = "Example wind and inversion for the pinned site. Not a live BOM warning."
+                sit_update = (
+                    f"Wind {(artifacts.get('weather') or {}).get('wind_dir')} "
+                    f"{(artifacts.get('weather') or {}).get('wind_kt')} kt; "
+                    f"forecast {(artifacts.get('weather') or {}).get('forecast_shift')}."
+                )
+                strategic_imps = ["A wind shift after 06:00 would invalidate the current planning contour."]
+                action_items = ["If wind shifts, mark the contour stale and re-open the IC decision."]
+                cross_deps = [AgencyIdentifier.EPA_NSW, AgencyIdentifier.FRNSW]
+            else:
+                title = f"BOM warning and hydrology brief (simulated): {agent_name}"
+                exec_summary = (
+                    "Workshop example of a Bureau of Meteorology flood-warning brief. "
+                    "No live forecast, warning, or gauge feed is connected."
+                )
+                sit_update = (
+                    f"Location: {sample_info.get('source_location', 'NSW')}. "
+                    f"Warning: {identification.get('warning_level', 'Severe Weather Warning')}. "
+                    f"Example gauge {identification.get('gauge_height_m')} m; example forecast peak "
+                    f"{identification.get('forecast_peak_m')} m."
+                )
+                strategic_imps = [
+                    "Treat the hydrograph as a simulated decision aid, not a verified observation.",
+                    "Flag the overnight overtopping forecast as unreconciled with the slower gauge rise.",
+                ]
+                action_items = [
+                    "Provide an independent gauge audit task to the Incident Controller (simulated).",
+                ]
+                cross_deps = [AgencyIdentifier.NSW_SES, AgencyIdentifier.NEMA]
         elif agency_id == AgencyIdentifier.NSW_SES:
             title = f"NSW SES operational sitrep (simulated): {agent_name}"
             exec_summary = (

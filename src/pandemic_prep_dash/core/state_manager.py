@@ -38,6 +38,8 @@ class StateManager:
                 scen = "scen_radiological_cesium137"
             elif pathway.threat_type == ThreatType.SEVERE_WEATHER:
                 scen = "scen_east_coast_low_flood"
+            elif pathway.threat_type == ThreatType.INDUSTRIAL_FIRE:
+                scen = "scen_industrial_warehouse_fire"
             elif "coronavirus" in pathway_key:
                 scen = "scen_novel_coronavirus"
             else:

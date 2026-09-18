@@ -32,6 +32,8 @@ class FacilityIdentifier(str, Enum):
     DAFF_ANIMAL_HEALTH = "DAFF National Animal Health Diagnostic Laboratories"
     BOM_OBSERVING = "Bureau of Meteorology Observing Network (NSW)"
     NSW_SES_RECON = "NSW State Emergency Service Field Reconnaissance"
+    EPA_NSW_FIELD = "NSW EPA Air Quality Field Team"
+    FRNSW_HAZMAT = "Fire and Rescue NSW Hazmat"
 
 
 class AssayRequestStatus(str, Enum):

@@ -88,6 +88,17 @@ class RunStatus(str, Enum):
     FAILED = "failed"
 
 
+class IncidentEvent(BaseModel):
+    """In-run record of what the demonstrator knew and did. Not a durable audit log."""
+    event_id: str
+    at: str
+    kind: str
+    summary: str
+    node_id: Optional[str] = None
+    actor: str = "system"
+    provenance: str = "simulated"
+
+
 class ExecutionRun(BaseModel):
     run_id: str
     pathway_id: str
@@ -99,6 +110,7 @@ class ExecutionRun(BaseModel):
     node_artifacts: Dict[str, Any] = Field(default_factory=dict)
     thought_logs: List[AgentThoughtLog] = Field(default_factory=list)
     inter_node_dialogues: List[InterNodeDialogue] = Field(default_factory=list)
+    event_log: List[IncidentEvent] = Field(default_factory=list)
     started_at: Optional[str] = None
     completed_at: Optional[str] = None
     start_time: Optional[str] = None

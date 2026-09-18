@@ -84,5 +84,15 @@ All gauges, population figures, and dispatches are simulated. Selecting this sce
 
 ---
 
+## Scenario 6: Erskine Park warehouse fire / toxic plume (simulated)
+
+Workshop fiction for a common civilian incident. A plastics and solvent warehouse burns beside the M7. The pathway **starts at the site**, then looks up adjacent occupancies (including a tank farm whose inventory is unknown), builds a **HYSPLIT-shaped planning contour** from example wind (not a live NOAA run), and pauses for Incident Controller approval of shelter, motorway do-not-enter, and hospital diversion.
+
+FRNSW, EPA, ambulance, council, police, and BOM receive second-eyes briefs. ACDP/TGA stay on standby. An in-run event log records what the demonstrator did, for after-action discussion — it is not a durable audit archive.
+
+Selecting this scenario loads `pathway_default_industrial_fire`.
+
+---
+
 ## Custom Specimen Ingestion
 Users can ingest arbitrary biological or chemical specimens through the UI ("Custom Specimen" modal) or via `POST /api/scenarios/custom`. The pipeline will automatically parse the input format (DNA, RNA, Protein, SMILES, or Syndromic narrative), instantiate the node graph, and execute the agent squads.

@@ -493,9 +493,157 @@ def create_default_severe_weather_pathway() -> Pathway:
     )
 
 
+def create_default_industrial_fire_pathway() -> Pathway:
+    """Site-first fire pathway: intake, adjacent lookup, dispersal, approval, briefs, recovery."""
+    nodes = [
+        PathwayNode(
+            id="node_ff_intake",
+            label="Site intake",
+            category=NodeCategory.INGESTION,
+            description="Start at the burning site: location, first 000 narrative, declared materials. Second eyes, not CAD.",
+            status=NodeStatus.PENDING,
+            agent_team_id="policy_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="ff_intake_squad",
+                name="Site Intake Squad",
+                description="Pin the incident site",
+                lead_role=AgentRole.WHOLE_OF_GOV_LIAISON,
+                harness_engine=HarnessEngineType.AGY,
+                harness_command="agy exec",
+                sandbox_policy="restricted_fs",
+            ),
+            human_oversight_role="FRNSW Incident Management Watch",
+            position_x=80.0,
+            position_y=250.0,
+        ),
+        PathwayNode(
+            id="node_ff_adjacent",
+            label="Adjacent site and population lookup",
+            category=NodeCategory.TRIAGE,
+            description="From this site, look up neighbours, unknown tank-farm inventory, school and hospital downwind.",
+            status=NodeStatus.PENDING,
+            agent_team_id="policy_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="ff_adjacent_squad",
+                name="Adjacent Risk Squad",
+                description="Neighbour and population scan",
+                lead_role=AgentRole.WHOLE_OF_GOV_LIAISON,
+                harness_engine=HarnessEngineType.CLAUDE_CODE,
+                harness_command="claude -p",
+                sandbox_policy="restricted_fs",
+            ),
+            human_oversight_role="EPA / SafeWork planning officer (workshop role)",
+            position_x=340.0,
+            position_y=140.0,
+        ),
+        PathwayNode(
+            id="node_ff_dispersal",
+            label="Weather and HYSPLIT-shaped dispersal",
+            category=NodeCategory.RESEARCH,
+            description="Simulated met plus a planning contour. Compare with field smell/monitor reports. Not a live NOAA run.",
+            status=NodeStatus.PENDING,
+            agent_team_id="research_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="ff_dispersal_squad",
+                name="Hazard Transport Squad",
+                description="Weather and planning contour",
+                lead_role=AgentRole.SCIENTIFIC_RESEARCHER,
+                harness_engine=HarnessEngineType.CLAUDE_CODE,
+                harness_command="claude -p",
+                sandbox_policy="restricted_fs",
+            ),
+            human_oversight_role="BOM / EPA air-quality liaison (workshop role)",
+            position_x=340.0,
+            position_y=360.0,
+        ),
+        PathwayNode(
+            id="node_ff_approval",
+            label="Protective action, traffic and hospital diversion",
+            category=NodeCategory.BIOSECURITY,
+            description="Incident Controller approval for shelter, M7 do-not-enter, and ambulance diversion. Does not replace fireground command.",
+            status=NodeStatus.PENDING,
+            agent_team_id="policy_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="ff_approval_squad",
+                name="Protective Action Squad",
+                description="IC gate for plume, roads, hospitals",
+                lead_role=AgentRole.WHOLE_OF_GOV_LIAISON,
+                harness_engine=HarnessEngineType.SOVEREIGN_CONTAINER,
+                harness_command="podman run --network none",
+                sandbox_policy="isolated_container",
+            ),
+            requires_human_approval=True,
+            approval_granted=False,
+            human_oversight_role="Incident Controller",
+            position_x=640.0,
+            position_y=250.0,
+        ),
+        PathwayNode(
+            id="node_ff_briefing",
+            label="Agency, hospital and traffic briefs",
+            category=NodeCategory.AGENCY_REPORTING,
+            description="Simulated briefs for fire, EPA, ambulance, council, police, BOM. Guide only.",
+            status=NodeStatus.PENDING,
+            agent_team_id="policy_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="ff_briefing_squad",
+                name="Civilian Liaison Squad",
+                description="Second-eyes briefing pack",
+                lead_role=AgentRole.WHOLE_OF_GOV_LIAISON,
+                harness_engine=HarnessEngineType.CLAUDE_CODE,
+                harness_command="claude -p",
+                sandbox_policy="restricted_fs",
+            ),
+            human_oversight_role="Public Information Officer",
+            position_x=900.0,
+            position_y=180.0,
+        ),
+        PathwayNode(
+            id="node_ff_recovery",
+            label="Re-entry conditions and after-action log",
+            category=NodeCategory.RECOVERY,
+            description="Stand-down notes and the event log for later diagnostics. Not an air-clearance certificate.",
+            status=NodeStatus.PENDING,
+            agent_team_id="policy_squad",
+            agent_team_config=AgentTeamConfig(
+                team_id="ff_recovery_squad",
+                name="Recovery Squad",
+                description="Re-entry and AAR pack",
+                lead_role=AgentRole.WHOLE_OF_GOV_LIAISON,
+                harness_engine=HarnessEngineType.AGY,
+                harness_command="agy exec",
+                sandbox_policy="restricted_fs",
+            ),
+            human_oversight_role="Recovery Coordinator",
+            position_x=900.0,
+            position_y=340.0,
+        ),
+    ]
+    edges = [
+        PathwayEdge(id="ff_edge_1", source="node_ff_intake", target="node_ff_adjacent", label="Site pinned"),
+        PathwayEdge(id="ff_edge_2", source="node_ff_intake", target="node_ff_dispersal", label="Fuel and met seed"),
+        PathwayEdge(id="ff_edge_3", source="node_ff_adjacent", target="node_ff_approval", label="Neighbours listed"),
+        PathwayEdge(id="ff_edge_4", source="node_ff_dispersal", target="node_ff_approval", label="Contour vs field"),
+        PathwayEdge(id="ff_edge_5", source="node_ff_approval", target="node_ff_briefing", label="IC authorised"),
+        PathwayEdge(id="ff_edge_6", source="node_ff_briefing", target="node_ff_recovery", label="Agencies notified"),
+    ]
+    return Pathway(
+        id="pathway_default_industrial_fire",
+        name="Industrial fire and toxic-plume pathway",
+        description=(
+            "Second-eyes DAG: start at the site, look up adjacent risks, simulate a "
+            "HYSPLIT-shaped contour, pause for IC approval, brief civilian agencies, record the run."
+        ),
+        threat_type=ThreatType.INDUSTRIAL_FIRE,
+        nodes=nodes,
+        edges=edges,
+    )
+
+
 PATHWAY_TEMPLATES: Dict[str, Pathway] = {
     "pathway_default_biological": create_default_biological_pathway(),
     "pathway_default_chemical": create_default_chemical_pathway(),
     "pathway_default_severe_weather": create_default_severe_weather_pathway(),
+    "pathway_default_industrial_fire": create_default_industrial_fire_pathway(),
 }
 

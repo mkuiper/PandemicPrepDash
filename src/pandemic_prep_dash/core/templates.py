@@ -16,6 +16,7 @@ from .registry import (
     create_default_biological_pathway,
     create_default_chemical_pathway,
     create_default_severe_weather_pathway,
+    create_default_industrial_fire_pathway,
 )
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent.parent / "templates"
@@ -259,6 +260,7 @@ class TemplateManager:
             "pathway_default_chemical": create_default_chemical_pathway(),
             "pathway_default_radiological": create_default_radiological_pathway(),
             "pathway_default_severe_weather": create_default_severe_weather_pathway(),
+            "pathway_default_industrial_fire": create_default_industrial_fire_pathway(),
             "pathway_rapid_antiviral": create_rapid_antiviral_pathway(),
             "pathway_sovereign_vaccine": create_sovereign_vaccine_pathway(),
         }
@@ -292,6 +294,12 @@ class TemplateManager:
                 "scenario_scope": "East Coast Low, riverine flood, and related all-hazards disruption (simulated)",
                 "trigger_criteria": "BOM severe weather warning plus major flood classification on a populated river",
                 "lead_agency": "NSW SES / BOM / NEMA",
+            },
+            "pathway_default_industrial_fire": {
+                "playbook_title": "Industrial Fire, Adjacent Risk and Toxic Plume Playbook",
+                "scenario_scope": "Warehouse or factory fire with smoke/plume, neighbour hazards, traffic and hospitals (simulated)",
+                "trigger_criteria": "Working fire at an industrial site with unknown or hazardous inventory",
+                "lead_agency": "FRNSW / EPA / Incident Controller",
             },
             "pathway_rapid_antiviral": {
                 "playbook_title": "Accelerated Antiviral Repurposing & TGA Section 19A Playbook",

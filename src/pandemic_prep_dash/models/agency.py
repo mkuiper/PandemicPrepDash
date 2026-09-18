@@ -22,6 +22,11 @@ class AgencyIdentifier(str, Enum):
     PHLN = "PHLN"                  # Public Health Laboratory Network
     BOM = "BOM"                    # Bureau of Meteorology
     NSW_SES = "NSW_SES"            # NSW State Emergency Service
+    FRNSW = "FRNSW"                # Fire and Rescue NSW
+    EPA_NSW = "EPA_NSW"            # NSW Environment Protection Authority
+    NSW_AMBULANCE = "NSW_AMBULANCE"
+    LOCAL_GOV = "LOCAL_GOV"        # Local government / council (workshop)
+    NSW_POLICE = "NSW_POLICE"
 
 
 class SecurityClassification(str, Enum):

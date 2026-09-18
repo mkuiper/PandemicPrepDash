@@ -16,6 +16,7 @@ from ..models.pathway import (
     ExecutionRun,
     RunStatus,
     NodeStatus,
+    IncidentEvent,
 )
 from ..scenarios import get_scenario, list_scenarios
 from .node_executor import NodeExecutor
@@ -76,9 +77,17 @@ class PathwayExecutionEngine:
             create_default_biological_pathway,
             create_default_chemical_pathway,
             create_default_severe_weather_pathway,
+            create_default_industrial_fire_pathway,
         )
-        aligned = {ThreatType.CHEMICAL_NERVE_AGENT, ThreatType.RADIOLOGICAL_DISPERSAL, ThreatType.SEVERE_WEATHER}
-        if threat_type == ThreatType.SEVERE_WEATHER and self.pathway.threat_type != ThreatType.SEVERE_WEATHER:
+        aligned = {
+            ThreatType.CHEMICAL_NERVE_AGENT,
+            ThreatType.RADIOLOGICAL_DISPERSAL,
+            ThreatType.SEVERE_WEATHER,
+            ThreatType.INDUSTRIAL_FIRE,
+        }
+        if threat_type == ThreatType.INDUSTRIAL_FIRE and self.pathway.threat_type != ThreatType.INDUSTRIAL_FIRE:
+            self.pathway = create_default_industrial_fire_pathway()
+        elif threat_type == ThreatType.SEVERE_WEATHER and self.pathway.threat_type != ThreatType.SEVERE_WEATHER:
             self.pathway = create_default_severe_weather_pathway()
         elif threat_type == ThreatType.RADIOLOGICAL_DISPERSAL and self.pathway.threat_type != ThreatType.RADIOLOGICAL_DISPERSAL:
             from .templates import TemplateManager
@@ -97,6 +106,31 @@ class PathwayExecutionEngine:
         if "sample" in self.scenario_data:
             self.run.node_artifacts["sample"] = self.scenario_data["sample"]
             self.data_hub.specimen_intel = self.scenario_data["sample"]
+        self.record_event(
+            "scenario_selected",
+            f"Active incident set to {self.scenario_data.get('name', scenario_id)}",
+        )
+
+    def record_event(
+        self,
+        kind: str,
+        summary: str,
+        node_id: Optional[str] = None,
+        actor: str = "system",
+    ) -> None:
+        event = IncidentEvent(
+            event_id=f"evt_{uuid.uuid4().hex[:8]}",
+            at=datetime.utcnow().isoformat() + "Z",
+            kind=kind,
+            summary=summary,
+            node_id=node_id,
+            actor=actor,
+            provenance="simulated",
+        )
+        self.run.event_log.append(event)
+        if len(self.run.event_log) > 200:
+            self.run.event_log = self.run.event_log[-200:]
+        self.data_hub.recent_events = [e.model_dump() for e in self.run.event_log[-40:]]
 
     def reset(self):
         """Resets all nodes and execution state to initial condition."""
@@ -126,6 +160,7 @@ class PathwayExecutionEngine:
             str(self.scenario_data.get("threat_type", "")),
             self.scenario_id or "",
         )
+        self.record_event("run_started", f"Run {self.run.run_id} opened for {self.scenario_id}")
 
     def get_node(self, node_id: str) -> Optional[PathwayNode]:
         for node in self.pathway.nodes:
@@ -162,6 +197,12 @@ class PathwayExecutionEngine:
             node.status = NodeStatus.READY
             if self.run.status == RunStatus.PAUSED:
                 self.run.status = RunStatus.RUNNING
+        self.record_event(
+            "approved",
+            f"Human approval recorded for '{node.label}'",
+            node_id=node.id,
+            actor="Incident Controller",
+        )
         return True
 
     def execute_next_step(self) -> Dict[str, Any]:
@@ -196,6 +237,11 @@ class PathwayExecutionEngine:
             target_node.status = NodeStatus.PAUSED
             self.run.status = RunStatus.PAUSED
             self.run.current_node_id = target_node.id
+            self.record_event(
+                "approval_required",
+                f"Paused for human approval: {target_node.label}",
+                node_id=target_node.id,
+            )
             return {
                 "status": "approval_required",
                 "node_id": target_node.id,
@@ -219,6 +265,7 @@ class PathwayExecutionEngine:
             target_node.error_message = str(err)
             self.run.status = RunStatus.FAILED
             self.run.end_time = datetime.utcnow().isoformat() + "Z"
+            self.record_event("failed", str(err), node_id=target_node.id)
             return {"status": "failed", "node_id": target_node.id, "message": str(err)}
 
         # Merge artifacts, thought logs, and auditable inter-node dialogues
@@ -242,6 +289,10 @@ class PathwayExecutionEngine:
             self.data_hub.plume_and_environmental = new_artifacts["plume_model"]
         if "threat_assessment" in new_artifacts:
             self.data_hub.statutory_compliance = new_artifacts["threat_assessment"]
+        if "adjacent_sites" in new_artifacts:
+            self.data_hub.specimen_intel["adjacent_sites"] = new_artifacts["adjacent_sites"]
+        if "site" in new_artifacts:
+            self.data_hub.specimen_intel["site"] = new_artifacts["site"]
 
         self.run.completed_node_ids.append(target_node.id)
         if target_node.id not in self.run.execution_order:
@@ -251,6 +302,14 @@ class PathwayExecutionEngine:
         if all(n.status == NodeStatus.COMPLETED for n in self.pathway.nodes):
             self.run.status = RunStatus.COMPLETED
             self.run.end_time = datetime.utcnow().isoformat() + "Z"
+
+        self.record_event(
+            "node_completed",
+            f"Completed '{target_node.label}'",
+            node_id=target_node.id,
+        )
+        if self.run.status == RunStatus.COMPLETED:
+            self.record_event("run_completed", "Pathway run completed")
 
         return {
             "status": "step_completed",
