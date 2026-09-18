@@ -2194,10 +2194,10 @@ function renderDag() {
     const tgt = nodeMap.get(edge.target);
     if (!src || !tgt) return;
 
-    const x1 = src.position_x + 190;
-    const y1 = src.position_y + 45;
+    const x1 = src.position_x + 220;
+    const y1 = src.position_y + 50;
     const x2 = tgt.position_x;
-    const y2 = tgt.position_y + 45;
+    const y2 = tgt.position_y + 50;
 
     const dx = Math.abs(x2 - x1) * 0.5;
     const pathData = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
@@ -2249,8 +2249,8 @@ function renderDag() {
 
     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     rect.setAttribute("class", "node-box");
-    rect.setAttribute("width", "190");
-    rect.setAttribute("height", "90");
+    rect.setAttribute("width", "220");
+    rect.setAttribute("height", "100");
     rect.setAttribute("rx", "10");
     rect.setAttribute("fill", isLight ? "#ffffff" : "#0f172a");
     rect.setAttribute("stroke", categoryInfo.color);
@@ -2263,7 +2263,7 @@ function renderDag() {
 
     const strip = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     strip.setAttribute("width", "5");
-    strip.setAttribute("height", "90");
+    strip.setAttribute("height", "100");
     strip.setAttribute("rx", "2");
     strip.setAttribute("fill", categoryInfo.color);
     g.appendChild(strip);
@@ -2295,19 +2295,26 @@ function renderDag() {
     statusLabel.textContent = statusText;
     g.appendChild(statusLabel);
 
+    const labelLines = wrapNodeLabel(node.label, 24, 2);
     const labelText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     labelText.setAttribute("x", "16");
-    labelText.setAttribute("y", "44");
+    labelText.setAttribute("y", "42");
     labelText.setAttribute("fill", isLight ? "#0f172a" : "#f8fafc");
-    labelText.setAttribute("font-size", "12px");
-    labelText.setAttribute("font-weight", "600");
-    labelText.textContent = truncateString(node.label, 20);
+    labelText.setAttribute("font-size", "16px");
+    labelText.setAttribute("font-weight", "700");
+    labelLines.forEach((line, i) => {
+      const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      tspan.setAttribute("x", "16");
+      tspan.setAttribute("dy", i === 0 ? "0" : "18");
+      tspan.textContent = line;
+      labelText.appendChild(tspan);
+    });
     g.appendChild(labelText);
 
     const leadName = node.agent_team_config?.node_lead?.name || "Harness Lead";
     const teamText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     teamText.setAttribute("x", "16");
-    teamText.setAttribute("y", "62");
+    teamText.setAttribute("y", labelLines.length > 1 ? "78" : "68");
     teamText.setAttribute("fill", isLight ? "#475569" : "#94a3b8");
     teamText.setAttribute("font-size", "9px");
     teamText.setAttribute("font-family", "monospace");
@@ -2316,7 +2323,7 @@ function renderDag() {
 
     const bottomText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     bottomText.setAttribute("x", "16");
-    bottomText.setAttribute("y", "78");
+    bottomText.setAttribute("y", "92");
     bottomText.setAttribute("fill", isLight ? "#64748b" : "#64748b");
     bottomText.setAttribute("font-size", "9px");
     const harnessType = node.agent_team_config?.harness_engine || "AGY";
@@ -2331,8 +2338,8 @@ function renderDag() {
     g.appendChild(bottomText);
 
     const portHandle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    portHandle.setAttribute("cx", "190");
-    portHandle.setAttribute("cy", "45");
+    portHandle.setAttribute("cx", "220");
+    portHandle.setAttribute("cy", "50");
     portHandle.setAttribute("r", "7");
     portHandle.setAttribute("fill", "#06b6d4");
     portHandle.setAttribute("stroke", isLight ? "#ffffff" : "#0f172a");
@@ -2346,8 +2353,8 @@ function renderDag() {
     g.appendChild(portHandle);
 
     const portPlus = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    portPlus.setAttribute("x", "190");
-    portPlus.setAttribute("y", "48");
+    portPlus.setAttribute("x", "220");
+    portPlus.setAttribute("y", "53");
     portPlus.setAttribute("fill", "#ffffff");
     portPlus.setAttribute("font-size", "9px");
     portPlus.setAttribute("font-weight", "bold");
@@ -2361,8 +2368,8 @@ function renderDag() {
     gearBtn.setAttribute("class", "node-gear-btn");
     gearBtn.style.cursor = "pointer";
     gearBtn.innerHTML = `
-      <circle cx="174" cy="74" r="8" fill="${isLight ? '#f1f5f9' : '#0f172a'}" stroke="${categoryInfo.color}" stroke-width="1" />
-      <text x="174" y="77" fill="#38bdf8" font-size="9px" text-anchor="middle" font-family="monospace">⚙</text>
+      <circle cx="204" cy="84" r="8" fill="${isLight ? '#f1f5f9' : '#0f172a'}" stroke="${categoryInfo.color}" stroke-width="1" />
+      <text x="204" y="87" fill="#38bdf8" font-size="9px" text-anchor="middle" font-family="monospace">⚙</text>
     `;
     gearBtn.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -2400,6 +2407,29 @@ function truncateString(str, num) {
   if (!str) return "";
   if (str.length <= num) return str;
   return str.slice(0, num) + "...";
+}
+
+function wrapNodeLabel(label, maxChars, maxLines) {
+  const text = String(label || "").trim();
+  if (!text) return [""];
+  if (text.length <= maxChars) return [text];
+  const words = text.split(/\s+/);
+  const lines = [];
+  let current = "";
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length <= maxChars) {
+      current = next;
+      continue;
+    }
+    if (current) lines.push(current);
+    current = word;
+    if (lines.length === maxLines - 1) break;
+  }
+  if (lines.length < maxLines && current) {
+    lines.push(truncateString(current, maxChars));
+  }
+  return lines.slice(0, maxLines);
 }
 
 function makeDraggable(element, node) {
