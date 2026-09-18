@@ -46,7 +46,7 @@ AUS_GOV_SKILLS: Dict[str, AusGovSkill] = {
     "AUS-SKILL-SSBA-REPORTING": AusGovSkill(
         skill_id="AUS-SKILL-SSBA-REPORTING",
         name="Security Sensitive Biological Agent (SSBA) Statutory Reporting",
-        authority="Australian Centre for Disease Prevention (ACDP) / Department of Health and Aged Care",
+        authority="Australian Centre for Disease Preparedness (ACDP) / CSIRO",
         statutory_basis="National Health Security Act 2007 (Part 3) & SSBA Standards v7.1",
         description="Mandatory reporting workflows, initial notification timelines (24-hour rule), Tier 1 transfer logs, and chain-of-custody compliance.",
         operational_playbook=(

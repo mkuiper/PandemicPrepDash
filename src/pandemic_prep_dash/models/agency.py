@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 
 class AgencyIdentifier(str, Enum):
-    ACDP = "ACDP"                  # Australian Centre for Disease Prevention (formerly AAHL / CSIRO ACDP Geelong)
+    ACDP = "ACDP"                  # Australian Centre for Disease Preparedness (CSIRO, formerly AAHL)
     ACDC = "ACDP"                  # Backwards compatibility alias to ACDP
     TGA = "TGA"                    # Therapeutic Goods Administration
     DAFF = "DAFF"                  # Department of Agriculture, Fisheries and Forestry

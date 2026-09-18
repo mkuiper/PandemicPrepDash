@@ -24,7 +24,7 @@ class AssayCategory(str, Enum):
 
 
 class FacilityIdentifier(str, Enum):
-    ACDP_GEELONG = "ACDP (CSIRO Australian Centre for Disease Prevention - PC4)"
+    ACDP_GEELONG = "ACDP (CSIRO Australian Centre for Disease Preparedness - PC4)"
     TGA_LABS = "TGA Laboratories Division (ACT)"
     ANSTO_LUCAS_HEIGHTS = "ANSTO Nuclear Science & Radiochemistry (Lucas Heights)"
     ARPANSA_YALLAMBIE = "ARPANSA Radiation Health Services (Yallambie)"

@@ -72,6 +72,17 @@ def test_acdp_agencies_endpoints_and_links():
         assert "official_website" in a and a["official_website"].startswith("http")
         assert "legislation_url" in a and a["legislation_url"].startswith("http")
         assert "relevant_threat_types" in a and len(a["relevant_threat_types"]) > 0
+        # Old FRL /Details/ compilation IDs pointed at the wrong Acts.
+        if "legislation.gov.au" in a["legislation_url"]:
+            assert "/Details/" not in a["legislation_url"]
+            assert a["legislation_url"].rstrip("/").endswith("/latest")
+
+    acdp = next(a for a in agencies if a["id"] == "ACDP")
+    assert "Preparedness" in acdp["full_name"]
+    assert "Prevention" not in acdp["full_name"]
+    assert "C1949A00013" in acdp["legislation_url"]
+    tga = next(a for a in agencies if a["id"] == "TGA")
+    assert "C2004A03952" in tga["legislation_url"]
 
     # Get ACDP report
     res_rep = client.get("/api/agencies/ACDP/report")
@@ -315,7 +326,7 @@ def test_physical_lab_bridge_lifecycle():
     new_req = {
         "title": "Emergency Pseudovirus PRNT50 Cross-Neutralization Assay",
         "assay_category": "virology_neutralization",
-        "target_facility": "ACDP (CSIRO Australian Centre for Disease Prevention - PC4)",
+        "target_facility": "ACDP (CSIRO Australian Centre for Disease Preparedness - PC4)",
         "originating_node_id": "node_vaccine_design",
         "requesting_agent_role": "Vaccine Squad Lead",
         "hypothesis_to_test": "Monoclonal antibody cocktail mAb-AUS-01 demonstrates sub-nanomolar neutralization.",

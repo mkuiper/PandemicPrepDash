@@ -49,7 +49,7 @@ AUSTRALIAN_GOV_POLICIES = [
     {
         "id": "ssba-regulatory-framework",
         "name": "Security Sensitive Biological Agents (SSBA) Standards v7.1",
-        "authority": "Australian Centre for Disease Prevention (ACDP) / Department of Health and Aged Care",
+        "authority": "Australian Centre for Disease Preparedness (ACDP) / CSIRO",
         "summary": "Statutory reporting and chain-of-custody requirements under Part 3 of the National Health Security Act 2007 for Tier 1 and Tier 2 high-consequence pathogens.",
         "link": "https://www.health.gov.au/our-work/ssba",
         "key_requirements": [

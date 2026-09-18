@@ -91,7 +91,7 @@ class EvidenceAnalyzer:
             validations.append(
                 ExperimentalValidationNeed(
                     assay_title="Ferret Direct Contact & Airborne Aerosol Transmission Study",
-                    target_facility="ACDP (CSIRO Australian Centre for Disease Prevention - PC4)",
+                    target_facility="ACDP (CSIRO Australian Centre for Disease Preparedness - PC4)",
                     critical_question="Can naive ferrets contract the virus through ambient air at 1.0 m separation without direct physical contact?",
                     urgency="CRITICAL",
                     specimen_spec="1.0 mL viable lung homogenate (>10^6 TCID50/mL)",
