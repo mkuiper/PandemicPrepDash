@@ -1977,21 +1977,22 @@ async function renderGovernanceView() {
       .map(
         (p) => `
       <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-md">
-        <div class="flex items-center justify-between">
-          <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">${p.id.toUpperCase()}</span>
-          <span class="text-[10px] text-slate-500">${p.authority}</span>
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">${escapeHtml(p.id)}</span>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">Not implemented in demo</span>
         </div>
-        <h4 class="font-bold text-slate-100 text-xs">${p.name}</h4>
-        <p class="text-slate-400 text-[11px] leading-relaxed">${p.summary}</p>
+        <h4 class="font-bold text-slate-100 text-xs">${escapeHtml(p.name)}</h4>
+        <p class="text-[10px] text-slate-500">${escapeHtml(p.authority)}</p>
+        <p class="text-slate-400 text-[11px] leading-relaxed">${escapeHtml(p.summary)}</p>
         <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1 text-[11px]">
-          <span class="text-slate-500 font-bold uppercase text-[9px] block">Mandatory ISM / PSPF Safeguards:</span>
+          <span class="text-slate-500 font-bold uppercase text-[9px] block">For a later operational system</span>
           <ul class="space-y-0.5 text-slate-300">
-            ${p.key_requirements.map((r) => `<li class="flex items-start"><span class="text-cyan-400 mr-1.5">•</span><span>${r}</span></li>`).join("")}
+            ${(p.key_requirements || []).map((r) => `<li class="flex items-start"><span class="text-cyan-400 mr-1.5">•</span><span>${escapeHtml(r)}</span></li>`).join("")}
           </ul>
         </div>
         <div class="pt-1">
-          <a href="${p.link}" target="_blank" class="text-cyan-400 hover:underline text-[11px] inline-flex items-center">
-            <span>View Official Commonwealth Policy Directive</span>
+          <a href="${escapeHtml(safeHttpUrl(p.link))}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline text-[11px] inline-flex items-center">
+            <span>Official source</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[8px] ml-1.5"></i>
           </a>
         </div>

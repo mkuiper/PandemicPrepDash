@@ -217,7 +217,45 @@ The `AgencyReportGenerator` maps scientific findings into Commonwealth emergency
 
 ---
 
-## 6. Directory Structure
+## 6. Security considerations for a later Australian Government platform
+
+This demonstrator is **not accredited**. It has no login, one shared in-memory incident, and simulated analysis. The notes below are requirements for a future operational system, not claims about the current software.
+
+Australian Government systems are assessed against Australian frameworks first:
+
+| Framework | Role | Official source |
+|---|---|---|
+| Protective Security Policy Framework (PSPF) | Classification, need-to-know, personnel and physical security | [protectivesecurity.gov.au](https://www.protectivesecurity.gov.au/) |
+| Information Security Manual (ISM) | Technical cyber controls for systems and data | [ISM on cyber.gov.au](https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/ism) |
+| Essential Eight | Baseline mitigations (patch, MFA, restrict admin, backups, application control, …) | [Essential Eight](https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/essential-eight) |
+| IRAP | Independent assessment of cloud/services up to a classification (commonly PROTECTED) | [IRAP](https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/irap) |
+| Privacy Act 1988 / APPs | Personal and health information | [OAIC APPs](https://www.oaic.gov.au/privacy/australian-privacy-principles) |
+| National Health Security Act 2007 / SSBA | Security-sensitive biological agents | [NHS Act](https://www.legislation.gov.au/C2007A00174/latest), [SSBA](https://www.health.gov.au/our-work/security-sensitive-biological-agents) |
+
+**Application controls (must exist before any CBRN data is real)**
+
+1. Identity and authorisation: agency, role, classification, need-to-know. Approvals are authorised actions, not a client flag (`auto_approve` is not a security boundary).
+2. Incident-scoped durable state; no shared global engine across browsers.
+3. Append-only decision log bound to an actor (who approved, on what evidence).
+4. Server-side redaction of briefs before serialize.
+5. Logging to a government SIEM; encryption in transit and at rest.
+
+**Host and supply chain (where OpenSCAP belongs)**
+
+[OpenSCAP](https://www.open-scap.org/) implements [NIST SCAP](https://csrc.nist.gov/projects/security-content-automation-protocol) (XCCDF/OVAL) for **machine hardening** (typically CIS or vendor content on RHEL/Ubuntu images). ASD does **not** publish an official ISM OpenSCAP datastream. OpenSCAP is appropriate in the **image/build pipeline** and periodic host scan for a later enclave. It must not appear in the incident UI as “ISM passed”. Pair it with SBOM, dependency scanning, and pinned builds.
+
+**This demonstrator implements only**
+
+- Demo security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`).
+- CORS limited to the local demo origin (override with `CORS_ORIGINS`).
+- Honest labels: no accreditation, policies listed as **not implemented**.
+- Help chapter *Security considerations* with the same official links.
+
+It does **not** implement MFA, ISM overlays, IRAP, OpenSCAP scans, or agency ACLs.
+
+---
+
+## 7. Directory Structure
 
 ```
 PandemicPrepDash/

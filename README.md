@@ -5,6 +5,10 @@ incident coordination: response pathways, human review, and shared situational
 awareness. Its purpose is to gather agency feedback and inform the design of a
 larger platform. It is not an operational command system.
 
+This instance is a workshop demonstrator, **not** ISM-, PSPF-, or IRAP-assessed.
+Security considerations for a later Australian Government platform (Essential Eight,
+host OpenSCAP, identity, audit) are in `ARCHITECTURE.md` and **Help & glossary**.
+
 The core example scenarios are biological, chemical, and radiological. Flood and
 industrial-fire pathways are additional coordination examples (intake, evidence,
 approval, briefing). Analyses, agent logs, and dispatches are simulated. The

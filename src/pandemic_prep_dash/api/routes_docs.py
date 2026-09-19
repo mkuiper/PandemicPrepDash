@@ -51,6 +51,10 @@ Short definitions for labels used in **CBRN Rapid Response**. This is a workshop
 * **NMS** — National Medical Stockpile.
 * **COMDISPLAN** — Australian Government Disaster Response Plan.
 * **SOCI** — Security of Critical Infrastructure Act 2018 (Cth).
+* **ISM** — ASD Information Security Manual. Technical cyber controls for government systems. This demo is not ISM-assessed.
+* **Essential Eight** — ASD baseline (patch, MFA, restrict admin, backups, application control, and related mitigations).
+* **IRAP** — Information Security Registered Assessors Program. Independent assessment of cloud/services.
+* **OpenSCAP** — Host hardening scanner (SCAP). For later Linux images, not an in-app compliance badge.
 * **ACDP** — CSIRO Australian Centre for Disease Preparedness (Geelong), formerly AAHL. Not the Australian Centre for Disease Control.
 * **Second eyes** — This dashboard’s role: a shared picture and questions for the human, not command of fire, ambulance, or laboratory protocols.
 
@@ -59,6 +63,51 @@ Short definitions for labels used in **CBRN Rapid Response**. This is a workshop
 * **Simulated** — Generated for the workshop. No agency, laboratory, or model was contacted.
 * **Unknown** — A required fact is not on the blackboard. That is a valid lead-agent answer.
 * **Demonstration mode** — The amber banner at the top. Treat confidence scores, dispatches, and scientific outputs as software behaviour, not operational truth.
+        """,
+    },
+    {
+        "id": "security-considerations",
+        "title": "Security considerations (later platform)",
+        "icon": "fa-shield-halved",
+        "category": "Help",
+        "summary": "Australian Government security practice for a future system. This demonstrator is not accredited.",
+        "content": """
+# Security considerations for Australian Government use
+
+**This workshop demonstrator is not ISM-, PSPF-, or IRAP-assessed.** There is no login, one shared in-memory incident, and analyses are simulated. The list below is what a later operational platform would need. Official sources are linked so workshops can discuss requirements without treating the demo as a certified system.
+
+### Australian frameworks (use these first)
+
+* **[Protective Security Policy Framework (PSPF)](https://www.protectivesecurity.gov.au/)** — Attorney-General’s Department. Classification, need-to-know, personnel and physical security.
+* **[Information Security Manual (ISM)](https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/ism)** — ASD / ACSC. Technical cyber controls for systems and data.
+* **[Essential Eight](https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/essential-eight)** — ASD baseline mitigations (patch applications and operating systems, MFA, restrict administrative privileges, application control, restrict macros, user application hardening, regular backups). [Maturity model](https://www.cyber.gov.au/business-government/asds-cyber-security-frameworks/essential-eight/essential-eight-maturity-model).
+* **[IRAP](https://www.cyber.gov.au/resources-business-and-government/essential-cyber-security/irap)** — independent assessment of cloud and services, often to PROTECTED.
+* **[Australian Privacy Principles](https://www.oaic.gov.au/privacy/australian-privacy-principles)** — Privacy Act 1988.
+* **[National Health Security Act 2007](https://www.legislation.gov.au/C2007A00174/latest)** and **[SSBA](https://www.health.gov.au/our-work/security-sensitive-biological-agents)** — security-sensitive biological agents (Health, not CSIRO ACDP as the statute owner).
+
+### OpenSCAP / SCAP
+
+* **[OpenSCAP](https://www.open-scap.org/)** implements **[NIST SCAP](https://csrc.nist.gov/projects/security-content-automation-protocol)** for **host** hardening (CIS or vendor content on Linux images).
+* ASD does not publish an official ISM OpenSCAP datastream. Do not show “OpenSCAP: passed” in the incident UI.
+* Appropriate later: scan the **enclave image** in CI and periodically; keep findings in the system security plan, not on the pathway graph.
+
+### What a later platform must implement before real CBRN data
+
+1. Identity, agency, role, classification, and need-to-know. Approvals are authorised actions (the API `auto_approve` flag is not a security boundary).
+2. Per-incident durable state. No global in-memory engine shared by every browser.
+3. Append-only decision log bound to an actor.
+4. Server-side redaction of agency briefs.
+5. Essential Eight on the estate; encryption in transit and at rest; logging to a government SIEM.
+6. Supply chain: pinned dependencies, SBOM, container scan; optional OpenSCAP on the OS image.
+
+### What this demonstrator does today (limited on purpose)
+
+* HTTP security headers on responses (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`).
+* CORS restricted to the local demo origin (set `CORS_ORIGINS` if you serve from another host).
+* Policy cards and this chapter labelled **not implemented / not accredited**.
+* It does not provide MFA, IRAP evidence, OpenSCAP results, or agency access control.
+
+See also `ARCHITECTURE.md` section 6.
         """,
     },
     {

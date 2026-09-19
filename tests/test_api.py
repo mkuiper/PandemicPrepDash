@@ -17,6 +17,10 @@ def test_health_endpoint():
     data = response.json()
     assert data["status"] == "healthy"
     assert data["service"] == "CBRN Rapid Response"
+    assert data["accreditation"] == "none"
+    assert data["demo"] is True
+    assert response.headers.get("x-content-type-options") == "nosniff"
+    assert response.headers.get("x-frame-options") == "DENY"
 
 
 def test_scenarios_endpoints():
@@ -154,9 +158,17 @@ def test_documentation_center_endpoints():
     chapters = res_docs.json()["chapters"]
     assert len(chapters) >= 5
     assert any(c["id"] == "glossary" for c in chapters)
+    assert any(c["id"] == "security-considerations" for c in chapters)
     assert any(c["id"] == "conops-overview" for c in chapters)
     assert any(c["id"] == "central-data-hub" for c in chapters)
     assert any(c["id"] == "statutory-acts-matrix" for c in chapters)
+
+    sec = client.get("/api/docs/security-considerations")
+    assert sec.status_code == 200
+    sec_text = sec.json()["chapter"]["content"]
+    assert "Essential Eight" in sec_text
+    assert "open-scap.org" in sec_text
+    assert "not ISM" in sec_text.lower() or "not ISM-" in sec_text
 
     glossary = client.get("/api/docs/glossary")
     assert glossary.status_code == 200
@@ -320,6 +332,11 @@ def test_governance_and_cloud_compute_api():
     assert any("PSPF" in p["name"] for p in policies)
     assert any("ISM" in p["name"] for p in policies)
     assert any("SSBA" in p["name"] for p in policies)
+    assert any("Essential Eight" in p["name"] for p in policies)
+    assert any("OpenSCAP" in p["name"] for p in policies)
+    for p in policies:
+        assert p.get("implemented_in_demo") is False
+        assert p["link"].startswith("https://")
 
 
 def test_physical_lab_bridge_lifecycle():
