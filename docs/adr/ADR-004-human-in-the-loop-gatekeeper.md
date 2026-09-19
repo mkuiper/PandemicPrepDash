@@ -15,7 +15,7 @@ We implemented first-class **Human-in-the-Loop (HITL) Gatekeepers** at the node 
 - When an execution engine reaches a node with `requires_human_approval=True`, if `approval_granted` is false, the engine automatically halts execution, transitions the node and the run status to `PAUSED`, and alerts the operator.
 - An authorized human operator can review the upstream artifacts, agent deliberation trace, and security classification on the Node Inspector.
 - Only upon receiving explicit confirmation via `POST /api/execution/approve/{node_id}` does the node transition to `READY` and allow the workflow to resume.
-- For automated testing or non-critical demo exploration, an optional `auto_approve: bool = True` override flag is provided.
+- For automated tests only, `POST /api/execution/run` accepts `auto_approve` (default **false**). The UI Run button does not send it. It is not a security boundary.
 
 ## Consequences
 - Guarantees human sovereign control over statutory, legal, and national security triggers.

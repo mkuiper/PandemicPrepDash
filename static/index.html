@@ -6,7 +6,7 @@
   <title>CBRN Rapid Response — Demonstration</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/styles.css?v=inspector-resize-1">
+  <link rel="stylesheet" href="/styles.css?v=demo-week-1">
 </head>
 <body class="h-full flex flex-col overflow-hidden font-sans antialiased selection:bg-cyan-500 selection:text-white transition-colors duration-200">
 
@@ -664,11 +664,11 @@
             <i class="fa-solid fa-toolbox text-cyan-400 mr-2.5"></i>
             Software Toolbox, MCP Servers &amp; Australian Gov Skills
           </h2>
-          <p class="text-sm text-slate-400">Standard computational suites, Model Context Protocol integration servers, and Australian Government operational playbooks used by agent harnesses.</p>
+          <p class="text-sm text-slate-400">Catalogue of tools, MCP servers, and skills the harnesses <em>would</em> use. Bindings in this demonstrator are not live connections.</p>
         </div>
         <div class="flex items-center space-x-2">
-          <span class="px-3 py-1 bg-slate-800 border border-slate-700 text-cyan-400 rounded text-xs font-mono">
-            All MCP Endpoints Active
+          <span class="px-3 py-1 bg-amber-950 border border-amber-500/40 text-amber-300 rounded text-xs font-mono">
+            Simulated catalogue — not connected
           </span>
         </div>
       </div>
@@ -868,8 +868,8 @@
             </div>
           </div>
           <div class="flex justify-end pt-2">
-            <button type="submit" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg text-xs transition shadow">
-              Update API Keys
+            <button type="submit" disabled class="px-4 py-2 bg-slate-800 text-slate-500 font-bold rounded-lg text-xs cursor-not-allowed">
+              Credential storage not implemented
             </button>
           </div>
         </form>
@@ -877,8 +877,24 @@
 
       <div class="space-y-4">
         <h3 class="text-sm font-bold text-slate-100 flex items-center">
+          <i class="fa-solid fa-layer-group text-slate-400 mr-2"></i>
+          Security layers for a later operational system
+        </h3>
+        <p class="text-[11px] text-slate-500 -mt-2">Sketched here so workshops can see where controls would sit. None of these are implemented in this demonstrator.</p>
+        <ul class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px] text-slate-300">
+          <li class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2"><span class="text-amber-300 font-mono text-[9px]">NOT IMPLEMENTED</span> Identity, MFA, agency and role</li>
+          <li class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2"><span class="text-amber-300 font-mono text-[9px]">NOT IMPLEMENTED</span> Classification and need-to-know on briefs</li>
+          <li class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2"><span class="text-amber-300 font-mono text-[9px]">NOT IMPLEMENTED</span> Per-incident durable state (no shared memory)</li>
+          <li class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2"><span class="text-amber-300 font-mono text-[9px]">NOT IMPLEMENTED</span> Append-only decision log bound to an actor</li>
+          <li class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2"><span class="text-amber-300 font-mono text-[9px]">NOT IMPLEMENTED</span> Essential Eight on the hosting estate</li>
+          <li class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2"><span class="text-amber-300 font-mono text-[9px]">NOT IMPLEMENTED</span> Host OpenSCAP/CIS image scans (not an in-app badge)</li>
+          <li class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2"><span class="text-amber-300 font-mono text-[9px]">NOT IMPLEMENTED</span> IRAP assessment of cloud/hosting</li>
+          <li class="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2"><span class="text-amber-300 font-mono text-[9px]">NOT IMPLEMENTED</span> SIEM logging and encryption at rest</li>
+        </ul>
+        <p class="text-[11px] text-slate-500">Details and official links: Help &amp; glossary → Security considerations.</p>
+        <h3 class="text-sm font-bold text-slate-100 flex items-center pt-2">
           <i class="fa-solid fa-scale-balanced text-purple-400 mr-2"></i>
-          Commonwealth Governance &amp; Statutory Compliance Policies
+          Commonwealth policy references (not enforced here)
         </h3>
         <div id="govPoliciesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
       </div>
@@ -1306,6 +1322,8 @@
         <div>
           <label class="block text-slate-400 mb-1 font-medium">Category</label>
           <select id="newNodeCategory" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-white focus:outline-none focus:border-cyan-500">
+            <option value="ingestion">Incident / specimen intake</option>
+            <option value="triage">Impact triage / adjacent lookup</option>
             <option value="research">Threat Research &amp; Literature Surveillance</option>
             <option value="characterization">Genomic / Spectral Characterization</option>
             <option value="structural_biology">Structural Biology &amp; Molecular Modeling</option>
@@ -1313,6 +1331,7 @@
             <option value="vaccinology">Vaccine Design &amp; Radioprotectants</option>
             <option value="biosecurity">Biosecurity &amp; Nuclear Safeguards</option>
             <option value="agency_reporting">Whole-of-Gov Agency Reporting</option>
+            <option value="recovery">Recovery / stand-down</option>
             <option value="custom">Custom Analytical Step</option>
           </select>
         </div>
@@ -1400,6 +1419,6 @@
     </div>
   </div>
 
-  <script src="/app.js?v=security-notes-1"></script>
+  <script src="/app.js?v=demo-week-1"></script>
 </body>
 </html>

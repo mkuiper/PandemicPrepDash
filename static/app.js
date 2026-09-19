@@ -77,6 +77,8 @@ const CATEGORY_STYLES = {
   vaccinology: { color: "#f59e0b", bg: "#451a03", lightBg: "#fffbeb", icon: "fa-shield-virus" },
   biosecurity: { color: "#f43f5e", bg: "#4c0519", lightBg: "#fff1f2", icon: "fa-biohazard" },
   agency_reporting: { color: "#6366f1", bg: "#1e1b4b", lightBg: "#eef2ff", icon: "fa-landmark" },
+  triage: { color: "#f97316", bg: "#431407", lightBg: "#fff7ed", icon: "fa-list-check" },
+  recovery: { color: "#14b8a6", bg: "#042f2e", lightBg: "#f0fdfa", icon: "fa-flag-checkered" },
   custom: { color: "#94a3b8", bg: "#1e293b", lightBg: "#f8fafc", icon: "fa-gear" },
 };
 
@@ -966,7 +968,7 @@ function openSnapshotModal() {
   const modal = document.getElementById("createSnapshotModal");
   if (!modal) return;
   document.getElementById("snapshotTitleInput").value = `Operational Snapshot at Step ${AppState.state?.stats?.completed_nodes || 0}`;
-  document.getElementById("snapshotSummaryInput").value = "State checkpoint verified by Incident Controller; pipeline progression logged for audit trail.";
+  document.getElementById("snapshotSummaryInput").value = "Workshop checkpoint of the current run (in-memory; not a durable audit log).";
   modal.classList.remove("hidden");
 }
 
@@ -2296,9 +2298,9 @@ async function renderDocsView() {
     btn.innerHTML = `
       <div class="flex items-center space-x-2">
         <i class="fa-solid ${ch.icon || 'fa-book'} ${isSelected ? 'text-cyan-400' : 'text-slate-500'} text-xs"></i>
-        <span class="font-bold text-xs ${isSelected ? 'text-slate-100' : 'text-slate-300'} truncate">${ch.title}</span>
+        <span class="font-bold text-xs ${isSelected ? 'text-slate-100' : 'text-slate-300'} truncate">${escapeHtml(ch.title)}</span>
       </div>
-      <p class="text-[10px] text-slate-500 truncate pl-5">${ch.summary}</p>
+      <p class="text-[10px] text-slate-500 truncate pl-5">${escapeHtml(ch.summary)}</p>
     `;
 
     btn.addEventListener("click", () => {

@@ -162,3 +162,6 @@ def test_demo_does_not_claim_verified_security_or_connected_keys():
         page = client.get('/').text
         assert 'CBRN Rapid Response' in page
         assert 'Demonstration mode' in page
+        assert 'All MCP Endpoints Active' not in page
+        assert 'Accreditation: none' in page
+        assert 'NOT IMPLEMENTED' in page
