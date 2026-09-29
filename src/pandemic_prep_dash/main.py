@@ -39,7 +39,7 @@ class DemoSecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 app = FastAPI(
     title="CBRN Rapid Response",
-    description="Workshop demonstrator for CBRN incident coordination, response pathways and decision tracking",
+    description="Workshop demonstrator that augments AGCMF-style CBRN coordination. Not the NCM.",
     version="0.1.0",
 )
 

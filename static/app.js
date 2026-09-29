@@ -387,7 +387,7 @@ function setupEventListeners() {
 
 async function loadInitialData() {
   try {
-    const [scenRes, stateRes, agencyRes, dummyRes, personasRes, docsRes, govRes, polRes, toolsRes, mcpsRes, skillsRes, labRes, evidRes, snapRes] = await Promise.all([
+    const [scenRes, stateRes, agencyRes, dummyRes, personasRes, docsRes, govRes, polRes, toolsRes, mcpsRes, skillsRes, labRes, evidRes, snapRes, tmplRes] = await Promise.all([
       fetch("/api/scenarios").then((r) => r.json()),
       fetch("/api/pathways/state").then((r) => r.json()),
       fetch("/api/agencies").then((r) => r.json()),
@@ -402,6 +402,7 @@ async function loadInitialData() {
       fetch("/api/lab-bridge/requests").then((r) => r.json()).catch(() => ({ requests: [] })),
       fetch("/api/hub/evidence/analysis").then((r) => r.json()).catch(() => ({ report: null })),
       fetch("/api/version-control/snapshots").then((r) => r.json()).catch(() => ({ snapshots: [] })),
+      fetch("/api/pathways/templates").then((r) => r.json()).catch(() => ({ templates: [] })),
     ]);
 
     AppState.scenarios = scenRes.scenarios || [];
@@ -418,6 +419,7 @@ async function loadInitialData() {
     AppState.labRequests = labRes.requests || [];
     AppState.evidenceReport = evidRes.report;
     AppState.snapshots = snapRes.snapshots || [];
+    AppState.templates = tmplRes.templates || [];
 
     populateScenarioDropdown();
     populatePresetSequencesDropdown();
@@ -535,6 +537,18 @@ function updateUIState() {
   if (AppState.activeTab === "tab-inspector") syncInspectorTabs();
 
   document.getElementById("pathwayNameDisplay").textContent = pathway.name;
+  const agcmfStrip = document.getElementById("agcmfStrip");
+  if (agcmfStrip) {
+    const meta = (AppState.templates || []).find((t) => t.id === pathway.id) || {};
+    if (meta.agcmf_national_plan) {
+      agcmfStrip.classList.remove("hidden");
+      agcmfStrip.textContent = `AGCMF ${meta.agcmf_national_plan} · ${meta.agcmf_coordinating_agency || ""} (augments; not the NCM)`;
+      agcmfStrip.title = `${meta.agcmf_hazard || ""} · Lead minister: ${meta.agcmf_lead_minister || ""} · LCSO: ${meta.agcmf_lcso || ""}`;
+    } else {
+      agcmfStrip.classList.add("hidden");
+      agcmfStrip.textContent = "";
+    }
+  }
   document.getElementById("nodesStatusSummary").textContent = `${stats.completed_nodes} / ${stats.total_nodes} Completed (${run.status.toUpperCase()})`;
 
   // Blocker alerts

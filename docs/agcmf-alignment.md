@@ -79,6 +79,12 @@ Add an **AGCMF coordination overlay** that every playbook can share:
 - Make NEMA the lead on every CBRN run (wrong for NHERA and AUSRNEPLAN)
 - Treat Tier 4 as a bigger BLAST job — it is a change of **coordination scale**
 
+## Help or hinder?
+
+The agentic system **helps** if it stays a second set of eyes: sitrep, unknowns, distinct briefs, HITL, a reminder of the Appendix A plan. It **hinders** if it looks like command — auto-approve, live dispatch, a lab node as Coordinating Agency, or “we are the NCM”.
+
+Pitch for workshops: *augment AGCMF-style coordination; humans and existing arrangements remain in charge.*
+
 ## Opinion
 
 Yes, align with the AGCMF. It is the right capstone for a Commonwealth workshop, and it explains why our flood/fire paths felt more “incident-like” than the lab-heavy CBRN DAGs: they already resemble near-term preparedness → response → recovery.

@@ -158,10 +158,17 @@ def test_documentation_center_endpoints():
     chapters = res_docs.json()["chapters"]
     assert len(chapters) >= 5
     assert any(c["id"] == "glossary" for c in chapters)
+    assert any(c["id"] == "agcmf-role" for c in chapters)
     assert any(c["id"] == "security-considerations" for c in chapters)
     assert any(c["id"] == "conops-overview" for c in chapters)
     assert any(c["id"] == "central-data-hub" for c in chapters)
     assert any(c["id"] == "statutory-acts-matrix" for c in chapters)
+
+    agcmf = client.get("/api/docs/agcmf-role")
+    assert agcmf.status_code == 200
+    body = agcmf.json()["chapter"]["content"].lower()
+    assert "augment" in body
+    assert "ncm" in body
 
     sec = client.get("/api/docs/security-considerations")
     assert sec.status_code == 200

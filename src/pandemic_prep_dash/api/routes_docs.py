@@ -71,6 +71,42 @@ Short definitions for labels used in **CBRN Rapid Response**. This is a workshop
         """,
     },
     {
+        "id": "agcmf-role",
+        "title": "AGCMF: augment, do not replace",
+        "icon": "fa-sitemap",
+        "category": "Help",
+        "summary": "How this demonstrator sits under the Australian Government Crisis Management Framework.",
+        "content": """
+# AGCMF: how this demonstrator should sit under the Framework
+
+Official source: [Australian Government Crisis Management Framework](https://www.pmc.gov.au/resources/australian-government-crisis-management-framework-agcmf) (PM&C, Version 4.1, September 2025). Local copy: `docs/reference/agcmf-september-2025.pdf`. Notes: `docs/agcmf-alignment.md`.
+
+**Pitch.** CBRN Rapid Response is a workshop sketch of a **shared picture and human gates** for CBRN and related hazards. Agent crews **augment** near-term preparedness, response, and early recovery. They do **not** replace:
+
+* state and territory first responders
+* the Lead Minister, Coordinating Agency, or Lead Coordinating Senior Official
+* the National Coordination Mechanism (NCM), NCM-AUSGOV, NSC, or National Situation Room
+* an Incident Controller’s authority to approve protective action
+
+### Where agents can help
+
+* Assemble a sitrep and blackboard from mixed, incomplete sources, and mark **unknown**
+* Keep contributing-agency briefs distinct (need-to-know is not implemented here)
+* Pause at HITL so a human maps to LCSO / Incident Controller
+* Record what the run knew when someone approved (in-memory event log only)
+* Remind the room which **national plan** Appendix A would point at (NHERA, AUSRNEPLAN, COMDISPLAN)
+
+### Where agents would hinder
+
+* Looking like command: auto-approve, “dispatch to agencies”, live HYSPLIT, or “NCM connected”
+* Displacing the Coordinating Agency (for example making a lab node the lead instead of Health or ARPANSA)
+* Treating Tier 4 as a bigger model job rather than a change of **coordination scale** (NEMA / Prime Minister)
+* Inventing evidence when the blackboard is empty
+
+Playbook cards and the pathway strip show a **workshop mapping** to AGCMF hazard, plan, and coordinating agency. That mapping is not a designation under the Framework.
+        """,
+    },
+    {
         "id": "security-considerations",
         "title": "Security considerations (later platform)",
         "icon": "fa-shield-halved",
@@ -120,7 +156,7 @@ See also `ARCHITECTURE.md` section 6.
         "title": "1. Operational Overview & Whole-of-Government CONOPS",
         "icon": "fa-shield-halved",
         "category": "Architecture",
-        "summary": "Core operational concepts, incident lifecycle, and autonomous multi-agent pipeline topology.",
+        "summary": "Workshop concepts for a pathway that augments AGCMF-style coordination. Not the NCM.",
         "content": """
 # Operational Overview & Whole-of-Government CONOPS
 

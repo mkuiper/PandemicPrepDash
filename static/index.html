@@ -10,7 +10,7 @@
 </head>
 <body class="h-full flex flex-col overflow-hidden font-sans antialiased selection:bg-cyan-500 selection:text-white transition-colors duration-200">
 
-  <div role="note" class="shrink-0 bg-amber-950 text-amber-200 px-6 py-2 text-xs border-b border-amber-800">Demonstration mode · Analysis, confidence scores and dispatches are simulated. No agencies or laboratories are contacted.</div>
+  <div role="note" class="shrink-0 bg-amber-950 text-amber-200 px-6 py-2 text-xs border-b border-amber-800">Demonstration mode · Augments AGCMF-style coordination; does not replace the NCM, ministers, or state responders. Analysis and dispatches are simulated.</div>
 
   <!-- Top Command Header -->
   <header class="bg-slate-900 border-b border-slate-800 px-6 py-3 flex items-center justify-between shrink-0 shadow-md transition-colors duration-200">
@@ -33,7 +33,7 @@
           </span>
         </div>
         <p class="text-xs text-slate-400 flex items-center mt-0.5">
-          <span>Chemical, biological, radiological and nuclear response demonstrator</span>
+          <span>AGCMF workshop sketch · agents augment the picture; humans remain in charge</span>
         </p>
       </div>
     </div>
@@ -140,6 +140,7 @@
             <span class="text-slate-500 font-semibold mr-1.5">Pathway:</span>
             <span id="pathwayNameDisplay" class="text-slate-200 font-medium truncate" title="Directed acyclic graph: steps with one-way dependencies and no loops">Adaptive pathway (DAG)</span>
           </span>
+          <span id="agcmfStrip" class="hidden text-[10px] text-slate-500 truncate max-w-md"></span>
           <span class="text-slate-600">•</span>
           <span class="text-slate-400 flex items-center truncate">
             <span id="incidentSourceLabel" class="text-slate-500 font-semibold mr-1.5">Specimen:</span>
@@ -224,7 +225,7 @@
             <i class="fa-solid fa-comments text-cyan-400 mr-2"></i>
             Central Control Hub &amp; Human-Agent Message Board
           </h2>
-          <p class="text-slate-400 text-[11px]">Direct collaboration channel between human incident controllers and autonomous node agent harnesses.</p>
+          <p class="text-slate-400 text-[11px]">Human–agent board for a shared picture. Agents propose; they do not command the Incident Controller, NCM, or agencies.</p>
         </div>
         <div class="flex items-center space-x-2">
           <button id="btnTriggerEvidenceAudit" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded text-xs font-medium transition flex items-center space-x-1.5 shadow">
@@ -1419,6 +1420,6 @@
     </div>
   </div>
 
-  <script src="/app.js?v=agcmf-1"></script>
+  <script src="/app.js?v=agcmf-augment-1"></script>
 </body>
 </html>
