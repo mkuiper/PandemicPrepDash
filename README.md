@@ -8,7 +8,7 @@ National Coordination Mechanism, ministers, or an Incident Controller.
 
 Playbooks carry AGCMF hazard, national plan, and coordinating-agency labels
 (workshop mapping). See `docs/agcmf-alignment.md` and the local Framework copy
-under `docs/reference/`.
+under `docs/reference/`. Continuing AGCMF integration: `docs/handoff-agcmf-claude.md`.
 
 This instance is a workshop demonstrator, **not** ISM-, PSPF-, or IRAP-assessed.
 Security considerations for a later Australian Government platform (Essential Eight,
