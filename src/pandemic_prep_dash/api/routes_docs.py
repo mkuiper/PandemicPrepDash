@@ -55,6 +55,11 @@ Short definitions for labels used in **CBRN Rapid Response**. This is a workshop
 * **Essential Eight** — ASD baseline (patch, MFA, restrict admin, backups, application control, and related mitigations).
 * **IRAP** — Information Security Registered Assessors Program. Independent assessment of cloud/services.
 * **OpenSCAP** — Host hardening scanner (SCAP). For later Linux images, not an in-app compliance badge.
+* **AGCMF** — Australian Government Crisis Management Framework (PM&C). Capstone all-hazards policy. This demo is not the NCM.
+* **NCM** — National Coordination Mechanism (NEMA). Peak senior-officials crisis coordination.
+* **NHERA** — National Health Emergency Response Arrangements (Health). AGCMF plan for domestic public health crises.
+* **COMDISPLAN** — Australian Government Disaster Response Plan (NEMA). Natural hazard disasters.
+* **AUSRNEPLAN** — Australian Government Radiological and Nuclear Events Plan (ARPANSA coordinating agency).
 * **ACDP** — CSIRO Australian Centre for Disease Preparedness (Geelong), formerly AAHL. Not the Australian Centre for Disease Control.
 * **Second eyes** — This dashboard’s role: a shared picture and questions for the human, not command of fire, ambulance, or laboratory protocols.
 

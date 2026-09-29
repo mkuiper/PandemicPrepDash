@@ -1,0 +1,2413 @@
+Australian Government
+Crisis Management
+Framework
+September 2025
+Australian Government Crisis Management Framework
+© Commonwealth of Australia 2025
+Effective from the date of endorsement by Deputy
+Secretary Economy, Industry and Resilience Group,
+PM&C, in September 2025
+This Framework is reviewed annually.
+For the latest version, please visit:
+https://www.pmc.gov.au/resources/australian-
+government-crisis-management-framework-agcmf.
+
+Copyright Notice
+With the exception of the Commonwealth Coat of
+Arms, this work is licensed under a Creative Commons
+Attribution 4.0 International license (CC BY 4.0)
+(https://creativecommons.org/licenses/by/4.0/).
+
+
+
+
+Third party copyright
+Wherever a third party holds copyright in this material,
+the copyright remains with that party. Their permission
+may be required to use the material. Please contact
+them directly.
+
+Attribution
+This publication should be attributed as follows:
+© Commonwealth of Australia, Department of the
+Prime Minister and Cabinet, Australian Government
+Crisis Management Framework.
+
+Use of the Coat of Arms
+The terms under which the Coat of Arms can be used are
+detailed on the following website: https://pmc.gov.au/cca
+
+Feedback
+Feedback for future improvement and enquiries
+regarding this document are welcome at:
+Crisis Planning and Response, Resilience and Crisis
+Management Division, Department of the Prime Minister
+and Cabinet.
+Email agcmfreview@pmc.gov.au.
+Version control
+
+
+ Date              Version       Comments
+
+ December             1.0        Replaces AGCMF (Version 5.0) and Australian Government Crisis
+ 2012                            Management Arrangements: A Guide for Ministers (Version 1.1).
+                                 1.1 Replaces AGCMF (Version 1.0) and reflects the Abbott Ministry
+                                 and Administrative Arrangements Order of 18 September 2013.
+                                 1.2 Replaces AGCMF (Version 1.1) and reflects the appointment of the
+                                 Minister Assisting the Prime Minister for Counter-Terrorism and the
+                                 Commonwealth Counter-Terrorism Coordinator.
+                                 1.3 Replaces AGCMF (Version 1.2) and reflects the role of the Minister
+                                 for Counter-Terrorism.
+
+ October              2.0        Replaces AGCMF (Version 1.3).
+ 2016
+                                 2.1 Replaces AGCMF (Version 2.0) and reflects updated administrative
+                                 arrangements.
+                                 2.2 Replaces AGCMF (Version 2.1) and reflects updated administrative
+                                 arrangements following establishment of the Home Affairs portfolio.
+                                 2.3 Replaces AGCMF (Version 2.2) and reflects updated administrative
+                                 arrangements following the establishment of new ministerial portfolios
+                                 focused on natural disasters and emergency management and revised
+                                 Defence Assistance to the Civil Community (DACC) arrangements.
+                                 This version also reflects the retirement of the Council of Australian
+                                 Governments arrangements and associated structures.
+
+ July                 3.0        Replaces AGCMF (Version 2.3) and reflects the Government’s response
+ 2021                            to the Royal Commission into National Natural Disaster Arrangements.
+                                 3.1 Administrative updates to describe the Australian Government
+                                 National Joint Common Operating Picture and Australian Public Service
+                                 Surge Reserve and provide updated detail on the handover arrangements
+                                 from Emergency Management Australia to National Recovery and
+                                 Resilience Agency.
+                                 3.2 Replaces AGCMF (Version 3.1) and reflects updated administrative
+                                 arrangements including the establishment of the National Emergency
+                                 Management Agency.
+                                 3.3 Replaces AGCMF (Version 3.2) and reflects updated administrative
+                                 arrangements including the addition of a Cyber Incident annex.
+
+ September            4.0        Replaces AGCMF (Version 3.3) and incorporates significant reforms
+ 2024                            reflecting the Australian Government’s response to the 2023 Review
+                                 of the Australian Government Crisis Management Framework.
+
+ September            4.1        Replaces AGCMF (Version 4.0) and reflects minor administrative updates.
+ 2025
+
+
+
+1 | Australian Government Crisis Management Framework
+Contents
+Introduction4
+    Purpose5
+    Australian, state and territory governments                   6
+        What is a crisis under the Framework?                     7
+        Triggers for Australian Government crisis coordination    7
+    Principles8
+        Administrative arrangements                               8
+    Hierarchy of documents                                        9
+    Australian Government Crisis Management Continuum            10
+    Scope of crisis coordination within the Continuum            11
+    Australian Government assistance                             12
+        Financial assistance                                     12
+        Non-financial assistance                                 12
+        International assistance                                 12
+
+Preparedness14
+    Crisis Arrangements Committee                                16
+    Australian Government crisis capabilities                    16
+        Situational awareness                                    16
+        Crisis Appreciation and Strategic Planning               17
+        Australian Government Crisis Coordination Team           18
+        Crisis surge workforce                                   18
+        Exercising18
+    Continuous improvement                                       19
+    Review and update of the Framework                           19
+
+Crisis coordination                                              20
+    Coordination functions                                       21
+    A 4-tier model for crisis coordination                       23
+
+
+
+
+2 | Australian Government Crisis Management Framework
+    Roles and responsibilities                                               24
+        The Prime Minister                                                   29
+        Department of the Prime Minister and Cabinet                         29
+        National Emergency Management Agency                                 30
+    Decision-making and coordination mechanisms                              31
+        The National Security Committee of Cabinet                           32
+        National Coordination Mechanism                                      32
+        Australian Government NCM                                            35
+        Capabilities that support the NCM                                    35
+        Inter-Departmental Emergency Task Force                              36
+        Portfolio-based mechanisms                                           36
+        Special and temporary mechanisms                                     36
+        Strategic crisis policy coordination                                 37
+    Coordination for extreme to catastrophic crises (Tier 4)                 38
+        Coordination arrangements                                            39
+
+Recovery40
+    Recovery planning                                                        42
+    Longer-term recovery                                                     42
+
+Key legislation                                                              44
+
+Appendices46
+    Appendix A                                                               47
+        Designated Lead Ministers, Lead Coordinating Senior Officials and
+        Australian Government Coordinating Agencies for identified hazards   47
+    Appendix B                                                               55
+        Cross-sectoral all-hazards plans and arrangements                    55
+    Appendix C                                                               56
+        Abbreviations56
+
+
+
+
+3 | Australian Government Crisis Management Framework
+Introduction
+
+
+
+
+Australian Medical Assistance Team (AUSMAT)
+(National Critical Care and Trauma Response Centre)
+Purpose
+The Australian Government Crisis Management Framework (the Framework) is the Australian
+Government’s capstone policy framing Australia’s national crisis management arrangements.
+The Framework takes an all-hazards approach to crisis management, recognising the need
+for consistency across the Australian Government’s crisis management systems in preparation
+for the full spectrum of hazards that may affect life, property or the natural environment.
+The Framework outlines how the Australian Government prepares for, responds to
+and supports recovery from crises by:
+  • providing an overview of the Australian Government crisis management arrangements
+  • outlining the Australian Government’s approach to crisis preparedness, including crisis
+    preparedness arrangements and capabilities
+  • articulating the requirements for Australian Government responses spanning near-term
+    preparedness, response, relief and early recovery by:
+       ◦ designating the lead Australian Government ministers, senior officials and agencies
+         required to coordinate responses to identified hazards
+       ◦ outlining the roles and responsibilities of Australian Government ministers
+         and senior officials
+       ◦ detailing the approach to coordination for extreme to catastrophic crises.
+The Framework focuses on crisis management arrangements for identified hazards (see
+Appendix A on p. 47). Within the context of the Australian Government Crisis Management
+Continuum (p. 10), the Framework does not address prevention, longer-term recovery,
+reconstruction and risk reduction. It is not intended for crises predominately managed by policy
+intervention, including financial and economic crises.
+The Framework underpins Australian Government responses to crises that occur within
+Australia, including Indian Ocean Territories, Norfolk Island and the Jervis Bay Territory,
+as well as to crises that affect Australians and Australian interests overseas.
+The Framework is intended for Australian Government ministers and senior officials with
+a role in crisis management. An accompanying Handbook to the Australian Government Crisis
+Management Framework (the Handbook) provides principles-based guidance for senior
+officials and their agencies on how to apply the Framework.
+The Framework designates the following roles for each identified hazard:
+  • Lead Minister
+  • Australian Government Coordinating Agency
+  • Lead Coordinating Senior Official.
+For more details on these roles, see the Principles section on p. 8 and the Roles and
+responsibilities section on p. 24.
+
+
+
+
+5 | Australian Government Crisis Management Framework
+   The Framework outlines arrangements to support whole of Australian Government and
+   national coordination in response to crisis. Whole of Australian Government coordination
+   encompasses all Australian Government portfolios while national coordination refers
+   to the inclusion of all government jurisdictions and other key stakeholders as relevant.
+   Australian Government agencies work across both whole of Australian Government
+   and national coordination.1
+
+
+
+
+Australian, state and territory governments
+Australia’s states and territories are the first responders to incidents that occur within their
+jurisdictions. States and territories are responsible for crisis management at the jurisdictional
+level, including preparedness, response, relief and recovery.
+The Australian Government does not seek to replicate the capabilities of states and
+territories. However, the Australian Government possesses strategic and operational
+capabilities that can ensure decisive action is taken during significant crises. The Australian
+Government seeks to harness national resources and ensure they are applied in appropriate,
+proportionate and equitable ways to secure the safety of all Australians.
+The Australian Government:
+   • provides shared situational awareness and support to states and territories when
+     coordinated assistance is requested
+   • undertakes and improves coordination of threat and security risk assessments
+     and provides national security capabilities for significant crises
+   • supports a state or territory where, in the judgement of the Australian Government
+     and following consultation with relevant jurisdictions where practicable, the nature of
+     a crisis has or is expected to exceed the sovereign capacities of that state or territory
+   • jointly manages a crisis with states and/or territories if a crisis has the potential to
+     affect, or has affected, multiple jurisdictions, the broader community or an Australian
+     Government area of responsibility (such as the international dimension of a crisis)
+   • protects Australians and Australian interests overseas
+   • manages a crisis that is not the responsibility of states and territories
+   • works with states, territories, industry and the public to build national resilience
+     against future hazards, particularly those with national consequences
+   • provides financial assistance to eligible Australian residents who are adversely
+     affected by a crisis.
+
+
+
+
+1 ‘Australian Government’ refers to government entities commonly described as ‘federal’ or ‘Commonwealth’, such as the
+  Australian Government Department of Education. ‘National’ is broader in scope – it includes the Australian Government, state
+  and territory governments, local governments, industry, civil society and any other entities that have interests in a crisis.
+
+6 | Australian Government Crisis Management Framework
+    What is a crisis under the Framework?
+
+    For the purpose of this Framework, a crisis is an event that requires an immediate
+    Australian Government response outside business-as-usual arrangements to manage
+    potential or realised acute consequences and mitigate further harm. A crisis may:
+     • be natural, human-induced2 or technology-caused
+     • cause wide-ranging harmful impacts across multiple sectors or jurisdictions within
+       Australia, or significant impacts on any sector or jurisdiction, either immediately
+       or over time
+     • adversely impact Australian lives, property and the environment, or our national
+       security, interests or assets
+     • significantly impact Australian Government interests or assets, such as critical
+       infrastructure or Australian Government services
+     • affect Australians or Australian interests overseas
+     • affect public trust in government institutions.
+    Crises by nature are difficult to predict and are associated with high levels of uncertainty.
+    As each crisis will present unique challenges of varying severity and complexity, there
+    is no standardised response. The Framework articulates the Australian Government’s
+    scalable approach to managing these challenges.
+
+
+
+
+Triggers for Australian Government crisis coordination
+Triggers to activate Australian Government crisis coordination arrangements set out
+in this Framework may include:
+    • an event meeting the definition of a crisis above
+    • formal ministerial consideration of the crisis event(s)
+    • community expectations of national leadership during the crisis
+    • requests for assistance from affected states, territories or countries
+    • multiple crises occurring simultaneously or compounding and escalating in complexity
+      which require national coordination, resource prioritisation and de-confliction.
+This Framework and the Handbook set out a 4-tier model of crisis coordination to support
+the application of crisis management arrangements. The Handbook provides guidance on
+assessing crisis events in the context of the tiers model.
+
+
+
+
+2   This includes health and biosecurity events.
+
+7 | Australian Government Crisis Management Framework
+Principles
+The Framework is underpinned by the following principles and administrative arrangements
+to assist Australian Government decision-makers navigate priorities and decision-making
+in time-limited and challenging situations. These principles and arrangements should be
+considered and applied in all supporting documents identified in the Framework’s hierarchy
+of documents, including all national plans (see Figure 1).
+The Framework:
+   • contributes to:
+     ◦ protecting lives and reducing harm
+     ◦ protecting property and the environment and safeguarding national interests and assets
+     ◦ providing national leadership and maintaining public trust and confidence in
+         government systems
+     ◦ national capability sharing and prioritisation
+     ◦ continual improvement
+   • promotes a unity of effort across Australian, state and territory governments,
+     civil society and the private sector
+   • acknowledges human rights considerations to ensure that measures enacted during
+     crises are necessary, reasonable and proportionate
+   • acknowledges community at the core of response and recovery and the consideration
+     of the needs of Australians who may be disproportionately at risk of harm
+   • acknowledges the importance of recognising and engaging with First Nations people
+     and their communities before, during and after crises
+   • supports near-term crisis planning and preparedness, immediate crisis response and
+     early recovery arrangements for events that impact Australians and Australian interests,
+     domestically and internationally
+   • is underpinned by the principle of subsidiarity3 and supports state and territory
+     government crisis response and early recovery
+   • takes an all-hazards approach to crisis management
+   • is for significant imminent, current and future crises
+   • is a scalable and adaptable model that supports a coordinated approach across
+     domestic and international crises.
+
+
+Administrative arrangements
+The establishment of the roles of Lead Minister, Australian Government Coordinating
+Agency and Lead Coordinating Senior Official (p. 24) under the Framework does not
+displace the existing executive responsibilities of ministers and senior officials. During a
+crisis, ministers and senior officials retain their statutory powers, with agencies and officials
+continuing to report to their respective ministers. This applies across all tiers of crisis
+coordination.
+The 4-tier model of crisis coordination (p. 23) describes an overarching approach to whole
+of Australian Government coordination. It does not supersede sector-specific responsibilities,
+authority or the operational descriptors used to classify the level of crisis response
+(for example, as set out in national plans).
+
+3 Subsidiarity refers to the proximity of government to the community. The principle of subsidiarity is a core feature of federalism.
+  Under a federal system such as in Australia, powers are distributed between a central government and regional governments.
+
+8 | Australian Government Crisis Management Framework
+Hierarchy of documents
+A hierarchy of documents underpins the Australian Government’s crisis management
+arrangements. Documents subordinate to the Framework must align with the Framework
+in describing their specific arrangements.
+
+
+
+
+                                                                         Framework
+
+
+
+                                                                          Handbook
+
+
+
+                                                                      National Plans
+
+
+
+                                                        Sub-Sector Operational Plans
+
+
+
+                                                                SOPs and Templates
+
+
+
+
+Figure 1. The hierarchy of documents
+
+  • The Framework is the Australian Government’s capstone policy framing Australia’s
+    national crisis management arrangements. It is maintained by the Department of
+    the Prime Minister and Cabinet (PM&C).
+  • The Handbook complements the Framework and provides principles-based crisis
+    management guidance for senior officials. It is maintained by PM&C.
+  • National plans for hazards identified in this Framework articulate the hazard-specific
+    coordination arrangements, their linkages to Australian Government coordination
+    arrangements, relevant legislation and application of the principles of this Framework.
+    These plans are maintained by relevant Australian Government agencies.
+  • Sub-sector operational plans, where required, articulate operational requirements,
+    responsibilities and governance for specific types of incidents within a sector.
+    They are maintained by the relevant portfolio agencies and aligned to relevant
+    national plans.
+  • Standard operating procedures (SOPs) and templates support consistent responses
+    across Australian Government agencies. They are maintained by the relevant
+    portfolio agencies.
+A list of national plans for identified hazards in this Framework can be found in Appendix A
+(p. 47). Sub-sector operational plans are referenced within relevant national plans.
+The National Emergency Management Agency (NEMA) maintains guidance to support
+Australian Government agencies in developing, reviewing and maintaining their plans.
+
+9 | Australian Government Crisis Management Framework
+Australian Government Crisis Management Continuum
+
+                                     Crisis coordination spanning
+                      near-term preparedness, response, relief and early recovery
+
+
+
+   Prevention         Preparedness      Response           Relief            Recovery           Reconstruction   Risk reduction
+
+
+
+
+Figure 2. Phases of the Australian Government Crisis Management Continuum
+
+The Australian Government’s Crisis Management Continuum (Continuum) comprises 7 phases:
+1. Prevention refers to measures to eliminate or reduce the severity of a hazard or crisis,
+   and/or the likelihood of a hazard or crisis occurring. Prevention is not covered by
+   this Framework.
+2. Preparedness refers to arrangements to ensure that, should a crisis occur, the required
+   resources, capabilities and services can be efficiently mobilised and deployed. Near-term
+   preparedness recognises the need to rapidly prepare for an imminent crisis. For more
+   detail on preparedness, refer to the Australian Disaster Preparedness Framework.4
+3. Response refers to immediate actions taken to ensure that crisis impacts and
+   consequences are minimised, and that those affected are supported as quickly
+   as possible.
+4. Relief refers to meeting the essential needs of food, water, shelter, energy,
+   communications and essential medical services for those affected by a crisis event.
+5. Recovery refers to early and longer-term measures to restore or improve the livelihoods,
+   health, economic, physical, social, cultural and environmental assets, systems and
+   activities, of a disaster-affected community or society. Early recovery includes temporary
+   and near-term measures to support anticipated community needs. Recovery measures
+   should align with the principles of sustainable development and ‘build back better’5 to
+   avoid or reduce future disaster risk6.
+6. Reconstruction refers to implementing longer-term strategies post-incident to ‘build
+   back better’ from a crisis, including identifying sustainable development approaches and
+   mitigation measures that may be applicable beyond the directly affected community.
+   Reconstruction is not covered by this Framework.
+7. Risk reduction refers to reducing future risk by identifying and enacting measures that
+   may be taken to reduce the impacts and consequences of future crises. Risk reduction is
+   not covered by this Framework. Refer to the National Disaster Risk Reduction Framework7
+   for more information.
+
+4 The Australian Disaster Preparedness Framework is available at:
+  https://www.homeaffairs.gov.au/emergency/files/australian-disaster-preparedness-framework.pdf
+5 A definition of ‘build back better’ is available at: https://www.undrr.org/terminology/build-back-better
+6 This is defined by the United Nations Office for Disaster Risk Reduction (UNDRR) at:
+  https://www.undrr.org/terminology/recovery
+7 The National Disaster Risk Reduction Framework is available at:
+  https://www.nema.gov.au/sites/default/files/2024-08/national-disaster-risk-reduction-framework.pdf
+
+10 | Australian Government Crisis Management Framework
+Across the Continuum, resilience refers to the ability of a system, community or society
+exposed to hazards to resist, absorb, accommodate, adapt to, transform and recover from
+the effects of a hazard in a timely and efficient manner, including through the preservation
+and restoration of its essential basic structures and functions through risk management.8
+The Australian Institute for Disaster Resilience (AIDR) publishes a collection of handbooks that
+provide guidance on national principles and practices for crisis resilience, including elements
+of the 7 phases of the Continuum.9
+
+
+Scope of crisis coordination within the Continuum
+This Framework establishes arrangements and capabilities to support crisis coordination
+during the phases of near-term preparedness, response, relief and early recovery.
+These arrangements and capabilities are the primary focus of the Framework, which seeks to
+provide clear and robust arrangements to support rapid and effective Australian Government
+and national coordination during crisis. The full spectrum of the preparedness and recovery
+phases are also considered, acknowledging that phases of the continuum do not stand in
+isolation of each other.
+
+
+                                  Crisis coordination spanning
+                   near-term preparedness, response, relief and early recovery
+
+
+
+
+  Preparedness                     Response                        Relief                           Recovery
+
+
+
+
+Figure 3. The phases on which this Framework focuses
+
+
+
+
+8 As defined by the United Nations Office for Disaster Risk Reduction (UNDRR): https://www.undrr.org/terminology/resilience
+9 The AIDR Handbook Collection is available at: https://knowledge.aidr.org.au/collections/handbook-collection/
+
+11 | Australian Government Crisis Management Framework
+Australian Government assistance
+
+Financial assistance
+The Australian Government may provide financial assistance to states and territories
+to support prevention and preparedness activities.
+The Australian Government may provide financial assistance to states and territories
+for eligible response, recovery and resilience activities through programs such as the
+Disaster Recovery Funding Arrangements (DRFA).
+
+The Australian Government may directly support eligible individuals through programs
+such as the:
+  • Australian Government Disaster Recovery Payment (AGDRP)10
+  • Disaster Recovery Allowance (DRA)11
+  • Australian Victim of Terrorism Overseas Payment (AVTOP).12
+
+
+Non-financial assistance
+The Australian Government may provide non-financial assistance to states and territories to
+support preparedness activities, including planning advice and crisis management exercises.
+The Australian Government may receive requests for or offer non-financial assistance to
+affected countries, states and/or territories.
+Australian Government agencies may provide specific capabilities from within their portfolio
+to assist with a crisis response. Where possible, this assistance should be facilitated through
+Australian Government national plans.
+
+
+International assistance
+The Australian Government has the capacity to rapidly deploy humanitarian assistance to
+countries when they ask for help during crises. Australia’s humanitarian assistance is led by
+the Department of Foreign Affairs and Trade (DFAT) and focuses on helping communities
+and governments prepare for, and respond to, disasters.
+Where a foreign government requests, or is offered, Australian assistance, the deciding
+minister is responsible for the costs incurred, including if the minister has agreed to the
+deployment of state and territory resources. This is the case unless other arrangements
+are established or specified in an Australian Government national plan listed in Appendix A.
+
+
+
+
+10 Details of the AGDRP are available at: https://www.disasterassist.gov.au/disaster-arrangements/disaster-recovery-payment
+11 Details of the DRA are available at: https://www.disasterassist.gov.au/disaster-arrangements/disaster-recovery-allowance
+12 Details of the AVTOP are available at:
+   https://www.disasterassist.gov.au/disaster-arrangements/australian-victim-of-terrorism-overseas-payment
+
+12 | Australian Government Crisis Management Framework
+  Australian Aid (Department of Defence)
+
+
+13 | Australian Government Crisis Management Framework
+Preparedness
+  Preparedness                   Response                       Relief                         Recovery
+
+
+
+
+Figure 4. The preparedness phase of the Continuum
+
+Preparedness refers to the activities that build the capabilities and capacity needed to
+efficiently manage crises and effectively transition from response to sustained recovery.
+Australian Government agencies should ensure they build and maintain a sufficient level
+of crisis preparedness.
+Near-term preparedness refers to a period within the preparedness phase of the continuum
+that requires senior officials and agencies to rapidly prepare to respond to forecast or
+potential impacts and consequences of an imminent crisis. This period could be marked by
+a sudden shift in the crisis threat environment generating potential for significant and acute
+consequences to Australia or Australian interests. The principle of ‘speed to action, speed
+to decision’ would now drive preparedness and response behaviours and an increased
+level of coordination actions across government would be expected.
+The Lead Minister is responsible for ensuring their portfolio is prepared to coordinate whole
+of Australian Government responses to significant crises, including familiarity with relevant
+legislation and sufficient staffing capacity or surge arrangements. The Lead Coordinating
+Senior Official is responsible for ensuring their agency (as the Australian Government
+Coordinating Agency) is prepared.
+To maintain crisis preparedness, the Australian Government Coordinating Agency is
+responsible for developing, maintaining, exercising and evaluating the capabilities required
+to coordinate Australian Government responses to the hazard(s) designated to the agency.
+These capabilities include:
+  • a national plan for each identified hazard designated to the agency by this Framework
+    (see Appendix A on p. 47)
+  • sector-specific crisis coordination mechanisms and arrangements
+  • a trained workforce with appropriate security clearances
+  • planning capability and familiarity with relevant crisis tools
+  • systems and processes used in crisis management.
+The Australian Disaster Preparedness Framework can help to inform the strategic
+governance, policy and investment required to support national disaster preparedness.13
+
+
+
+
+13 The Australian Disaster Preparedness Framework is available at:
+   https://www.homeaffairs.gov.au/emergency/files/australian-disaster-preparedness-framework.pdf
+
+15 | Australian Government Crisis Management Framework
+Crisis Arrangements Committee
+The Crisis Arrangements Committee (CAC) is the peak Australian Government senior
+officials’ crisis management preparedness committee. It has a role in ensuring that
+Australian Government operational crisis planning and preparedness activities are undertaken
+to address any identified critical gaps and that crisis arrangements remain fit-for-purpose
+in a changing threat environment. The CAC:
+  • annually reviews and updates the list of identified hazards in the Framework
+  • oversees the development of new national plans when required
+  • oversees the maintenance of national plans and arrangements and the review of the full
+      suite of national plans at least once every 3 years for ongoing relevance, currency and
+      alignment with the Framework
+  • annually reviews and reports to departmental secretaries on the status of cross-
+      government crisis management capability, capacity and surge workforce, and provides
+      advice if required to address vulnerabilities
+  • oversees Australian Government and relevant multinational crisis exercises and advises
+      departmental secretaries on gaps and priorities for whole of Australian Government
+      exercising
+  • where a significant crisis prompted Tier 3 or 4 coordination, considers the outcomes
+      of the whole of Australian Government evaluation to ensure identified lessons are
+      integrated into continuous improvement processes across the Australian Government.
+
+
+Australian Government crisis capabilities
+Australian Government agencies maintain capabilities to operationalise their designated roles
+under national plans. The Australian Government also maintains a number of capabilities
+to support whole of Australian Government and national coordination. These capabilities
+enhance situational awareness, coordination and response during a significant crisis,
+and complement existing state and territory capabilities.
+
+Situational awareness
+Whole of Australian Government situational awareness supports decision-making by ministers
+and senior officials to prioritise resources during a crisis and provide up-to-date information
+to the public.
+The Australian Government National Situation Room (NSR) provides 24/7 all-hazards
+situational awareness, impact analysis and decision support capability, through its crisis
+operations, anticipatory analysis and planning capabilities. Australian Government agencies,
+states and territories may be invited to deploy a liaison officer into the NSR to facilitate
+coordination, collaboration, and communication between the Australian Government and
+affected jurisdictions.
+The National Joint Common Operating Picture (NJCOP) is managed by the NSR and
+provides a near real time, all-hazards platform designed to display all active significant crisis
+events. It provides a shared and common understanding both nationally and across borders
+during crisis events.
+Both the NSR and the NJCOP are managed by the National Emergency Management Agency
+(NEMA) on behalf of the Australian Government.
+
+16 | Australian Government Crisis Management Framework
+  The National Situation Room and the NJCOP (NEMA)
+
+
+DFAT’s Australian Government Global Watch Office (GWO) operates 24/7 to support the
+Australian Government’s capacity to monitor and respond to emerging international events
+and crises that may have consequences for Australians or Australian interests overseas.
+GWO reporting and analysis provides situational awareness and informs whole of Australian
+Government messaging on evolving events, while also supporting diplomatic posts in the
+event of a crisis. The GWO issues alerts and situation reports based on advice provided by
+Australian diplomatic posts and the insights available through aggregated consular data.
+DFAT will activate its Crisis Centre (CC) for significant and ongoing international crises,
+embedding any agencies that have equity in the whole of government response.
+
+
+Crisis Appreciation and Strategic Planning
+The Crisis Appreciation and Strategic Planning (CASP)14 methodology is a structured,
+systematic methodology that uses strategic and critical thinking and conceptualises the
+big picture in crisis planning. It supports practitioners to manage challenges including
+concurrent events, consequences of uncertainty and complexity. It can be used by
+Australian, state and territory governments to conduct strategic planning and informs
+crisis decision-making at all levels.
+
+
+
+
+14 The CASP Guidebook is available at:
+   https://www.nema.gov.au/sites/default/files/2024-09/CASP%20Guidebook%20-%20version%201.4%20August%202024.PDF
+
+17 | Australian Government Crisis Management Framework
+Australian Government Crisis Coordination Team
+An Australian Government Crisis Coordination Team (CCT) can be established by NEMA to
+support coordination of Australian Government actions, in line with the strategic intent set
+by the National Coordination Mechanism (NCM). It may bring together representatives from
+relevant Australian Government agencies, as well as other key stakeholders and employs the
+CASP methodology to support strategic planning activities and decision support products.
+
+
+Crisis surge workforce
+Australian Government Coordinating Agencies are responsible for maintaining a surge
+cohort of appropriately trained staff with appropriate security clearances to coordinate and
+respond to a crisis.
+There will be times when there is a requirement for staff to surge across the public service
+to support response activity. The Australian Public Service Commission (APSC) maintains a
+surge reserve that mobilises Australian Public Service (APS) staff in large numbers to respond
+to significant crises when required. Any agency may request this capability from the APSC.
+
+
+Exercising
+The Australian Government regularly conducts crisis exercises to ensure the preparedness
+of relevant Australian Government agencies for crisis response. This Framework and
+the Handbook are tested as part of these exercises with a focus on coordination
+arrangements for extreme to catastrophic crises (p. 38), escalation pathways and
+related coordination mechanisms.
+NEMA delivers an annual national crisis exercising program, maintains shared awareness
+across government agencies of national crisis exercises, and reports on insights and learnings
+from exercises, to inform future preparedness, policy and capability requirements.
+The Department of Home Affairs, through the Australia-New Zealand Counter-Terrorism
+Committee (ANZCTC), manages the Counter-Terrorism National Tiered Exercise Program in
+partnership with states and territories. This program validates and strengthens Australia’s
+national counter-terrorism capabilities to support counter-terrorism prevention, preparedness
+and response.
+The NEMA and ANZCTC programs deliver whole of government crisis exercising and build
+national exercising capability through complementary capability development programs.
+Agencies across the Australian Government also deliver crisis exercising and capability
+development for identified hazards and sectoral responses.
+Agencies with crisis management responsibilities under the Framework are required to
+regularly exercise their national plans and arrangements. Agencies identified as owners
+of national plans and arrangements under the AGCMF (see Appendix A and B) will, where
+appropriate, share their intent to exercise and the exercise outcomes for those plans and
+arrangements with Australian Government agencies. The information will be shared with
+agencies through the CAC to support collaboration, shared efficiencies and identify gaps
+in national preparedness for continuous improvement.
+
+
+
+18 | Australian Government Crisis Management Framework
+  The National Preparedness Summit at Australian Parliament House in 2023
+
+
+
+
+Continuous improvement
+Continuous improvement practices draw on learnings from evaluation of exercising and crisis
+events. These learnings are used to identify opportunities for continuous improvement of
+crisis management plans and arrangements to enhance crisis management preparedness.
+The Australian Government conducts evaluation of its crisis management activities to ensure
+lessons are identified and integrated into whole of Australian Government continuous
+improvement practices.
+Within 12 months of a significant crisis prompting Tier 3 or 4 crisis coordination, the
+Australian Government Coordinating Agency will conduct a whole of Australian Government
+evaluation. The outcomes of the evaluation should be distributed across the Australian
+Government and reported to the CAC to ensure identified lessons are integrated into
+continuous improvement processes managed through the CAC.
+
+
+Review and update of the Framework
+This Framework and the Handbook are reviewed annually. A comprehensive review will occur
+every 5 years, as well as following significant or novel crises. An administrative review will be
+conducted in all other years and may be prompted by machinery of government changes.
+The appropriate Deputy Secretary PM&C maintains editorial control over the Framework
+on behalf of the Australian Government. Updates to the Framework will be coordinated by
+PM&C in close consultation with NEMA and other Australian Government agencies. Updates
+to the Framework will be released prior to the annual Higher Risk Weather Season and, where
+necessary, updates may be issued outside this cycle. It is intended that wherever possible,
+changes to the Framework will be avoided during extended periods of high operational activity.
+
+
+
+19 | Australian Government Crisis Management Framework
+Crisis
+coordination
+                                 Crisis coordination spanning
+                  near-term preparedness, response, relief and early recovery
+
+
+
+
+  Preparedness                   Response                  Relief                     Recovery
+
+
+
+
+Figure 5. Crisis coordination spans near-term preparedness, response,
+relief and early recovery
+
+A critical purpose of the Framework is articulating Australian Government coordination
+requirements for the near-term preparedness, response, relief and early recovery phases
+of the Continuum (see Figure 2). During these phases, actions are taken in anticipation of,
+during or immediately after a crisis to ensure that its effects are minimised and that those
+affected are given relief and support as quickly as possible.
+To support this, the Framework:
+  • sets out the role of the tiered model for coordination
+  • designates lead Australian Government ministers and agencies required to coordinate
+    responses to identified hazards
+  • outlines the roles and responsibilities of Australian Government ministers and senior officials
+  • details the approach to coordination for extreme to catastrophic crises.
+
+
+Coordination functions
+
+ Coordination functions for near-term preparedness, response, relief and early recovery
+
+Situational          Monitor              Convene         Crisis          Strategic       Continuous
+awareness            impacts and          crisis forums   communication   planning        improvement
+                     consequences                         and public
+                                                          messaging
+
+
+Figure 6. Coordination functions
+
+
+
+
+21 | Australian Government Crisis Management Framework
+The Lead Coordinating Senior Official performs functions to support near-term
+preparedness for, response to and early recovery from crisis (see Figure 6), including:
+  • facilitating near real time shared situational awareness across the Australian
+    Government (using situation reports and relevant forums)
+  • monitoring impacts and consequences of the crisis across all sectors
+  • convening crisis forums
+  • coordinating a whole of Australian Government crisis communication strategy and
+    ensuring dissemination of whole of Australian Government crisis communication
+    products and public information (including whole of government talking points)
+  • conducting strategic planning to:
+       ◦ identify Australian Government equities
+       ◦ establish and facilitate agreement to whole of Australian Government coordination
+         priorities and objectives, response requirements and responsibilities
+       ◦ coordinate cross-government advice to relevant ministers
+  • conducting a post-incident evaluation of significant crises to inform continuous
+    improvement of Australian Government capabilities and arrangements.
+
+
+   During crisis, coordination efforts by the Australian Government should:
+     • provide senior officials with an accurate and unified picture of the crisis
+     • support decision-making by ministers and key decision-making bodies
+     • ensure consistent public messaging and information
+     • maintain public safety and trust in government institutions
+     • ensure ministerial directions are effectively implemented across government
+     • de-conflict government actions and support effective resource prioritisation.
+
+
+
+
+  Assisted departure from the Occupied Palestinian Territories (DFAT)
+
+
+22 | Australian Government Crisis Management Framework
+A 4-tier model for crisis coordination
+The Australian Government uses a 4-tier approach to guide and support appropriate
+and consistent levels of coordination in response to crises.
+There is no standardised response to crises. Every crisis is unique and will present different
+challenges. As the nature of a crisis changes over time, the Australian Government must be
+able to shift and adapt its coordination in accordance with the severity and complexity of
+the impacts and consequences.
+The Australian Government’s 4-tier crisis coordination model helps Australian Government
+ministers and officials to consider the severity and complexity of a crisis, its impacts and
+consequences, and to:
+   • determine the appropriate crisis coordination and decision-making needs and
+     the appropriate mechanisms to respond to these needs
+   • decide when to escalate or de-escalate the tier of crisis coordination
+   • manage responses to both a crisis and its consequences as they become clear
+  • adjust the coordination over time if required by evolving impacts and consequences,
+     including the ability to change the Lead Minister and Australian Government
+     Coordinating Agency.
+The Handbook provides Lead Coordinating Senior Officials with principles-based crisis
+management guidance, including the application of the 4-tier model.
+
+
+
+
+                               Support            Coordinated            Coordinated       Coordinated
+                               from the             by the                 by the            by the
+                              Australian           Australian             Australian        National
+                             Government           Government             Government        Emergency
+                             Coordinating         Coordinating           Coordinating      Management
+                                Agency              Agency                 Agency            Agency
+
+
+
+
+                              Tier 1              Tier 2                 Tier 3            Tier 4
+
+                                                                                            Extreme to
+                                Limited              Major                  Severe
+                                                                                           catastrophic
+                               impact/              impact/                impact/
+                                                                                             impact/
+                              complexity           complexity             complexity
+                                                                                            complexity
+
+
+
+
+                                                        Severity and complexity
+
+
+
+
+Figure 7. The Australian Government’s 4-tier crisis coordination model15
+
+
+15 The tiers of coordination refers to the scale of Australian Government coordination required. The severity and complexity
+   of a crisis would influence the scale of coordination required among other factors, and therefore influence how the tier of
+   coordination is determined.
+
+23 | Australian Government Crisis Management Framework
+Roles and responsibilities
+An important function of this Framework is articulating the roles and responsibilities
+of Australian Government ministers and senior officials. During a significant crisis, clarity
+of purpose and priorities is crucial for ensuring that an Australian Government response
+is aligned and effective, and sustains community trust.
+This Framework designates Lead Ministers, Australian Government Coordinating Agencies
+and Lead Coordinating Senior Officials for identified hazards. Where there are concurrent
+events (including multiple hazards) with converging consequences and priorities,
+or there is no clearly identified hazard (see Appendix A on p. 47), PM&C will work with
+NEMA and relevant Australian Government agency officials to identify an appropriate
+Australian Government Coordinating Agency, dependent on the realised or likely impacts
+and consequences of the hazard(s) and required Australian Government capabilities.
+To facilitate a consistent approach, definitions for the key roles are provided below.
+  • A Lead Minister is the Australian Government minister responsible for leading
+    coordination in response to a significant crisis (or concurrent crises with converging
+    consequences) caused by one or more identified hazards under this Framework.
+  • An Australian Government Coordinating Agency is the agency required to lead the
+    coordination across the Australian Government for a significant crisis (or concurrent
+    crises with converging consequences) caused by one or more identified hazards under
+    this Framework. This agency also leads the consequence management16 activities within
+    its agency functions and sector-specific responsibilities.
+       ◦ Subject to agreement, an Australian Government Coordinating Agency can change
+         during a crisis should the impacts evolve over time to predominantly affect
+         a different Australian Government portfolio or where NEMA assumes the role.
+       ◦ Following a change, the former Australian Government Coordinating Agency would
+         become a Sector Lead Agency and continue to lead the consequence management
+         activities within its agency functions and sector-specific responsibilities including
+         their national plan phase changes.
+  • A Lead Coordinating Senior Official is the designated senior official within an
+    Australian Government Coordinating Agency who is responsible for leading the
+    Australian Government coordination for a significant crisis (or concurrent crises
+    with converging consequences).
+  • A Sector Lead Agency is an Australian Government agency that contributes to whole
+    of Australian Government crisis coordination activities and leads the consequence
+    management activities relevant to agency functions and sector-specific responsibilities.
+  • An Enabling Agency is an Australian Government agency that administers relevant
+    programs, provides specialist technical, scientific, intelligence or information
+    capabilities, service delivery, or conducts any other enabling activities to support
+    consequence management activities.
+
+
+
+
+16 Consequence management refers to a process undertaken to predict, identify, manage and minimise negative outcomes
+   and impacts from crises.
+
+24 | Australian Government Crisis Management Framework
+The establishment of the roles of Lead Minister, Australian Government Coordinating
+Agency and Lead Coordinating Senior Official under the Framework does not displace the
+existing executive responsibilities of ministers and senior officials. During a crisis, ministers
+and senior officials retain their statutory powers, with agencies and officials continuing to
+report to their respective ministers. This applies across all tiers of crisis coordination.
+
+Figure 8. Key roles and their responsibilities
+
+
+  Roles                 Responsibilities
+
+
+  Lead Minister         • Provides advice to the Prime Minister and the National Security Committee
+                          of Cabinet (NSC) (or other Committees of Cabinet) on whole of Australian
+                          Government crisis priorities and consequence management objectives.
+                        • Oversees a coordinated Australian Government response to crisis and
+                          coordinates ministerial activities by collaborating with other Australian,
+                          state and territory counterparts.
+                        • Exercises executive responsibilities and decision-making in consultation
+                          with Australian Government ministers with relevant interests.
+                        • Ensures there are systems and procedures available so that they
+                          are readily contactable.
+                        • Ensures their office maintains business continuity plans in the event
+                          that the office is affected directly by a crisis.
+                        • Acts as the key Australian Government spokesperson in alignment with
+                          a whole of Australian Government crisis communications strategy.
+                        • Records ministerial decisions and actions relevant to the crisis.
+
+
+  Other                 • Ensure their portfolios are prepared to support crisis coordination.
+  ministers             • Provide advice to the Prime Minister and the NSC (or other Committees
+                          of Cabinet) on Australian Government crisis priorities and objectives
+                          relevant to their respective portfolio responsibilities.
+                        • Oversee the consequence management activities of agencies within
+                          their portfolio.
+                        • Retain and execute executive responsibilities and decision-making in
+                          consultation with Australian Government ministers with relevant interests.
+                        • Record ministerial decisions and actions relevant to the crisis.
+
+
+
+
+25 | Australian Government Crisis Management Framework
+  Roles                 Responsibilities
+
+
+  Lead                  • Ensures that their agency (an Australian Government Coordinating Agency
+  Coordinating            designated under the Framework) is prepared and positioned to coordinate
+                          Australian Government actions in response to crisis or crises caused by
+  Senior
+                          their designated identified hazard(s)
+  Official              • Advises and supports the Lead Minister in executing the Lead Minister’s
+                          responsibilities.
+                        • Where the Lead Minister is the Prime Minister, advises and supports the
+                          Prime Minister through PM&C.
+                        • Assesses the level of crisis coordination required, and establishes, reviews
+                          and adapts the appropriate tier of coordination over the course of the crisis.
+                        • Maintains near real time situational awareness and monitors impacts and
+                          consequences of the crisis across all sectors, including awareness of
+                          Australian Government agencies’ capacity to coordinate response efforts.
+                        • Facilitates shared situational awareness across the Australian Government
+                          and nationally.
+                        • Facilitates agreement to whole of Australian Government coordination
+                          priorities and objectives.
+                        • Ensures coordination of cross-government advice to relevant ministers.
+                        • Engages and collaborates with counterparts in Sector Lead Agencies
+                          and Enabling Agencies to ensure the requirements under this Framework
+                          are being met.
+                        • Regularly convenes an overarching senior officials’ coordination forum during
+                          a crisis in collaboration with senior official responsible for the relevant forum.
+                        • In line with chairing arrangements, co-chairs the peak senior official’s crisis
+                          coordination committee and briefs NSC (or other Committee of Cabinet),
+                          as required.
+                        • Maintains clear lines of communication with the Lead Minister’s office.
+                        • Coordinates development of a whole of Australian Government crisis
+                          communications strategy and ensures the dissemination of crisis
+                          communications products and public information (such as whole
+                          of government talking points and briefing materials).
+                        • Coordinates strategic planning activities.
+                        • Maintains oversight of any requests for or offers of assistance received by
+                          Australian Government agencies from state, territory or foreign governments,
+                          coordinating with responsible agencies, including DFAT and NEMA.
+                        • Manages risks related to crisis coordination.
+                        • Engages with counterparts in states, territories and/or international jurisdictions
+                          as required, coordinating with responsible agencies including DFAT and NEMA.
+                        • As crisis coordination concludes, ensures transfer of any ongoing
+                          responsibilities and processes to relevant senior officials, agencies
+                          (including state and territory leads) and recovery coordination mechanisms.
+                        • Conducts post-response evaluation and supports integration of relevant lessons
+                          identified into the continuous improvement of the Australian Government’s crisis
+                          management arrangements, including plans and capabilities.
+                        • Maintains records of decisions and actions relevant to the crisis.
+
+
+
+
+26 | Australian Government Crisis Management Framework
+  Roles                 Responsibilities
+
+
+  Australian             • Monitors crisis events that may impact the interests and responsibilities
+  Government               of agencies across the Australian Government.
+  Coordinating           • Supports the Lead Coordinating Senior Official in making decisions
+  Agency                   and recommendations on the level of coordination and response required.
+                         • Harnesses capabilities and resources in line with coordination requirements
+                           from within the portfolio, and from other agencies when portfolio-managed
+                           options are insufficient.
+                         • Provides secretariat and convening functions for sector-specific committees.
+                         • Supports development and coordination of a whole of Australian
+                           Government crisis communications strategy and ensures the dissemination
+                           of crisis communications products and public information (such as whole
+                           of government talking points and briefing materials).
+                         • As crisis coordination concludes, supports the transfer of any continuing
+                           functions and responsibilities to relevant officials and agencies
+                           (including state and territory leads) and recovery coordination mechanisms.
+                         • Conducts post-response evaluation and supports integration of
+                           relevant lessons identified into the continuous improvement of the
+                           Australian Government’s crisis management arrangements, including plans
+                           and capabilities.
+                         • When a crisis occurs in an Australian External Territory, works with
+                           the Department of Infrastructure, Transport, Regional Development,
+                           Communications, Sport and the Arts (DITRDCSA) to coordinate
+                           crisis management.
+                         • Deploys liaison officers to the NSR, DFAT CC or other operations centres
+                           as required to support situational awareness.
+                         • Engages with counterparts in states, territories and/or international
+                           jurisdictions, coordinating with responsible agencies including NEMA
+                           and DFAT as required.
+                         • Maintains business continuity plans to ensure the agency can continue
+                           to perform its role if it is affected directly by a crisis.
+                         • Maintains records of decisions and actions relevant to the crisis.
+
+
+
+
+27 | Australian Government Crisis Management Framework
+  Roles                 Responsibilities
+
+
+  Sector Lead           • Monitors crisis events that may impact the agency’s interests and
+  Agency                  responsibilities.
+                        • Conducts sector-specific responses and consequence management
+                          activities within its own portfolio, including coordination across jurisdictional
+                          equities as required.
+                        • Deploys liaison officers to the NSR, DFAT CC or other operations centres
+                          as required to support shared situational awareness.
+                        • Proactively contributes to the whole of Australian Government crisis
+                          communications strategy, dissemination of crisis communications products
+                          and public information (such as whole of government talking points and
+                          briefing materials).
+                        • Engages with counterparts in states, territories and/or international
+                          jurisdictions, coordinating with responsible agencies including DFAT
+                          and NEMA as required.
+                        • Manages risks related to the consequence management activities within
+                          their own portfolios.
+                        • Maintains business continuity plans to ensure the agency can continue
+                          to perform its role if it is affected directly by a crisis.
+                        • Maintains records of decisions and actions relevant to the crisis.
+
+  Enabling              • Administers relevant programs.
+  Agency                • Provides specialist technical, scientific, intelligence or information
+                          capabilities.
+                        • Supports or conducts any other enabling activities, including service delivery,
+                          to support consequence management activities.
+                        • Deploys liaison officers to the NSR, DFAT CC or other operations centres
+                          as required to support shared situational awareness.
+                        • Proactively contributes to the whole of Australian Government crisis
+                          communications strategy, dissemination of crisis communications products
+                          and public information (such as whole of government talking points and
+                          briefing materials).
+                        • Engages with counterparts in states, territories and/or international
+                          jurisdictions as required, coordinating with responsible agencies including
+                          NEMA and DFAT.
+                        • Maintains business continuity plans to ensure the agency can continue
+                          to perform its role if it is affected directly by a crisis.
+                        • Maintains records of decisions and actions relevant to the crisis.
+
+
+
+
+28 | Australian Government Crisis Management Framework
+  The Prime Minister
+
+   Depending on the nature and scale of the crisis, the Prime Minister may decide to lead
+   some or all elements of the Australian Government’s preparation for, response to and
+   recovery from a crisis, including acting as the key Australian Government spokesperson.
+   When this occurs, the Prime Minister will undertake the Lead Minister role and advise
+   ministers which elements of coordination the Prime Minister will lead and which
+   elements the relevant portfolio minister will continue to lead, in line with the principles
+   of Cabinet Government.17 For a list of coordination responsibilities relevant to the Lead
+   Minister role, see Figure 8.
+   The Prime Minister may convene the NSC or other Committees of Cabinet as
+   the Prime Minister deems necessary. The Prime Minister may also convene the
+   National Cabinet at short notice to ensure coordinated action across Australian,
+   state and territory governments.
+   The Prime Minister may advise the Governor-General to make a national emergency
+   declaration (NED) in accordance with the National Emergency Declaration Act 2020.
+   The process for making a NED, including legal and consultation thresholds, is outlined
+   in the National Emergency Declaration Aide-Mémoire, maintained by PM&C.
+   The Prime Minister is the Lead Minister for Tier 4 coordination. The Prime Minister
+   may delegate the Lead Minister role to another minister. At Tier 4 where NEMA is
+   the Australian Government Coordinating Agency, NEMA will brief the Prime Minister
+   through PM&C.
+
+
+  Department of the Prime Minister and Cabinet
+   PM&C is responsible for the policy settings for whole of Australian Government crisis
+   management arrangements. It is responsible for maintaining this Framework and
+   the Handbook.
+   If required, PM&C can:
+     • initiate an Australian Government response
+     • determine the initial tier of coordination and adjust the tier over time
+     • determine the initial Australian Government Coordinating Agency
+     • co-chair the peak senior officials’ crisis coordination committee, including the NCM
+       or Inter-Departmental Emergency Task Force (IDETF)
+     • change the Australian Government Coordinating Agency and Lead Coordinating
+       Senior Official following consultation with relevant senior officials
+     • initiate escalation to NEMA-led coordination (see the Coordination for extreme
+       to catastrophic crises (Tier 4) section on p. 38).
+
+
+
+
+17 The principles of Cabinet Government can be found in the Cabinet Handbook at:
+   https://www.pmc.gov.au/government/administration/cabinet-handbook-15th-edition/cabinet-government-australia
+
+29 | Australian Government Crisis Management Framework
+  National Emergency Management Agency
+   NEMA is the custodian of Australian Government crisis capabilities that support
+   some or all elements of crisis coordination.
+   NEMA:
+     • administers the NCM on behalf of Australian Government agencies
+     • supports whole of Australian Government situational awareness through
+       the NSR and NJCOP
+     • supports Australian Government crisis management capabilities by providing
+       best practice guidance, including for preparatory and strategic planning,
+       crisis communication and recovery.
+
+   The Deputy Coordinator-General, Emergency Management and Response, NEMA
+   (DCG EMR NEMA) is responsible for Australian Government crisis preparedness,
+   response, relief, and transition to early recovery.
+   DCG EMR NEMA:
+     • chairs (or co-chairs) the NCM
+     • supports timely, accurate and coordinated decision making
+     • oversees the NSR.
+
+   NEMA is the Australian Government Coordinating Agency responsible for whole of
+   Australian Government coordination during extreme and catastrophic crises (Tier 4).
+   For more details, see the ‘Coordination for extreme and catastrophic crises (Tier 4)’
+   section on p. 38.
+   NEMA may also lead Tier 3 coordination at the request of the designated
+   Australian Government Coordinating Agency, subject to the designated Australian
+   Government Coordinating Agency demonstrating that response requirements are
+   beyond its coordination capacity or capability. PM&C may also initiate transition to
+   NEMA-led coordination.
+   NEMA is the default Australian Government Coordinating Agency when a crisis is
+   novel or not designated in the Framework, or when there are concurrent crises, until
+   such time as an appropriate Australian Government Coordinating Agency is agreed.
+   The Minister responsible for Emergency Management is the default Lead Minister
+   until such time that an appropriate Lead Minister is agreed.
+
+
+
+
+30 | Australian Government Crisis Management Framework
+Decision-making and coordination mechanisms
+Australian Government ministers and officials use various mechanisms to conduct crisis
+coordination, depending on the nature of the crisis. These mechanisms can rapidly bring
+relevant stakeholders together to ensure that the crisis response is aligned within the
+Australian Government as well as between governments and industry, and based on
+expert advice.
+These mechanisms are established as needed, in line with coordination requirements.
+Australian Government ministerial decisions may be supported through the NSC, the
+National Cabinet, or other ministerial forums deemed appropriate by the Prime Minister
+to address the requirements of the crisis.
+
+
+
+            Australian                                                  State and territory
+                                                      National
+           Government                                                      government
+                                                    coordination
+           coordination                                                    coordination
+
+
+
+                                                                          State and territory
+            Prime Minister                           National Cabinet       First Ministers
+
+
+
+
+             National Security
+          Committee of Cabinet                                            State and territory
+           (or other Committee                                                 cabinets
+                of Cabinet)
+
+
+
+
+     Inter-
+  Departmental                                                            State and territory
+                             National Coordination Mechanisms                committees
+   Emergency
+   Task Force
+
+
+
+
+               Australian                                                 State and territory
+              Government                                                      agencies
+               agencies
+
+
+
+
+              Agency-led
+              coordination
+              mechanisms
+
+
+
+
+Figure 9. Mechanisms to support decision-making during crisis coordination
+
+
+
+
+31 | Australian Government Crisis Management Framework
+The National Security Committee of Cabinet
+The NSC is the peak all-hazards crisis decision-making committee of Cabinet. During crises,
+the Australian Government can make time-critical ministerial decisions and coordinate
+responses through short-notice meetings of the NSC. Where NSC crisis considerations have
+implications for the portfolios of non-NSC ministers, the Prime Minister may agree to co-opt
+these ministers to the meeting. Where deemed appropriate by the Prime Minister, the chair(s)
+of the relevant peak senior officials’ crisis forum (NCM or IDETF) may be co-opted to the NSC to:
+  • provide coordinated cross-government updates
+  • provide advice on resource prioritisation
+  • provide advice on communications to the public
+  • inform crisis-related decision-making.
+PM&C will provide advice to the Prime Minister as required on co-option of non-NSC
+ministers, and chair(s) of the peak senior officials’ crisis forum to the NSC.
+The Prime Minister may also convene other Cabinet Committees to support crisis decision
+making as the Prime Minister deems appropriate.
+
+
+National Coordination Mechanism
+The NCM is the peak senior officials’ crisis coordination mechanism providing a national
+picture of crisis to governments and key stakeholders. The NCM provides the convening
+mechanism to bring together Australian Government, state and territory government and
+non government representatives immediately before, during and after a crisis.
+
+The NCM is flexible, scalable and vector-agnostic. It facilitates rapid problem definition
+and shared situational awareness, and ensures ownership of solutions to drive the rapid
+stabilisation of crisis events. It uses a domain- or sector-based approach to promote
+collaboration between stakeholders with equities in the crisis, strengthening and formalising
+the existing relationships between governments, industry and civil society. During concurrent,
+compounding or complex crises, the NCM enables the harnessing of the collective national
+capabilities to support communities.
+
+During crisis, the strategic aims of the NCM are to:
+  • facilitate whole of Australian Government and national coordination and decision-making
+  • maintain near real time situational awareness
+  • ensure national leadership and the maintenance of public trust in government systems
+  • ensure that the problem is clearly defined and understood
+  • agree on lines of effort to mitigate the impacts and consequences of a significant crisis
+  • ensure actions are synchronised, coordinated and responsive
+  • support the continuity of critical community functions
+  • communicate actions and coordinate public messaging
+  • reduce harm and the overall severity of the crisis.
+
+
+
+
+32 | Australian Government Crisis Management Framework
+The relevant DCG NEMA (or delegate) convenes and chairs the NCM on behalf of the
+Australian Government, supported by NEMA. PM&C may elect to co-chair an NCM. Other
+relevant Australian Government agencies may co-chair, at the request of the NEMA chair or
+where they are the Australian Government Coordinating Agency. States, territories, private
+sector or the not-for-profit sector may request that an NCM is activated for a specific
+purpose/issue, noting that a decision to activate an NCM remains a matter for the relevant
+DCG NEMA (or delegate).
+NCM participation is flexible and can be wide-ranging. In the context of their role in the NCM,
+participants bring information, expertise and experience from their sectors, and actively
+contribute to shared situational awareness and cross-sectoral coordination of priorities
+and actions.
+The NCM (including NCM-AUSGOV – see p. 35) has a formalised reporting line to the NSC,
+or other relevant Committee of Cabinet as determined by the Prime Minister, during times
+of crisis to ensure consistent whole of Australian Government situational awareness and
+response recommendations. Where agreed by the Prime Minister, the chair(s) of the NCM
+may be co-opted to the NSC to provide briefings on matters related to crisis.
+Where appropriate, the chair(s) of the NCM may also brief the Prime Minister and relevant
+ministers at the earliest opportunity, following a significant crisis.
+For Tier 1 to 3 international crisis coordination, the IDETF is the peak senior officials’
+coordination mechanism. In the case where both the NCM and the IDETF are activated,
+it is the responsibility of the respective chairs, in consultation with PM&C, to agree which
+forum will function as the peak senior officials’ mechanism.
+For Tier 4 crisis coordination, the NCM is the peak crisis coordination mechanism,
+with IDETF reporting to the NCM.
+
+
+
+
+33 | Australian Government Crisis Management Framework
+                                                                     rdination Mech
+                                                            ional Coo              anis
+                                                         Nat                           m
+                                                                               Prime Minister
+
+                                                                              National Cabinet
+                                        s                                                                                                                          Fi r
+                                                                                          u r i t y C o mm
+                                   er                                   io   na l S e c                             ittee                                                 st
+                                 st                                N at                                                                                                        M
+                        i   ni                                                                                                                                                     in
+                                                                                                                                                                                        is
+
+
+
+
+                                                                                           Defence
+                    M
+
+
+
+
+                                                                       Eme
+
+
+
+
+                                                                                                                     l
+                                                                                                                 Lega
+                                                                        man
+
+
+
+
+                                                                                                                                                                                        te
+                t
+               rs
+
+
+
+
+                                                                          rgen nt
+
+
+
+
+                                                                                                                                                                                           r
+                                                                           age
+
+
+
+
+                                                                                                                                   ta al
+
+
+
+
+                                                                                                                                                                                             s
+             Fi
+
+
+
+
+                                                         He
+
+
+
+
+                                                                                                                                sis ion
+                                                                                                                                        e
+                                                                                                                                     nc
+                                                           alt
+
+
+
+
+                                                                              cy
+                                                                              me
+
+
+
+
+                                                                                                                             as rnat
+                                            In                h/
+
+
+
+
+                                                                                                                                e
+                                              su              ag                                                                                                   n
+
+
+
+
+                                                                                                                             Int
+                                                 ra             ed                                                                                           ria
+                                                   nc              c                                                                                     nita
+                                                     e             ar
+                                                                                                                                                        a
+                                                                                                                                                      um
+                                                                     e
+                                                                                                                                                  H
+                            Co                                                                                                                                              s
+                                 ron                                                                                                                                     ain
+                                    ial
+                                        /m                                    National                                                                        pp
+                                                                                                                                                                 ly    ch
+                                          or t                                                                                                             Su
+                                              ua
+                                                ry                        Coordination Node
+                  Borde
+                        r (pe
+                  and goo ople                                               Facilitation of shared situational                                                                Food
+                          ds)                                                awareness and common
+                                                                             operating picture
+                                                                             Problem definition
+                  Cyber                                                      Identification of interdependencies                                                       Education
+
+                                                                             Coordination and prioritisation
+                                                                             of effort
+                                          s                                                                                                                    Ban
+                                      fair                                   Action plans                                                                              king
+                                 n af                                                                                                                                       a
+                                                                                                                                                                       fina nd
+                    Fo      reig                                             Communication, information                                   Te
+                                                                                                                                             le                            nce
+                                                                             and messaging                                                     co
+                                                                                                                                                 m
+                                                    s                                                                                                  m
+                                                  nt                                                                                                       un
+                                                ve                                                                                                           ica
+                                              re                                                                                                                tio
+                                        ajo
+                                                                 sa ice
+
+
+
+
+                                                                                                                                                                   ns
+                                                                     ty
+
+
+
+
+                                   M
+                                                                    t
+                                                                   fe
+                                                          ub jus
+
+
+
+
+                                                                                                                                         Da
+                                                      d p ity,
+
+
+
+
+                                                                                                                                           ta
+                                                             lic
+
+
+
+
+                                                                                                                                              an
+                                                            r
+                                                         cu
+
+
+
+
+                                                                                                                                                d
+                                                                                                                         Agr
+                                                       Se
+
+
+
+
+                                                                                                                                                  GI
+                                                    an
+
+
+
+
+                                                                                                                                                      S
+                                                                                                                             icu
+                                                                                                     Transport
+                                                 ter
+
+
+
+
+                                                                                                                                 ltur
+                                                                                Energy
+                                               Wa
+
+
+
+
+                                                                                                                                     e
+
+
+
+
+                                                                          I m pac
+                                                                                    ted communities
+
+
+
+
+Figure 10. National Coordination Mechanism18
+
+
+
+
+18 https://www.nema.gov.au/ncm
+
+34 | Australian Government Crisis Management Framework
+Australian Government NCM
+The Australian Government NCM (NCM-AUSGOV) is a specialised NCM that supports a
+shared whole of Australian Government picture of crisis, with participants drawn from across
+the Australian Government.
+During crisis, the initial convening of the NCM-AUSGOV should include broad representation
+across Australian Government agencies where appropriate, to build a comprehensive
+understanding of all Australian Government equities and interests. Participants should
+include response and recovery representation from all relevant agencies. This is to ensure
+appropriate representation during the crisis response phase, where there is a potential role
+for the Australian Government in supporting recovery activities.
+Each participating agency will bring information, expertise and experience from their agency
+and sector, and actively contribute to shared situational awareness and cross-government
+coordination of priorities and actions.
+The relevant DCG NEMA (or delegate) is chair and NEMA provides secretariat services in
+collaboration with the Australian Government Coordinating Agency, as required. The relevant
+Deputy Secretary PM&C (or delegate) may elect to chair or co-chair the NCM-AUSGOV or
+delegate this responsibility to the Australian Government Coordinating Agency.
+When the focus is on response to a domestic terrorism-related event, the Commonwealth
+Counter-Terrorism Coordinator (or delegate) may chair the NCM-AUSGOV, supported by
+the Counter-Terrorism Coordination Centre (CTCC) and NEMA. The Deputy Secretary
+PM&C (or delegate) may elect to chair or co-chair the NCM-AUSGOV.
+
+
+Capabilities that support the NCM
+The NCM is supported with strategic planning, near real time situational awareness and other
+coordination and decision-support functions by:
+  • the NSR
+  • the NJCOP
+  • the CCT
+  • the CASP methodology.
+The CCT supports coordination of Australian Government operational activities in line
+with the strategic intent set by the NCM, including the NCM-AUSGOV.
+
+
+
+
+35 | Australian Government Crisis Management Framework
+Inter-Departmental Emergency Task Force
+The IDETF is the peak senior officials’ crisis coordination mechanism during Australian
+Government responses to international crises between Tiers 1 to 3. The relevant Deputy
+Secretary DFAT (or delegate) is the chair, and the relevant Deputy Secretary PM&C (or
+delegate) may co-chair with DFAT where appropriate. DFAT provides secretariat services
+for the IDETF.
+Where agreed by the Prime Minister, the chair(s) of the IDETF may be co-opted to the NSC
+to brief on matters related to crises. They should seek to brief the Prime Minister and relevant
+ministers through PM&C at the earliest opportunity, where appropriate.
+In response to a crisis that has significant international and domestic consequences,
+and triggers coordination in line with Tier 4 arrangements, the NCM becomes the peak senior
+officials’ crisis coordination forum (see the Coordination for extreme and catastrophic crises
+(Tier 4) section on p. 38). In such instances, DFAT remains responsible for delivering response
+requirements for all international elements of the crisis, and may convene the IDETF to support
+this responsibility. The IDETF, if convened, reports to the NCM, with the IDETF chair(s)
+updating the NCM on the international elements of the Australian Government response.
+The IDETF chair(s) should also brief DCG EMR NEMA on any offers of, or requests for,
+assistance from overseas countries.
+
+
+Portfolio-based mechanisms
+Portfolios that maintain national plans and crisis management arrangements may have
+bespoke coordination and advice-seeking mechanisms within their own portfolios.
+
+
+Special and temporary mechanisms
+When existing crisis arrangements are not fit-for-purpose for a specific crisis, it may
+be appropriate for the Lead Minister to establish special and temporary mechanisms
+in parallel with existing mechanisms to ensure effective and aligned Australian
+Government coordination.
+These special and temporary mechanisms may include:
+  • an inter-departmental committee
+  • an ad hoc secretaries’ coordination meeting
+  • a dedicated whole of Australian Government taskforce
+  • government-industry working groups
+  • the appointment of a special envoy.
+
+
+
+
+36 | Australian Government Crisis Management Framework
+Any special purpose or temporary mechanisms should be guided by and complement existing
+arrangements, to ensure a consistent and effective approach to crisis across the Australian
+Government. Where special purpose/temporary mechanisms are established, senior officials
+should ensure arrangements are in place to brief their agencies.
+The relevant peak senior officials’ crisis coordination mechanism chair (or delegate) should
+quickly establish the relationship between the peak and new mechanisms, and communicate
+arrangements to relevant agencies/officials. Specifically, the chair (or delegate)
+should establish:
+  • a clear understanding of respective roles, responsibilities and functions
+  • clear lines for information sharing, decision making and accountability
+  • a consistent whole of Australian Government communication strategy.
+
+
+Strategic crisis policy coordination
+In significant emerging or protracted crises, there may be the need to establish a whole of
+government strategic policy coordination mechanism to consider complex strategic policy
+issues arising from the crisis. The need to establish this mechanism may be driven by:
+  • a sudden shift in the crisis threat environment that generates the potential for
+    significant acute consequences on Australia or Australian interests
+  • a severe or protracted crisis prompting the need to shift policy settings to ensure the
+    continuation of societal functions, or enable unprecedented support.
+This mechanism would work in parallel with the operational coordination undertaken by the NCM.
+The mechanism may support consideration of existing policy settings to prevent the
+reoccurrence of unintended consequences during crises, and policy issues associated with
+the transition to longer-term recovery from crises. It may also be used to address identified
+strategic policy or capability gaps, by coordinating rapid policy development, reforms and
+proposals. It could be applied during the near-term preparedness, response, relief and early
+recovery phases of the Continuum (p. 10).
+The mechanism would be aligned with the existing special and temporary purpose
+mechanism provisions under this Framework and be integrated with existing operational crisis
+coordination mechanisms, particularly the NCM(s). To support this, the chair of the strategic
+policy coordination mechanism should participate in relevant NCM(s). The mechanism would
+be established and led by PM&C.
+
+
+
+
+37 | Australian Government Crisis Management Framework
+Coordination for extreme to catastrophic crises (Tier 4)
+For the purpose of an Australian Government response, Tier 4 coordination may be triggered
+by any type of hazard(s) where the complexity and severity of impacts and consequences
+requires the highest level of coordination across the full span of Australian Government
+interests. A crisis requiring Tier 4 coordination may:
+  • be caused by any hazard(s)
+  • be highly complex, including concurrent, compounding and/or consecutive crisis events,
+    resulting in interlinked and cascading consequences requiring coordination across the
+    full range of Australian Government and national equities and interests
+  • have wide-ranging harmful impacts and consequences across multiple jurisdictions
+    and sectors of society, and extreme to catastrophic impacts on Australians
+  • have overwhelmed Australia’s technical, non-technical and social systems
+    and resources, and degraded or disabled governance structures and strategic
+    and operational decision-making functions.
+Tier 4 coordination is expected to involve most or all portfolios. It supports whole of nation
+responses spanning domestic and international jurisdictions. It could be supported by a
+number of national plans, including the Australian Government Catastrophic Crisis Plan
+(AUSCATPLAN) maintained by NEMA.
+During Tier 4 coordination, ministers, senior officials and their agencies have clear
+responsibilities to ensure Australian Government coordination and response activities are well
+aligned and responsive as the impacts and consequences of the crisis evolve. The Handbook
+provides additional principles-based guidance on roles and responsibilities to initiate and
+undertake Tier 4 coordination.
+
+
+   The establishment of the roles of Lead Minister, Australian Government Coordinating
+   Agency and Lead Coordinating Senior Official (p. 24) under the Framework does not
+   displace the existing executive responsibilities of ministers and senior officials. During
+   a crisis requiring Tier 4 coordination, ministers and senior officials retain their statutory
+   powers, with agencies and officials continuing to report to their respective ministers.
+
+
+
+
+38 | Australian Government Crisis Management Framework
+Coordination arrangements
+The Prime Minister is the Lead Minister for Tier 4 coordination. The Prime Minister
+may delegate the Lead Minister role to another minister.
+NEMA is the Australian Government Coordinating Agency for Tier 4 coordination.
+NEMA will brief the Prime Minister through PM&C.
+DCG EMR NEMA is the Lead Coordinating Senior Official for Tier 4 coordination.
+During Tier 4 coordination, the NCM is the peak crisis coordination mechanism.
+  • The relevant DCG NEMA (or delegate) is a co-chair of the NCM, including
+    NCM-AUSGOV.
+  • NEMA provides secretariat services to the NCM.
+  • The relevant Deputy Secretary PM&C or delegate is a co-chair of the NCM.
+  • Where deemed appropriate by the Prime Minister, DCG NEMA and the relevant
+    Deputy Secretary PM&C, as co-chairs of the NCM, may be co-opted to the NSC
+    to inform ministerial decision making.
+The NCM may be informed by subsidiary sector-specific coordination forums, including
+inter-departmental committees, or sector-specific NCMs.
+The IDETF is the peak senior officials’ crisis coordination mechanism for international
+crises during Tiers 1–3 coordination, and reports to the NCM during Tier 4 coordination.
+Where another agency was responsible for Australian Government coordination prior
+to transitioning to NEMA at Tier 4, that agency may consider co-locating operational
+officers to the NSR to support whole of Australian Government coordination.
+Other Australian Government agencies and ministers retain responsibility for leading
+consequence management activities within their own sectors, including existing
+legislative power and responsibilities.
+
+
+
+
+39 | Australian Government Crisis Management Framework
+Recovery
+
+
+
+
+Bushfire recovery at Kangaroo Island (NEMA)
+  Preparedness                   Response                      Relief                          Recovery
+
+
+
+
+Figure 11. The recovery phase of the Continuum
+
+The United Nations Office for Disaster Risk Reduction (UNDRR) defines recovery as:
+
+
+  ‘the restoring or improving of livelihoods and health, as well as economic, physical,
+  social, cultural and environmental assets, systems and activities, of a disaster-affected
+  community or society, aligning with the principles of sustainable development and
+  “build back better”, to avoid or reduce future disaster risk.’
+
+
+The recovery phase encompasses considerations for the built environment, the social
+environment, the natural environment and the economic environment.
+
+The recovery phase of the Continuum (p. 10) comprises early recovery and longer-term
+recovery. The coordination arrangements in this Framework span near-term preparedness,
+response, relief and early recovery.
+  • Early recovery refers to temporary, near-term measures that support anticipated
+    community needs, such as transitional shelter, services and supplies. During early
+    recovery, the restoration of critical infrastructure would also be underway. This may
+    occur alongside operational response and relief efforts.
+  • Longer-term recovery refers to the transition from the temporary measures established
+    during early recovery to more permanent, ongoing arrangements that reflect and
+    support community priorities. This may include the reconstruction of the built
+    environment, and the restoration of community connections, relationships, networks
+    and social structures.
+
+States and territories are responsible for crisis management at the jurisdictional level,
+including recovery. The Australian Government provides financial assistance to states
+and territories for eligible recovery activities through programs such as the DRFA.19
+
+Successful recovery relies on:
+  • understanding the context
+  • recognising complexity
+  • enabling community-led approaches
+  • ensuring coordination of all activities
+  • employing effective communication
+  • acknowledging and building capacity for future resilience.
+
+
+
+19 Details of the DRFA are available at:
+   https://www.nema.gov.au/our-work/disaster-recovery/disaster-recovery-funding-arrangements
+
+41 | Australian Government Crisis Management Framework
+Recovery planning
+All national plans under the Framework are required to address early recovery
+considerations to ensure the Australian Government is prepared from the onset of crisis
+to support early recovery.20
+The Crisis Recovery Coordination Plan supports Australian Government agencies to plan
+for recovery.
+
+
+Longer-term recovery
+As the Australian Government changes its focus from early recovery to longer-term recovery,
+more enduring arrangements may be required to support ongoing coordination of Australian
+Government activities, programs and strategic policy. Following a significant crisis, this
+may require establishment of special purpose or temporary mechanisms to coordinate
+the implementation of policy and programs by Australian, state and territory governments.
+The roles and responsibilities of government agencies and officials supporting recovery
+should be defined within those mechanisms.
+
+
+
+
+20 The National Principles for Disaster Recovery are outlined at:
+   https://knowledge.aidr.org.au/resources/national-principles-for-disaster-recovery/
+
+42 | Australian Government Crisis Management Framework
+43 | Australian Government Crisis Management Framework
+Key legislation
+  Legislation           Description
+
+
+  National              • The making of a NED signals to the Australian community – and to all levels
+  Emergency               of government across Australia – the severity of a crisis. It also provides clarity
+                          about the Commonwealth’s role and the statutory powers available to the
+  Declaration
+                          Australian Government ministers to handle a significant crisis.
+  Act 2020              • A NED can be made for a period of up to 3 months, and can be extended
+                          by the Governor-General for periods up to 3 months.
+                        • The Governor‑General may declare a national emergency, on advice of the
+                          Prime Minister, in certain circumstances, including if the Prime Minister is
+                          satisfied that an emergency (whether occurring in or outside Australia) is causing
+                          harm that is nationally significant in Australia or in an Australian offshore area.
+                        • PM&C, the Department of Home Affairs and NEMA are responsible for
+                          providing advice on operational and legal policy matters relevant to the Act,
+                          including preparing advice for the Prime Minister about making a declaration.
+                          The process for making a NED, including legal thresholds and consultation
+                          requirements, is outlined in the National Emergency Declaration Aide-Mémoire,
+                          maintained by PM&C.
+
+  Part IIIAAA of        • Sets out of the statutory process for Defence Force Aid to the Civil Authority
+  the Defence             (DFACA) ‘Call Out’ of the Australian Defence Force (ADF) to protect Commonwealth
+                          interests or states and territories against ‘domestic violence’ as defined by the Act.
+  Act 1903
+                          Part IIIAAA is used in circumstances where the ADF may be required to use force.
+  (Defence              • The Governor-General may make a decision to call out the ADF on the
+  Force Aid               advice of the authorising ministers, being the Prime Minister, Minister for
+  to the Civil            Defence and Attorney-General.
+                        • Defence’s policy framework for Part IIIAAA is the Defence Policy Guide:
+  Authority)
+                          Threshold for call out of the Australian Defence Force and Guidelines for
+                          requesting support from the Australian Defence Force (Call Out) under Part IIIAAA
+                          of the Defence Act 1903 by States and Territories.
+                        • Separately, Defence can provide assistance to civilian agencies where there is
+                          no contemplated use of force through Defence Assistance to the Civil Community
+                          (DACC). The Defence Assistance to the Civil Community Policy and the Defence
+                          Assistance to the Civil Community Manual are the policy frameworks for DACC.
+
+  Section 28 of         • Provides Defence access to additional human resources beyond the permanent
+  the Defence             forces and those Reservists who have volunteered to support a crisis response.
+                        • The Minister responsible for Defence, after consultation with the Prime Minister,
+  Act 1903
+                          may recommend the Reserve Call Out to the Governor-General.
+  (Reserve              • The Reserve Call Out may not be an appropriate mechanism for responding
+  Call Out)               to a crisis and is not tethered to a NED.
+
+  Biosecurity           • The Governor-General may make a biosecurity emergency declaration if the
+  Act 2015                Minister responsible for Agriculture is satisfied that the declaration is necessary
+                          to prevent or control the establishment or spread of the disease or pest under
+                          Chapter 8 Part 1 of the Act.
+                        • Minister responsible for Health may exercise powers relevant to the management
+                          of a human health biosecurity risk under Chapter 8 Part 2 of the Act.
+                        • Minister responsible for Agriculture or Director of Biosecurity, may exercise
+                          powers to manage biosecurity risks including monitoring, control and response
+                          during a biosecurity emergency period under Chapter 8 Part 1 of the Act. These
+                          may be exercised anywhere in the Australian territory, as defined by the Act.
+
+
+
+45 | Australian Government Crisis Management Framework
+Appendices
+Appendix A
+Designated Lead Ministers, Lead Coordinating Senior
+Officials and Australian Government Coordinating
+Agencies for identified hazards
+Where a hazard is not identified, PM&C will work with NEMA and other relevant
+Australian Government agencies to identify an appropriate Australian Government Coordinating
+Agency, depending on where the impacts and consequences of the hazard primarily fall.
+
+
+   Identified hazards
+
+   Cyber Incidents
+
+
+   A cyber incident is a single or series of unwanted or unexpected event(s) that have the
+   potential to impact the confidentiality, integrity or availability of a network or system or
+   the information that it stores, processes or communicates. This may result in significant
+   disruption to the functioning of government or provision of government services; critical
+   infrastructure or the provision of essential services; or may require a coordinated national
+   response. This may include unauthorised or malicious sharing of data, manipulation or
+   destruction of critical data and software, disruptions to ICT networks or systems, and
+   exploitation of networks to cause a physical effect. A response to a cyber incident may
+   require coordination under the Framework as a result of the technical considerations
+   of the event, such as those detailed under the CIMA, or following consideration of the
+   broader consequences of the cyber incident.
+
+ National plan(s)          Lead Minister          Australian            Lead                Coordination
+                                                  Government            Coordinating        mechanism21
+                                                  Coordinating          Senior Official
+                                                  Agency
+
+ Australian                Minister               Department of         National            NCM
+ Cyber                     responsible for        Home Affairs          Cyber Security
+                                                                                            IDETF
+ Response Plan             Cyber Security         (National Office of   Coordinator or
+ (AUSCYBERPLAN)                                   Cyber Security)       other relevant
+                                                                        Deputy Secretary,
+                                                                        Department of
+                                                                        Home Affairs
+
+
+
+
+21 Abbreviations are listed in Appendix C.
+
+47 | Australian Government Crisis Management Framework
+  Domestic biosecurity crises
+
+
+  An incident where a disease or pest or is posing a severe and immediate threat or
+  causing harm to Australia’s animals or plant health, the environment or the economy
+  and requires a whole-of-government response.
+
+ National plan(s)           Lead Minister           Australian             Lead                Coordination
+                                                    Government             Coordinating        mechanism
+                                                    Coordinating           Senior Official
+                                                    Agency
+
+ Australian                 Minister                Department             Deputy Secretary    • NCM
+ Government                 responsible             of Agriculture,        responsible         • National
+ Biosecurity and            for Agriculture         Fisheries and          for Biosecurity,      Management
+ Agricultural                                       Forestry               DAFF                  Group
+ Response Plan
+ (AUSBIOAGPLAN)
+
+  Domestic energy supply crises
+
+
+  A domestic energy supply crisis that requires a whole-of-government response.
+  This may include liquid fuel supply, natural gas supply or power supply.
+
+ National plan(s)                 Lead Minister          Australian          Lead               Coordination
+                                                         Government          Coordinating       mechanism
+                                                         Coordinating        Senior Official
+                                                         Agency
+
+  • National Liquid Fuels         Minister               Department          Deputy             • NCM
+    Emergency Response            responsible            of Climate          Secretary          • Liquid fuel
+    Plan (NLFERP)                 for Energy             Change, Energy,     responsible          – NOSEC
+  • Interruption to Gas                                  the Environment     for Energy,        • Natural gas
+    Supply Process                                       and Water           DCCEEW               – NGERAC
+    (ITGSP)                                                                                     • Power
+  • Power System                                                                                  system
+    Emergency                                                                                     emergency
+    Management Plan                                                                               – NEMEMF
+    (PSEMP)
+
+
+
+
+48 | Australian Government Crisis Management Framework
+  Domestic natural hazard disasters
+
+
+  A domestic rapid onset event that requires a whole-of-government response.
+  This may include bushfires, earthquakes, riverine floods, storms, tropical cyclones,
+  storm surges, landslides, tsunamis, meteorite strikes or tornados.
+
+ National plan(s)        Lead Minister            Australian           Lead                 Coordination
+                                                  Government           Coordinating         mechanism
+                                                  Coordinating         Senior Official
+                                                  Agency
+
+ Australian              Minister                 National             Deputy               • NCM
+ Government              responsible              Emergency            Coordinator          • CCOSC
+ Disaster                for Emergency            Management           General,
+ Response Plan           Management               Agency               Emergency
+ (COMDISPLAN)                                                          Management and
+                                                                       Response, NEMA
+
+  Domestic public health crises
+
+
+  A domestic public health incident that requires a whole-of-government response.
+  Examples may include an influenza pandemic or a serious infectious disease outbreak
+  or a hazardous material incident with nationally significant human health consequences
+  (excl. domestic terrorist incidents).
+
+ National plan(s)        Lead Minister            Australian           Lead                 Coordination
+                                                  Government           Coordinating         mechanism
+                                                  Coordinating         Senior Official
+                                                  Agency
+
+ National Health         Minister                 Department of        Chief Medical        • NCM
+ Emergency               responsible              Health, Disability   Officer,             • AHPC
+ Response                for Health               and Ageing           Department of
+ Arrangements                                                          Health, Disability
+ (NHERA)                                                               and Ageing
+
+
+
+
+49 | Australian Government Crisis Management Framework
+  Domestic security-related incidents (excl. terrorist incidents)
+
+
+  A domestic security incident, other than terrorism, cyber crises, and incidents related
+  to transport, telecommunications, or energy supply or availability that requires a
+  whole-of-government response. This may include violent civil unrest, foreign
+  interference, sabotage, and espionage.
+
+ National plan(s)        Lead Minister            Australian      Lead               Coordination
+                                                  Government      Coordinating       mechanism
+                                                  Coordinating    Senior Official
+                                                  Agency
+
+ Australian              Minister                 Department of   Head of National   • NCM
+ Government              responsible              Home Affairs    Security,
+ Domestic Security       for Home Affairs                         Department of
+ Crisis Plan                                                      Home Affairs
+ (AUSSECPLAN)
+
+  Domestic terrorist incidents
+
+
+  A domestic terrorist incident (suspected or declared) that requires a
+  whole-of-government response. A terrorist incident is an act, or threat to commit an act,
+  that is done with the intention to coerce or influence the public or any government by
+  intimidation to advance a political, religious or ideological cause, and the act causes:
+    • death, serious harm or endangers a person
+    • serious damage to property
+    • a serious risk to the health or safety of the public
+    • the serious interference with, disruption, or destruction, of critical infrastructure.
+
+ National plan(s)        Lead Minister            Australian      Lead               Coordination
+                                                  Government      Coordinating       mechanism
+                                                  Coordinating    Senior Official
+                                                  Agency
+
+ National Counter        Minister                 Department of   Commonwealth       • NCM
+ Terrorism Plan          responsible for          Home Affairs    Counter-
+ (NCTP)                  Home Affairs                             Terrorism
+                                                                  Coordinator
+
+
+
+
+50 | Australian Government Crisis Management Framework
+  Incidents involving an offshore petroleum facility in Commonwealth waters
+
+
+  Incidents may include any non-security related event that occurs at, or has a direct link
+  to, an offshore petroleum facility in Commonwealth waters (e.g. fire, oil spill) and requires
+  a whole-of-government response.
+
+ National plan(s)        Lead Minister            Australian          Lead               Coordination
+                                                  Government          Coordinating       mechanism
+                                                  Coordinating        Senior Official
+                                                  Agency
+
+ Offshore                Minister                 Department of       Deputy Secretary   • NCM
+ Petroleum               responsible              Industry, Science   responsible for    • OPICC
+ Incident                for Resources            and Resources       Resources, DISR
+ Coordination
+ Framework
+
+  International crises
+
+
+  An international incident that requires an Australian Government response.
+  This may include natural hazard disasters, humanitarian crises, terrorist acts,
+  major transport incidents, civil unrest, overseas health emergencies or outbreaks,
+  kidnapping of Australians overseas and chemical, biological, radiological or nuclear
+  incidents which impact or may impact Australians or Australia’s national interest.
+
+
+ National plan(s)        Lead Minister            Australian          Lead               Coordination
+                                                  Government          Coordinating       mechanism
+                                                  Coordinating        Senior Official
+                                                  Agency
+
+ International           Minister                 Department of       Deputy Secretary   • IDETF
+ Crisis                  responsible for          Foreign Affairs     responsible        • NCM
+ Management              Foreign Affairs          and Trade           for Consular
+ Framework                                                            and Crisis
+ (ICMF)                                                               Management,
+                                                                      DFAT
+
+
+
+
+51 | Australian Government Crisis Management Framework
+  Maritime terrorist incidents within the Australian Security Forces Authority Area
+
+
+  A maritime terrorist incident (suspected or declared) within the Australian Security Forces
+  Authority Areas that requires a whole-of-government response, including piracy, robbery
+  and violence at sea. The Security Forces Authority Area is synonymous with Australia’s
+  Search and Rescue Region. The Australian Government has direct responsibility for
+  offshore maritime terrorism prevention, response and recovery, from the territorial sea
+  baseline to the outer boundary of Australia’s Security Forces Authority Area. Maritime
+  terrorist incidents may include:
+  •    attacks on fixed infrastructure
+  •    attacks against vessels
+  •    attacks on commercial interests or
+  •    incidents mounted from, or through, the maritime environment.
+
+
+ National plan(s)                  Lead Minister         Australian         Lead               Coordination
+                                                         Government         Coordinating       mechanism
+                                                         Coordinating       Senior Official
+                                                         Agency
+
+ Australian Government             Minister              Australian         Commander           • NCM
+ Maritime Counter-                 responsible for       Border Force       Maritime Border
+ Terrorism Response Plan           Home Affairs          (Maritime          Command
+ (AUSMCTPLAN)                                            Border
+                                                         Command)
+ Australian Government
+ Piracy, Robbery and
+ Violence at Sea Response
+ Plan (AUSPRVSPLAN)
+
+  Radiological/nuclear incidents (excl. domestic terrorist incidents)
+
+
+  A radiological or nuclear incident that requires a whole-of-government response.
+  It may be caused by ionising radiation in emergency exposure situations.
+  An emergency exposure situation arises as a result of an accident, a malicious act,
+  or any other unexpected event, and requires prompt action in order to avoid or reduce
+  adverse consequences.
+
+ National plan(s)        Lead Minister            Australian            Lead                  Coordination
+                                                  Government            Coordinating          mechanism
+                                                  Coordinating          Senior Official
+                                                  Agency
+
+ Australian              Minister                 Australian            Chief Radiation       • NCM
+ Government              responsible for          Radiation             Health Scientist/
+ Radiological            Health                   Protection and        Chief Executive
+ and Nuclear                                      Nuclear Safety        Officer, ARPANSA
+ Events Plan                                      Agency
+ (AUSRNEPLAN)
+
+
+
+52 | Australian Government Crisis Management Framework
+  Space weather events
+
+
+  Space weather events are global, and may have significant national impacts for Australia
+  that require a whole-of-government response. Space weather may disrupt many of
+  Australia’s critical infrastructure assets, such as the electricity grid, Position, Navigation
+  and Timing (PNT) systems, internet connectivity and satellite and radio communication
+  systems. Many industries and government sectors may be impacted if there are
+  interruptions to communications and navigation, and a loss of power.
+
+
+ National plan(s)        Lead Minister            Australian              Lead                  Coordination
+                                                  Government              Coordinating          mechanism
+                                                  Coordinating            Senior Official
+                                                  Agency
+
+ Australian              Minister                 National                Deputy                • NCM
+ Government              responsible              Emergency               Coordinator
+ Space                   for Emergency            Management              General,
+ Weather Plan            Management               Agency                  Emergency
+ (AUSSWEPLAN)                                                             Management and
+                                                                          Response, NEMA
+
+  Transport incidents within Australia, the Australian Search and Rescue Region,
+  or the Australian Exclusive Economic Zone
+
+
+  Transport incidents (maritime, aviation, road and rail), other than terrorism, that require
+  a whole-of-government response. This may include crashes of, and search and rescue
+  efforts for, commercial aircraft and vessels (within Australia or the Australian Search
+  and Rescue Region), maritime environmental emergencies (including maritime casualties,
+  oil and/or hazardous and noxious substance spills within the Australian Exclusive
+  Economic Zone) stemming from these incidents, and may also include major disruptions
+  to road and rail infrastructure which impact on supply chains across multiple jurisdictions.
+
+
+ National plan(s)              Lead Minister             Australian           Lead               Coordination
+                                                         Government           Coordinating       mechanism
+                                                         Coordinating         Senior Official
+                                                         Agency
+
+ The Australian                Minister                  Department           Deputy             •   NCM
+ Government                    responsible               of Infrastructure,   Secretary          •   NPSCC
+ Coordination                  for Transport             Transport,           responsible        •   APG
+ Arrangements for                                        Regional             for Transport,     •   MESCC
+ Maritime Environment                                    Development,         DITRDCSA
+ Emergencies                                             Communications,
+                                                         Sports and
+ National Search                                         the Arts
+ and Rescue Manual
+
+
+
+
+53 | Australian Government Crisis Management Framework
+  Novel or ambiguous hazard
+
+
+  A novel or ambiguous hazard is a hazard that has not been anticipated, and cannot be
+  responded to using any existing Australian Government crisis plans.
+
+ National plan(s)        Lead Minister            Australian          Lead                 Coordination
+                                                  Government          Coordinating         mechanism
+                                                  Coordinating        Senior Official
+                                                  Agency
+
+ N/A                     Minister                 National            Deputy               • NCM
+                         responsible              Emergency           Coordinator-
+                         for Emergency            Management          General,
+                         Management               Agency              Emergency
+                         (as the default          (as the default     Management
+                         until such time          until such time     and Response,
+                         that a more              that a more         NEMA (as the
+                         appropriate              appropriate         default until such
+                         Lead Minister            Australian          time that a more
+                         is agreed)               Government          appropriate Lead
+                                                  Coordinating        Coordinating
+                                                  Agency is agreed)   Senior Official is
+                                                                      agreed)
+
+
+
+
+54 | Australian Government Crisis Management Framework
+Appendix B
+Cross-sectoral all-hazards plans and arrangements
+
+                                                               Plans and                Responsible
+  Description
+                                                               arrangements             agency
+
+  Catastrophic crises                                          Australian Government    National Emergency
+                                                               Catastrophic Crisis      Management Agency
+                                                               Plan (AUSCATPLAN)
+
+  Reception and coordination of international assistance       Australian Government    National Emergency
+                                                               Reception of             Management Agency
+  International offers of assistance may vary significantly,
+                                                               International
+  arise from any source and be made to any Australian
+                                                               Assistance Plan
+  Government agency. Any offers of assistance received
+                                                               (AUSRIAPLAN)
+  should be appropriately coordinated, considered and
+  actioned as required to support jurisdictions and the
+  Australian Government’s crisis management priorities.
+
+  Recovery                                                     Crisis Recovery          National Emergency
+                                                               Coordination Plan        Management Agency
+
+  Request for non-financial assistance from states,            Australian Government    National Emergency
+  territories and offshore territories                         Disaster Response        Management Agency
+                                                               Plan (COMDISPLAN)
+  State and territory governments have responsibility
+  for coordinating and planning for the response to
+  and recovery from a disaster within their borders.
+  When the total resources (government, community
+  and commercial) of an affected jurisdiction cannot
+  reasonably cope with the needs of the situation, the
+  nominated official can seek non-financial assistance
+  from the Australian Government under COMDISPLAN.
+
+  Provision of Australian Government organised physical        Australian               National Emergency
+  assistance to overseas countries following a disaster        Government Overseas      Management Agency
+                                                               Assistance Plan
+                                                                                        Department of Foreign
+                                                               (AUSASSISTPLAN)
+                                                                                        Affairs and Trade
+
+  Reception into Australia of Australian citizens              Australian Government    National Emergency
+  and permanent residents, and their immediate                 Plan for the Reception   Management Agency
+  dependents, and approved foreign nationals                   of Australian Citizens
+  evacuated from overseas                                      and Approved Foreign
+                                                               Nationals Evacuated
+                                                               from Overseas
+                                                               (AUSRECEPLAN)
+
+  Assessment, repatriation and provision of care for           Australian Government    National Emergency
+  Australians and other approved persons injured or            Response Plan for        Management Agency
+  killed overseas in mass casualty crises                      Overseas Mass
+                                                               Casualty Incidents
+                                                               (OSMASSCASPLAN)
+
+  Manage the risk posed by                                     Australian               National Emergency
+  re-entering space debris which may impact Australia          Government Space         Management Agency
+                                                               Re-entry Debris Plan
+                                                               (AUSSPREDPLAN)
+
+
+
+55 | Australian Government Crisis Management Framework
+Appendix C
+Abbreviations
+
+  Term                Definition
+
+  ADF                 Australian Defence Force
+
+  AGDRP               Australian Government Disaster Recovery Payment
+
+  AHPC                Australian Health Protection Committee
+
+  AIDR                Australian Institute for Disaster Resilience
+
+  ANZCTC              Australia-New Zealand Counter-Terrorism Committee
+
+  APG                 Aviation Policy Group
+
+  APS                 Australian Public Service
+
+  APSC                Australian Public Service Commission
+
+  ARPANSA             Australian Radiation Protection and Nuclear Safety Agency
+
+  AVTOP               Australian Victim of Terrorism Overseas Payment
+
+  CAC                 Crisis Arrangements Committee
+
+  CASP                Crisis Appreciation and Strategic Planning
+
+  CCOSC               Commissioners and Chief Officers Strategic Committee
+
+  CC                  Crisis Centre (DFAT)
+
+  CCT                 Australian Government Crisis Coordination Team
+
+  CIMA                Cyber Incident Management Arrangements for Australian Governments
+
+  CTCC                Counter-Terrorism Coordination Centre
+
+  DACC                Defence Assistance to the Civil Community
+
+  DAFF                Department of Agriculture, Fisheries and Forestry
+
+  DCCEEEW             Department of Climate Change, Energy, the Environment and Water
+
+  DFACA               Defence Force Aid to the Civil Authority
+
+  DFAT                Department of Foreign Affairs and Trade
+
+  DISR                Department of Industry, Science and Resources
+
+
+
+56 | Australian Government Crisis Management Framework
+  Term                Definition
+
+  DITRDCSA            Department of Infrastructure, Transport, Regional Development, Communications, Sport and the Arts
+
+
+  DRA                 Disaster Recovery Allowance
+
+  DRFA                Disaster Recovery Funding Arrangements
+
+  GWO                 DFAT Global Watch Office
+
+  IDETF               Inter-Departmental Emergency Task Force
+
+  ITGSP               Interruption to Gas Supply Process
+
+  MESCC               Maritime Emergency Strategic Coordination Committee
+
+  NCM                 National Coordination Mechanism
+
+  NCM-AUSGOV          Australian Government National Coordination Mechanism
+
+  NCSC                National Cyber Security Committee
+
+  NED                 National Emergency Declaration
+
+  NEMA                National Emergency Management Agency
+
+  NEMEMF              National Electricity Market Emergency Management Forum
+
+  NGERAC              National Gas Emergency Response Advisory Committee
+
+  NJCOP               National Joint Common Operating Picture
+
+  NLFERP              National Liquid Fuels Emergency Response Plan
+
+  NOSEC               National Oil Supplies Emergency Committee
+
+  NPSCC               National Plan Strategic Coordination Committee
+
+  NSC                 National Security Committee of Cabinet
+
+  NSR                 Australian Government National Situation Room
+
+  OPICC               Offshore Petroleum Incident Coordination Committee
+
+  PM&C                Department of the Prime Minister and Cabinet
+
+  PNT                 Position, Navigation and Timing
+
+  PSEMP               Power System Emergency Management Plan
+
+  SOPs                Standard Operating Procedures
+
+  UNDRR               United Nations Office for Disaster Risk Reduction
+
+
+57 | Australian Government Crisis Management Framework
+

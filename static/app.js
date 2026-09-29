@@ -3239,6 +3239,7 @@ async function openTemplatesManager() {
               <div><strong class="text-amber-400">Trigger:</strong> ${escapeHtml(trigger)}</div>
               <div><strong class="text-cyan-400">Lead Agency:</strong> ${escapeHtml(lead)}</div>
             </div>
+            ${t.agcmf_national_plan ? `<div class="text-[10px] text-slate-400">AGCMF: ${escapeHtml(t.agcmf_hazard || "")} · plan ${escapeHtml(t.agcmf_national_plan)} · coordinating ${escapeHtml(t.agcmf_coordinating_agency || "")} (workshop mapping, not the NCM)</div>` : ""}
             <div class="text-[10px] text-slate-500 font-mono">${escapeHtml(t.node_count)} nodes • ${escapeHtml(t.edge_count)} edges • Threat: ${escapeHtml(t.threat_type)}</div>
           </div>
           <div class="flex flex-col items-end space-y-2 shrink-0">

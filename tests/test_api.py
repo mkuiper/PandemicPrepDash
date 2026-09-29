@@ -467,6 +467,13 @@ def test_operational_playbooks_metadata():
     assert "scenario_scope" in bio_pb
     assert "trigger_criteria" in bio_pb
     assert "lead_agency" in bio_pb
+    assert bio_pb.get("agcmf_national_plan") == "NHERA"
+    rad = next((t for t in tmpls if t["id"] == "pathway_default_radiological"), None)
+    assert rad is not None
+    assert rad.get("agcmf_national_plan") == "AUSRNEPLAN"
+    flood = next((t for t in tmpls if t["id"] == "pathway_default_severe_weather"), None)
+    assert flood is not None
+    assert flood.get("agcmf_national_plan") == "COMDISPLAN"
 
 
 def test_architecture_documentation_chapter():

@@ -5,6 +5,10 @@ incident coordination: response pathways, human review, and shared situational
 awareness. Its purpose is to gather agency feedback and inform the design of a
 larger platform. It is not an operational command system.
 
+Playbooks are mapped to the [Australian Government Crisis Management
+Framework (AGCMF)](https://www.pmc.gov.au/resources/australian-government-crisis-management-framework-agcmf)
+(local copy under `docs/reference/`). See `docs/agcmf-alignment.md`.
+
 This instance is a workshop demonstrator, **not** ISM-, PSPF-, or IRAP-assessed.
 Security considerations for a later Australian Government platform (Essential Eight,
 host OpenSCAP, identity, audit) are in `ARCHITECTURE.md` and **Help & glossary**.
